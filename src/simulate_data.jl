@@ -79,14 +79,6 @@ function run_simulation(p::Int, T::Int, h_A::Int, h_B::Int, path_prefix::String=
     return y
 end
 
-run_simulation(100, 500, 3, 3, "sim", true)
-
-e = generate_errors_over_time(500, 100)
-
-sigma_e = cov(e)
-
-normm = norm(sigma_e)
-
 function calc_sigma_e(e::Vector{Vector{Float64}})::Matrix{Float64}
     sigma_e = zeros(size(e[1], 1), size(e[1], 1))
     emean = mean(e)
@@ -96,18 +88,13 @@ function calc_sigma_e(e::Vector{Vector{Float64}})::Matrix{Float64}
     return sigma_e / (length(e) - 1)
 end
 
-@benchmark calc_sigma_e(e)
+run_simulation(100, 500, 3, 3, "sim", true)
 
-@benchmark cov(e)
+e = generate_errors_over_time(500, 100)
 
-calc_sigma_e(e) == cov(e)
+sigma_e = cov(e)
 
+normm = norm(sigma_e)
 
-# Check similarity between cov and calc_sigma_e
-calc_sigma_e(e) .== cov(e)
+sigma_e = calc_sigma_e(e)
 
-calc_sigma_e(e)
-
-cov(e)
-
-mean(e)

@@ -32,10 +32,28 @@ function read_data(path::String)::Matrix{Float64}
     return Matrix(CSV.read(path, DataFrame))
 end
 
+function band_matrix!(A::Matrix{Float64}, h::Int)::Matrix{Float64}
+    """Return a banded matrix with bandwidth h on both sides of the main diagonal."""
+    N, T = size(A)
+    for i in 1:N
+        for j in 1:T
+            if abs(i - j) > h
+                A[i, j] = 0.0
+            end
+        end
+    end
+    return A
+end
 
 y = read_data("out/sim_y.csv")
-
+A = read_data("out/sim_A.csv")
 
 calc_Σ0(y)
 
-calc_Σ1(y)
+s1 = calc_Σ1(y)
+
+N, T = size(A)
+
+band_matrix!(s1, 2)
+
+s1

@@ -129,15 +129,17 @@ function main(path::String)::nothing
     # Read data 
     y = read_data(path)
 
+    # Do calculations
     Σ1 = calc_Σ1(y)
     Σ0 = calc_Σ0(y)
 
-    Vhat = constr_V(s0, s1)
-    sigma_hat = vec_sigma_h(s1)
+    Vhat = constr_V(Σ0, Σ1)
+    sigma_hat = vec_sigma_h(Σ1)
     Vhat_d = constr_Vhat_d(Vhat)
 
-    CSV.write("$(ARGS[2])_Vhat_d.csv", Vhat_d)
-    CSV.write("$(ARGS[2])_sigma_hat.csv", sigma_vec)
+    # Write output
+    CSV.write(joinpath("out", "$(ARGS[2])_Vhat_d.csv"), Vhat_d)
+    CSV.write(joinpath("out", "$(ARGS[2])_sigma_hat.csv"), sigma_hat)
 end
 
 main(ARGS[1])

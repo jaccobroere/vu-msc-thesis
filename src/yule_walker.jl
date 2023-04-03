@@ -62,15 +62,25 @@ end
 """
 Construct the V matrix containing the columns of C' = [A B]', that are nonzero
 """
-function constr_V(Σ0::Matrix{Float64}, Σ1::Matrix{Float64})::Matrix{Float64}
+function constr_Vhat(Σ0::Matrix{Float64}, Σ1::Matrix{Float64}; prebanded::Bool=false)::Matrix{Float64}
+    if !prebanded
+        if h == 0
+            h = floor(Int, size(Σ1, 1) / 4)
+        end
+        Σ1 = band_matrix(Σ1, h)
+        Σ0 = band_matrix(Σ0, h)
+    end
     return [Σ1' Σ0]
 end
 
 """
 Construct the vectorized autocovariance of lag 1 from the banded autocovariance matrix.
 """
-function vec_sigma_h(Σ1::Matrix{Float64}, h::Int; prebanded::Bool=false)::Vector{Float64}
+function vec_sigma_h(Σ1::Matrix{Float64}; prebanded::Bool=false, h::Int=0)::Vector{Float64}
     if !prebanded
+        if h == 0
+            h = floor(Int, size(Σ1, 1) / 4)
+        end
         Σ1 = band_matrix(Σ1, h)
     end
     return vec(Σ1')
@@ -100,8 +110,9 @@ end
 """
 This function takes the active columns of V and stacks them into a diagonal block matrix
 """
-function constr_Vhat_d(V::Matrix{Float64}, active::Vector{Vector{Bool}})::Matrix{Float64}
-    p = length(active)
+function constr_Vhat_d(V::Matrix{Float64})::SparseMatrixCSC{Float64}
+    p = size(V, 1)
+    active = active_cols(p)
     res = [V[:, active[i]] for i in 1:p]
     Vhat_d = spzeros(p^2, sum(sum(active)))
 
@@ -114,30 +125,19 @@ function constr_Vhat_d(V::Matrix{Float64}, active::Vector{Vector{Bool}})::Matrix
     return Vhat_d
 end
 
+function main(path::String)::nothing
+    # Read data 
+    y = read_data(path)
 
-# Playground
-y = read_data("out/sim_y.csv")
-A = read_data("out/sim_A.csv")
-B = read_data("out/sim_B.csv")
+    Σ1 = calc_Σ1(y)
+    Σ0 = calc_Σ0(y)
 
-calc_Σ0(y)
+    Vhat = constr_V(s0, s1)
+    sigma_hat = vec_sigma_h(s1)
+    Vhat_d = constr_Vhat_d(Vhat)
 
-s1 = calc_Σ1(y)
-s0 = calc_Σ0(y)
+    CSV.write("$(ARGS[2])_Vhat_d.csv", Vhat_d)
+    CSV.write("$(ARGS[2])_sigma_hat.csv", sigma_vec)
+end
 
-N, T = size(A)
-
-band_matrix(s1, 2)
-
-vec(A)
-
-Vhat = constr_V(s0, s1)
-
-sigma_vec = vec_sigma_h(s1, 2, prebanded=false)
-
-
-active = active_cols(100)
-
-Vhat_d = constr_Vhat_d(Vhat, active)
-
-Vhat_d
+main(ARGS[1])

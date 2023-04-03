@@ -77,19 +77,19 @@ end
 This function calculates the active column indices for the matrix V_h^(d).
 As a function of the dimesion p and the bandwidth h.
 """
-function active_cols(p::Int, h::Int=0)::Vector{Vector{Int}}
+function active_cols(p::Int, h::Int=0)::Vector{Vector{Bool}}
     if h == 0
         h = floor(Int, p / 4)
     end
 
-    active_set = [zeros(Int, p * 2) for _ in 1:p]
+    active_set = [zeros(Bool, p * 2) for _ in 1:p]
 
     for i in 1:p
         lower_a = collect(max(1, i - h):max(0, i - 1))
         upper_a = collect(min(i + 1, p):min(i + h, p - 1))
         full_b = collect((p+max(1, (i - h))):(p+min(i + h, p - 1)))
         selection = vcat(lower_a, upper_a, full_b)
-        setindex!(active_set[i], ones(Int, length(selection)), selection)
+        setindex!(active_set[i], ones(Bool, length(selection)), selection)
     end
     return active_set
 end
@@ -110,11 +110,16 @@ band_matrix(s1, 2)
 
 vec(A)
 
-constr_V(s0, s1)
+Vhat = constr_V(s0, s1)
 
-vec_sigma_h(s1, 2, prebanded=false)
-
-
+sigma_vec = vec_sigma_h(s1, 2, prebanded=false)
 
 
-aa = active_cols(10)
+
+
+active = active_cols(100)
+
+Vhat[1, active[1]]
+
+
+Vhat[1, :]

@@ -1,3 +1,6 @@
+# Usage example: julia construct_V_sigma.jl "data\y.csv" "version1"
+# Output: version1_Vhat_d.csv, version1_sigma_hat.csv, version1_Vhat_d.feather, version1_sigma_hat.feather
+
 using Tables
 using Base: setindex
 using LinearAlgebra

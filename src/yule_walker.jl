@@ -77,12 +77,21 @@ end
 This function calculates the active column indices for the matrix V_h^(d).
 As a function of the dimesion p and the bandwidth h.
 """
-function active_cols(p::Int, h::Int)::Vector{Int}
-    
-    return [i for i in 1:p if (i - h) > 0 && (i + h) <= p]
-end
+function active_cols(p::Int)::Vector{Int}
+    k_0 = floor(Int, p / 4)
 
-"""
+    active_set = [zeros(p * 2) for _ in 1:p]
+
+    for (i, item) in enumerate(active_set)
+        lower_a = collect(max(1, i - k_0):max(0, i - 1))
+        upper_a = collect(min(i + 1, p):min(i + k_0, p - 1))
+        full_b = collect((p+max(1, (i - k_0))):(p+min(i + k_0, p - 1)))
+        print(full_b)
+        setindex!(active_set[i], 1, vcat(lower_a, upper_a, full_b))
+    end
+
+    return active_set
+end
 
 
 # Playground
@@ -103,3 +112,29 @@ vec(A)
 constr_V(s0, s1)
 
 vec_sigma_h(s1, 2, prebanded=false)
+
+
+p = 100
+
+floor(Int, p / 4)
+
+
+active_set = [zeros(2) for _ in 1:5]
+
+for (i, elem) in enumerate(active_set)
+    println(i)
+end
+
+collect(1:5)
+
+i = 5
+k_0 = 3
+
+a = vcat(collect((i-k_0):(i-1)), collect((i+1):(i+k_0)))
+
+
+bb = [zeros(10) for _ in 1:10]
+
+setindex!(bb[1], 1, 1)
+
+aa = active_cols(10)

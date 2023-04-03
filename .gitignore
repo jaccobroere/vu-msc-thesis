@@ -20,3 +20,5 @@ dist/
 .RData
 .Rproj.user
 .RHistory
+*Vhat_d*
+*sigma_hat*

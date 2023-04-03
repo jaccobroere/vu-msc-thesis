@@ -1,15 +1,13 @@
+using Tables
 using Base: setindex
-using BlockDiagonals
-using BenchmarkTools
 using LinearAlgebra
-using Distributions
 using Random
 using CSV
-using DataFrames
 using StatsBase
-using ConfParser
 using Statistics
 using SparseArrays
+using Feather
+using DataFrames
 
 # Set random seed
 Random.seed!(2023)
@@ -62,7 +60,7 @@ end
 """
 Construct the V matrix containing the columns of C' = [A B]', that are nonzero
 """
-function constr_Vhat(Σ0::Matrix{Float64}, Σ1::Matrix{Float64}; prebanded::Bool=false)::Matrix{Float64}
+function constr_Vhat(Σ0::Matrix{Float64}, Σ1::Matrix{Float64}; h::Int=0, prebanded::Bool=false)::Matrix{Float64}
     if !prebanded
         if h == 0
             h = floor(Int, size(Σ1, 1) / 4)
@@ -125,7 +123,7 @@ function constr_Vhat_d(V::Matrix{Float64})::SparseMatrixCSC{Float64}
     return Vhat_d
 end
 
-function main(path::String)::nothing
+function main(path)
     # Read data 
     y = read_data(path)
 
@@ -133,13 +131,17 @@ function main(path::String)::nothing
     Σ1 = calc_Σ1(y)
     Σ0 = calc_Σ0(y)
 
-    Vhat = constr_V(Σ0, Σ1)
+    Vhat = constr_Vhat(Σ0, Σ1)
     sigma_hat = vec_sigma_h(Σ1)
     Vhat_d = constr_Vhat_d(Vhat)
 
     # Write output
-    CSV.write(joinpath("out", "$(ARGS[2])_Vhat_d.csv"), Vhat_d)
-    CSV.write(joinpath("out", "$(ARGS[2])_sigma_hat.csv"), sigma_hat)
+    CSV.write(joinpath("out", "$(ARGS[2])_Vhat_d.csv"), Tables.table(Vhat_d))
+    CSV.write(joinpath("out", "$(ARGS[2])_sigma_hat.csv"), Tables.table(sigma_hat))
+
+    Feather.write(joinpath("out", "$(ARGS[2])_Vhat_d.feather"), Tables.table(Vhat_d))
+    Feather.write(joinpath("out", "$(ARGS[2])_sigma_hat.feather"), Tables.table(sigma_hat))
+    return nothing
 end
 
 main(ARGS[1])

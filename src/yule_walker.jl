@@ -1,3 +1,5 @@
+using Base: setindex
+using BlockDiagonals
 using BenchmarkTools
 using LinearAlgebra
 using Distributions
@@ -7,6 +9,7 @@ using DataFrames
 using StatsBase
 using ConfParser
 using Statistics
+using SparseArrays
 
 # Set random seed
 Random.seed!(2023)
@@ -94,10 +97,28 @@ function active_cols(p::Int, h::Int=0)::Vector{Vector{Bool}}
     return active_set
 end
 
+"""
+This function takes the active columns of V and stacks them into a diagonal block matrix
+"""
+function constr_Vhat_d(V::Matrix{Float64}, active::Vector{Vector{Bool}})::Matrix{Float64}
+    p = length(active)
+    res = [V[:, active[i]] for i in 1:p]
+    Vhat_d = spzeros(p^2, sum(sum(active)))
+
+    row_index = col_index = 1
+    for (M, act) in zip(res, active)
+        setindex!(Vhat_d, M, collect(row_index:(row_index+p-1)), collect(col_index:(col_index+sum(act)-1)))
+        row_index += p
+        col_index += sum(act)
+    end
+    return Vhat_d
+end
+
 
 # Playground
 y = read_data("out/sim_y.csv")
 A = read_data("out/sim_A.csv")
+B = read_data("out/sim_B.csv")
 
 calc_Σ0(y)
 
@@ -115,11 +136,8 @@ Vhat = constr_V(s0, s1)
 sigma_vec = vec_sigma_h(s1, 2, prebanded=false)
 
 
-
-
 active = active_cols(100)
 
-Vhat[1, active[1]]
+Vhat_d = constr_Vhat_d(Vhat, active)
 
-
-Vhat[1, :]
+Vhat_d

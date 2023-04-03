@@ -8,15 +8,6 @@ using DataFrames
 # Set random seed
 Random.seed!(2023)
 
-
-function D_fused(p::Int)::Matrix{Int8}
-    D = -Matrix{Int8}(I, p, p)
-    for i in 1:p-1
-        D[i, i+1] = 1
-    end
-    return D[1:p-1, :]
-end
-
 # Generates a banded matrix with random values between -2 and 2, with bandwidth h on both sides of the main diagonal
 function generate_banded_matrix(p::Int, h::Int)::Matrix{Float64}
     matrix = zeros(p, p)
@@ -45,7 +36,6 @@ function simulate_svar(A::Matrix{Float64}, B::Matrix{Float64}, errors::Array{Arr
     T = length(errors)
     y = zeros(p, T)
     C = inv(I - A) * B
-    print(dim(C))
     for t in 1:T
         if t == 1
             y[:, t] = errors[t]
@@ -59,12 +49,6 @@ function simulate_svar(A::Matrix{Float64}, B::Matrix{Float64}, errors::Array{Arr
 end
 
 function run_simulation(p::Int, T::Int, h_A::Int, h_B::Int, path_prefix::String="sim", write::Bool=true)::Matrix{Float64}
-    # Define the constants
-    p = 100
-    T = 500
-    h_A = 3
-    h_B = 3
-
     A = generate_banded_matrix(p, h_A)
     B = generate_banded_matrix(p, h_B)
     errors = generate_errors_over_time(T, p)
@@ -88,13 +72,8 @@ function calc_sigma_e(e::Vector{Vector{Float64}})::Matrix{Float64}
     return sigma_e / (length(e) - 1)
 end
 
-run_simulation(100, 500, 3, 3, "sim", true)
+run_simulation(49, 500, 3, 2, "sim", true)
 
-e = generate_errors_over_time(500, 100)
 
-sigma_e = cov(e)
 
-normm = norm(sigma_e)
-
-sigma_e = calc_sigma_e(e)
 

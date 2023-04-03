@@ -126,7 +126,19 @@ function constr_Vhat_d(V::Matrix{Float64})::SparseMatrixCSC{Float64}
     return Vhat_d
 end
 
+function D_fusedlasso(p::Int)::Matrix{Float64}
+    D = zeros(p, p)
+    for i in 1:p
+        D[i, i] = 1
+        if i < p
+            D[i, i+1] = -1
+        end
+    end
+    return D
+end
+
 function main(path)
+    include("simulation_design_1.jl")
     # Read data 
     y = read_data(path)
 
@@ -137,13 +149,12 @@ function main(path)
     Vhat = constr_Vhat(Σ0, Σ1)
     sigma_hat = vec_sigma_h(Σ1)
     Vhat_d = constr_Vhat_d(Vhat)
+    D_penalty = D_fusedlasso(size(Vhat_d, 2))
 
     # Write output
+    CSV.write(joinpath("out", "$(ARGS[2])_D.csv"), Tables.table(D_penalty))
     CSV.write(joinpath("out", "$(ARGS[2])_Vhat_d.csv"), Tables.table(Vhat_d))
     CSV.write(joinpath("out", "$(ARGS[2])_sigma_hat.csv"), Tables.table(sigma_hat))
-
-    Feather.write(joinpath("out", "$(ARGS[2])_Vhat_d.feather"), Tables.table(Vhat_d))
-    Feather.write(joinpath("out", "$(ARGS[2])_sigma_hat.feather"), Tables.table(sigma_hat))
     return nothing
 end
 

@@ -13,7 +13,7 @@ sigma_hat = Matrix(CSV.read("out/v2_sigma_hat.csv", DataFrame))
 Calculates the amount of active elemements, i.e. the number of columns of Vhat_d
 """
 function total_active_elements(p::Int, h::Int)::Int
-    return -2h^2 - 2h + p * (4h + 1)
+    return p * (4h + 1) - 2(h^2 + h)
 end
 
 total_active_elements(25, 6)

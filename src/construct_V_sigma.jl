@@ -100,9 +100,10 @@ function active_cols(p::Int, h::Int=0)::Vector{Vector{Bool}}
 
     for i in 1:p
         lower_a = collect(max(1, i - h):max(0, i - 1))
-        upper_a = collect(min(i + 1, p):min(i + h, p - 1))
-        full_b = collect((p+max(1, (i - h))):(p+min(i + h, p - 1)))
+        upper_a = collect((i+1):min(i + h, p))
+        full_b = collect((p+max(1, (i - h))):(p+min(i + h, p)))
         selection = vcat(lower_a, upper_a, full_b)
+
         setindex!(active_set[i], ones(Bool, length(selection)), selection)
     end
     return active_set

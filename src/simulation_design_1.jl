@@ -72,7 +72,7 @@ function calc_sigma_e(e::Vector{Vector{Float64}})::Matrix{Float64}
     return sigma_e / (length(e) - 1)
 end
 
-run_simulation(49, 500, 3, 2, "sim", true)
+run_simulation(25, 100, 1, 1, "sim", true)
 
 
 

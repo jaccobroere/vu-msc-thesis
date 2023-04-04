@@ -14,5 +14,5 @@ D <- as.matrix(fread("out/v1_D.csv", header = T, skip = 0))
 
 # Fit fused lasso model for 'genlasso'
 tic()
-model <- genlasso::fusedlasso(sigma_hat, Vhat_d, D, verbose = TRUE)
+model <- genlasso::fusedlasso1d(y = sigma_hat, X = Vhat_d, verbose = TRUE)
 toc()

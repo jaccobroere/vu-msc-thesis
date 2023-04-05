@@ -16,3 +16,6 @@ D <- as.matrix(fread("out/v1_D.csv", header = T, skip = 0))
 tic()
 model <- genlasso::fusedlasso1d(y = sigma_hat, X = Vhat_d, verbose = TRUE)
 toc()
+
+
+# Defining igraph object that will be used to create the graph connecting elements on the same non-zero diagonals of the matrix

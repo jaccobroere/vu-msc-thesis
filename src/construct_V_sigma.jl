@@ -59,7 +59,6 @@ function band_matrix(A::Matrix{Float64}, h::Int)::Matrix{Float64}
     return B
 end
 
-
 """
 Construct the V matrix containing the columns of C' = [A B]', that are nonzero
 """

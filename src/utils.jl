@@ -20,8 +20,8 @@ end
 Calculates the number of nonzero elements per equation, that is the number of elements
 in the subvector c_i of c = vec(C')
 """
-function nonzero_elements_per_equation(i::Int, p::Int, h::Int)::Int
-    return 2h + 1 + 2 * min(abs(i - 1), h, abs(p - i))
+function nonzero_elements_per_equation(j::Int, p::Int, h::Int)::Int
+    return 2h + 1 + 2 * min(abs(j - 1), h, abs(p - j))
 end
 
 """

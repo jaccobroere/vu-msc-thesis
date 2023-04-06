@@ -22,3 +22,5 @@ dist/
 .RHistory
 *Vhat_d*
 *sigma_hat*
+*.graphml
+*.gml

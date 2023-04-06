@@ -33,15 +33,3 @@ toc()
 
 # Save R environment
 save.image(file = paste0("out/", path_prefix, "__gsplash_env.RData"))
-
-
-# Playground
-path_prefix <- "exp_small"
-path3 <- paste0("out/", path_prefix, "_graph.graphml")
-gr <- read_graph(path3, format = "graphml")
-
-
-D <- getDg(gr)
-
-dim(D)
-dim(Vhat_d)

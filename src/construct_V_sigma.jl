@@ -156,16 +156,3 @@ function main(prefix)
 end
 
 main(ARGS[1])
-
-prefix = "exp_small"
-y = read_data(joinpath("out", "$(prefix)_y.csv"))
-
-# Do calculations
-Σ1 = calc_Σ1(y)
-Σ0 = calc_Σ0(y)
-
-Vhat = constr_Vhat(Σ0, Σ1)
-sigma_hat = vec_sigma_h(Σ1)
-Vhat_d = constr_Vhat_d(Vhat)
-
-band_matrix(Σ1, 2)

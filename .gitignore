@@ -18,6 +18,7 @@ dist/
 *.lib
 .DS_Store
 .RData
+*.Rproj
 .Rproj.user
 .RHistory
 *Vhat_d*

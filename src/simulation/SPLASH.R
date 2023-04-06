@@ -23,4 +23,4 @@ model <- splash(y)
 toc()
 
 # Save R environment
-save.image(file = paste0("out/", path_prefix, "_splash_env.RData")
+save.image(file = paste0("out/", path_prefix, "_splash_env.RData"))

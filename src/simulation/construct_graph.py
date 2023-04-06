@@ -80,7 +80,7 @@ def create_gsplash_graph(p, h):
     return graph
 
 
-def save_graph_as_gml(graph, p, h, path_prefix="out/"):
+def save_graph_as_gml(graph, path_prefix="out/"):
     """
     Save a G-SPLASH graph to a file in GraphML format.
 

@@ -29,8 +29,6 @@ def plot_side_by_side_matrices(p, h):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(2 * max(5, p // 2), max(5, p // 2)))
     ax1.matshow(matrix_1, cmap="binary", vmin=0, vmax=0)
     ax2.matshow(matrix_2, cmap="binary", vmin=0, vmax=0)
-    # ax1.matshow(matrix_1, cmap='viridis')
-    # ax2.matshow(matrix_2, cmap='viridis')
 
     # Add the element numbers
     for i in range(p):

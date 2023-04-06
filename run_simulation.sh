@@ -74,14 +74,14 @@ done
 # Run first Julia script
 step1() {
     echo "Running simulation_design.jl..."
-    julia --project=/path/to/juliaenv/ src/simulation_design.jl $p $T $h_A $h_B $path_prefix
+    julia --project=/path/to/juliaenv/ src/simulation/simulation_design.jl $p $T $h_A $h_B $path_prefix
     echo "simulation_design.jl completed."
 }
 
 step2() {
     # Run second Julia script
     echo "Running construct_V_simga.jl..."
-    julia --project=/path/to/juliaenv/ src/construct_V_sigma.jl $path_prefix
+    julia --project=/path/to/juliaenv/ src/simulation/construct_V_sigma.jl $path_prefix
     echo "construct_V_simga.jl completed."
 }
 
@@ -89,21 +89,21 @@ step3() {
     # Install PyJulia
     echo "Installing PyJulia..."
     python -m pip install julia igraph > /dev/null 2>&1
-    python src/install_pyjulia.py > /dev/null 2>&1
+    python src/simulation/install_pyjulia.py > /dev/null 2>&1
     echo "PyJulia installed."
 }
 
 step4() {
     # Run Python script
     echo "Running construct_graph.py..."
-    python src/construct_graph.py $p $path_prefix 
+    python src/simulation/construct_graph.py $p $path_prefix 
     echo "construct_graph.py completed."
 }
 
 step5() {
     # Run R script
     echo "Running GSPLASH.R..."
-    Rscript src/GSPLASH.R $path_prefix $gamma > /dev/null 2>&1
+    Rscript src/simulation/GSPLASH.R $path_prefix $gamma > /dev/null 2>&1
     echo "GSPLASH.R completed."
 }
 

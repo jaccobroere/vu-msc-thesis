@@ -3,7 +3,7 @@ import sys
 import igraph as ig
 from julia import Main
 
-Main.eval('include("src/utils.jl")')
+Main.eval('include("src/simulation/utils.jl")')
 
 
 def create_edge(i, p, h):

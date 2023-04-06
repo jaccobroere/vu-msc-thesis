@@ -59,7 +59,6 @@ function band_matrix(A::Matrix{Float64}, h::Int)::Matrix{Float64}
     return B
 end
 
-
 """
 Construct the V matrix containing the columns of C' = [A B]', that are nonzero
 """
@@ -100,9 +99,10 @@ function active_cols(p::Int, h::Int=0)::Vector{Vector{Bool}}
 
     for i in 1:p
         lower_a = collect(max(1, i - h):max(0, i - 1))
-        upper_a = collect(min(i + 1, p):min(i + h, p - 1))
-        full_b = collect((p+max(1, (i - h))):(p+min(i + h, p - 1)))
+        upper_a = collect((i+1):min(i + h, p))
+        full_b = collect((p+max(1, (i - h))):(p+min(i + h, p)))
         selection = vcat(lower_a, upper_a, full_b)
+
         setindex!(active_set[i], ones(Bool, length(selection)), selection)
     end
     return active_set
@@ -126,9 +126,20 @@ function constr_Vhat_d(V::Matrix{Float64})::SparseMatrixCSC{Float64}
     return Vhat_d
 end
 
-function main(path)
+function D_fusedlasso(p::Int)::Matrix{Float64}
+    D = zeros(p, p)
+    for i in 1:p
+        D[i, i] = 1
+        if i < p
+            D[i, i+1] = -1
+        end
+    end
+    return D
+end
+
+function main(prefix)
     # Read data 
-    y = read_data(path)
+    y = read_data(joinpath("out", "$(prefix)_y.csv"))
 
     # Do calculations
     Σ1 = calc_Σ1(y)
@@ -139,12 +150,22 @@ function main(path)
     Vhat_d = constr_Vhat_d(Vhat)
 
     # Write output
-    CSV.write(joinpath("out", "$(ARGS[2])_Vhat_d.csv"), Tables.table(Vhat_d))
-    CSV.write(joinpath("out", "$(ARGS[2])_sigma_hat.csv"), Tables.table(sigma_hat))
-
-    Feather.write(joinpath("out", "$(ARGS[2])_Vhat_d.feather"), Tables.table(Vhat_d))
-    Feather.write(joinpath("out", "$(ARGS[2])_sigma_hat.feather"), Tables.table(sigma_hat))
+    CSV.write(joinpath("out", "$(prefix)_Vhat_d.csv"), Tables.table(Vhat_d))
+    CSV.write(joinpath("out", "$(prefix)_sigma_hat.csv"), Tables.table(sigma_hat))
     return nothing
 end
 
 main(ARGS[1])
+
+prefix = "exp_small"
+y = read_data(joinpath("out", "$(prefix)_y.csv"))
+
+# Do calculations
+Σ1 = calc_Σ1(y)
+Σ0 = calc_Σ0(y)
+
+Vhat = constr_Vhat(Σ0, Σ1)
+sigma_hat = vec_sigma_h(Σ1)
+Vhat_d = constr_Vhat_d(Vhat)
+
+band_matrix(Σ1, 2)

@@ -137,10 +137,9 @@ function D_fusedlasso(p::Int)::Matrix{Float64}
     return D
 end
 
-function main(path, prefix)
-    include("simulation_design.jl")
+function main(prefix)
     # Read data 
-    y = read_data(path)
+    y = read_data(joinpath("out", "$(prefix)_y.csv"))
 
     # Do calculations
     Σ1 = calc_Σ1(y)
@@ -149,13 +148,11 @@ function main(path, prefix)
     Vhat = constr_Vhat(Σ0, Σ1)
     sigma_hat = vec_sigma_h(Σ1)
     Vhat_d = constr_Vhat_d(Vhat)
-    D_penalty = D_fusedlasso(size(Vhat_d, 2))
 
     # Write output
-    CSV.write(joinpath("out", "$(prefix)_D.csv"), Tables.table(D_penalty))
     CSV.write(joinpath("out", "$(prefix)_Vhat_d.csv"), Tables.table(Vhat_d))
     CSV.write(joinpath("out", "$(prefix)_sigma_hat.csv"), Tables.table(sigma_hat))
     return nothing
 end
 
-main(ARGS[1], ARGS[2])
+main(ARGS[1])

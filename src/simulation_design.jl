@@ -73,10 +73,10 @@ function calc_sigma_e(e::Vector{Vector{Float64}})::Matrix{Float64}
 end
 
 # Parse command line argument
-p = ARGS[1]
-T = ARGS[2]
-h_A = ARGS[3]
-h_B = ARGS[4]
+p = parse(Int, ARGS[1])
+T = parse(Int, ARGS[2])
+h_A = parse(Int, ARGS[3])
+h_B = parse(Int, ARGS[4])
 path_prefix = ARGS[5]
 
 # Run simulation

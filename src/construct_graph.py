@@ -1,13 +1,29 @@
-# Import relevant libraries
 import sys
 
 import igraph as ig
-from julia import Main  # Julia API
+from julia import Main
 
-Main.eval('include("src/utils.jl")')  # Import utils.jl
+Main.eval('include("src/utils.jl")')
 
 
-def create_edge(i: int, p: int, h: int) -> tuple:
+def create_edge(i, p, h):
+    """
+    Create an edge between two vertices in the graph.
+
+    Parameters
+    ----------
+    i : int
+        The index of the first vertex.
+    p : int
+        The dimension of the square matrix.
+    h : int
+        The bandwidth of the matrix.
+
+    Returns
+    -------
+    tuple
+        A tuple of two integers representing the indices of the two vertices connected by the edge.
+    """
     if Main.is_edge_case(i, p, h):
         return None
 
@@ -34,6 +50,21 @@ def create_edge(i: int, p: int, h: int) -> tuple:
 
 
 def create_gsplash_graph(p, h):
+    """
+    Create a G-SPLASH graph for a given system of equations.
+
+    Parameters
+    ----------
+    p : int
+        The dimension of the square matrix.
+    h : int
+        The bandwidth of the matrix.
+
+    Returns
+    -------
+    ig.Graph
+        A G-SPLASH graph representing the system of equations.
+    """
     # Define the maximum numbers of vertices
     M = Main.total_number_nonzero_elements(p, h)
     graph = ig.Graph()
@@ -49,12 +80,25 @@ def create_gsplash_graph(p, h):
     return graph
 
 
-def save_graph_as_gml(graph, p, h):
-    graph.write(f"out/gsplash_graph_p{p}_h{h}.graphml")
+def save_graph_as_gml(graph, p, h, path_prefix="out/"):
+    """
+    Save a G-SPLASH graph to a file in GraphML format.
+
+    Parameters
+    ----------
+    graph : ig.Graph
+        The G-SPLASH graph to save.
+    p : int
+        The dimension of the square matrix.
+    h : int
+        The bandwidth of the matrix.
+    """
+    graph.write(f"out/{path_prefix}_graph.graphml")
 
 
 if __name__ == "__main__":
     p = int(sys.argv[1])
+    path_prefix = sys.argv[2]
     h = p // 4
     graph = create_gsplash_graph(p, h)
-    save_graph_as_gml(graph, p, h)
+    save_graph_as_gml(graph, p, h, path_prefix=path_prefix)

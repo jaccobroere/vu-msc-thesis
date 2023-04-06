@@ -72,7 +72,15 @@ function calc_sigma_e(e::Vector{Vector{Float64}})::Matrix{Float64}
     return sigma_e / (length(e) - 1)
 end
 
-run_simulation(25, 100, 1, 1, "sim", true)
+# Parse command line arguments
+p = ARGS[1]
+T = ARGS[2]
+h_A = ARGS[3]
+h_B = ARGS[4]
+path_prefix = ARGS[5]
+
+# Run simulation
+run_simulation(p, T, h_A, h_B, path_prefix, true)
 
 
 

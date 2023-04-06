@@ -26,7 +26,7 @@ def plot_side_by_side_matrices(p, h):
                 matrix_2[i, j] = 0
 
     # Create the plot
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(2 * max(5, p // 2), max(5, p // 2)))
     ax1.matshow(matrix_1, cmap="binary", vmin=0, vmax=0)
     ax2.matshow(matrix_2, cmap="binary", vmin=0, vmax=0)
     # ax1.matshow(matrix_1, cmap='viridis')
@@ -53,4 +53,4 @@ def plot_side_by_side_matrices(p, h):
 
 
 # Example usage
-plot_side_by_side_matrices(5, 2)
+plot_side_by_side_matrices(25, 6)

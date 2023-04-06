@@ -72,7 +72,7 @@ function calc_sigma_e(e::Vector{Vector{Float64}})::Matrix{Float64}
     return sigma_e / (length(e) - 1)
 end
 
-# Parse command line arguments
+# Parse command line argument
 p = ARGS[1]
 T = ARGS[2]
 h_A = ARGS[3]

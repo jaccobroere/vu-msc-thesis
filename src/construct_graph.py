@@ -54,5 +54,7 @@ def save_graph_as_gml(graph, p, h):
 
 
 if __name__ == "__main__":
-    graph = create_gsplash_graph(p=int(sys.argv[1]), h=int(sys.argv[2]))
-    save_graph_as_gml(graph, p=int(sys.argv[1]), h=int(sys.argv[2]))
+    p = int(sys.argv[1])
+    h = p // 4
+    graph = create_gsplash_graph(p, h)
+    save_graph_as_gml(graph, p, h)

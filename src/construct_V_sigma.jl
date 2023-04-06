@@ -137,8 +137,8 @@ function D_fusedlasso(p::Int)::Matrix{Float64}
     return D
 end
 
-function main(path)
-    include("simulation_design_1.jl")
+function main(path, prefix)
+    include("simulation_design.jl")
     # Read data 
     y = read_data(path)
 
@@ -152,10 +152,10 @@ function main(path)
     D_penalty = D_fusedlasso(size(Vhat_d, 2))
 
     # Write output
-    CSV.write(joinpath("out", "$(ARGS[2])_D.csv"), Tables.table(D_penalty))
-    CSV.write(joinpath("out", "$(ARGS[2])_Vhat_d.csv"), Tables.table(Vhat_d))
-    CSV.write(joinpath("out", "$(ARGS[2])_sigma_hat.csv"), Tables.table(sigma_hat))
+    CSV.write(joinpath("out", "$(prefix)_D.csv"), Tables.table(D_penalty))
+    CSV.write(joinpath("out", "$(prefix)_Vhat_d.csv"), Tables.table(Vhat_d))
+    CSV.write(joinpath("out", "$(prefix)_sigma_hat.csv"), Tables.table(sigma_hat))
     return nothing
 end
 
-main(ARGS[1])
+main(ARGS[1], ARGS[2])

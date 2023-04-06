@@ -11,18 +11,21 @@ library(igraph)
 # Set working directory
 # setwd("/Users/jacco/Documents/repos/vu-msc-thesis/")
 
+# Read command line arguments
+args <- commandArgs(trailingOnly = TRUE)
+path_prefix <- args[1]
+gamma <- as.numeric(args[2])
+path1 <- paste0("out/", path_prefix, "_sigma_hat.csv")
+path2 <- paste0("out/", path_prefix, "_Vhat_d.csv")
+path3 <- paste0("out/", path_prefix, "_graph.csv")
 # Read data
-sigma_hat <- t(fread("out/v1_sigma_hat.csv", header = T, skip = 0))
-Vhat_d <- as.matrix(fread("out/v1_Vhat_d.csv", header = T, skip = 0))
-D <- as.matrix(fread("out/v1_D.csv", header = T, skip = 0))
+sigma_hat <- t(fread(path1, header = T, skip = 0))
+Vhat_d <- as.matrix(fread(path2, header = T, skip = 0)
+gr <- read_graph(path3, format = "graphml")
 
 # Fit fused lasso model for 'genlasso'
 tic()
-model <- genlasso::fusedlasso1d(y = sigma_hat, X = Vhat_d, verbose = TRUE)
+model <- genlasso::fusedlasso(y = sigma_hat, X = Vhat_d, graph = gr, gamma = 0, verbose = TRUE)
 toc()
 
-
-# Defining igraph object that will be used to create the graph connecting elements on the same non-zero diagonals of the matrix
-gr <- read_graph("out/gsplash_graph_p7_h2.graphml", format = "graphml")
-
-plot(gr)
+# TODO: Save results

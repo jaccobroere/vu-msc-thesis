@@ -26,10 +26,10 @@ sigma_hat <- t(fread(path1, header = T, skip = 0))
 Vhat_d <- as.matrix(fread(path2, header = T, skip = 0))
 gr <- read_graph(path3, format = "graphml")
 
-# Fit fused lasso model for 'genlasso'
+# Fit fused lasso using the underlying spatial graph
 tic()
 model <- genlasso::fusedlasso(y = sigma_hat, X = Vhat_d, graph = gr, gamma = gamma, verbose = TRUE)
 toc()
 
 # Save R environment
-save.image(file = paste0("out/", path_prefix, "__gsplash_env.RData"))
+save.image(file = paste0("out/", path_prefix, "_gsplash_env.RData"))

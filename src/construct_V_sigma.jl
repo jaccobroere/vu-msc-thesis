@@ -65,7 +65,7 @@ Construct the V matrix containing the columns of C' = [A B]', that are nonzero
 function constr_Vhat(Σ0::Matrix{Float64}, Σ1::Matrix{Float64}; h::Int=0, prebanded::Bool=false)::Matrix{Float64}
     if !prebanded
         if h == 0
-            h = floor(Int, size(Σ1, 1) / 4) - 1
+            h = floor(Int, size(Σ1, 1) / 4)
         end
         Σ1 = band_matrix(Σ1, h)
         Σ0 = band_matrix(Σ0, h)
@@ -79,7 +79,7 @@ Construct the vectorized autocovariance of lag 1 from the banded autocovariance 
 function vec_sigma_h(Σ1::Matrix{Float64}; prebanded::Bool=false, h::Int=0)::Vector{Float64}
     if !prebanded
         if h == 0
-            h = floor(Int, size(Σ1, 1) / 4) - 1
+            h = floor(Int, size(Σ1, 1) / 4)
         end
         Σ1 = band_matrix(Σ1, h)
     end
@@ -92,7 +92,7 @@ As a function of the dimesion p and the bandwidth h.
 """
 function active_cols(p::Int, h::Int=0)::Vector{Vector{Bool}}
     if h == 0
-        h = floor(Int, p / 4) - 1
+        h = floor(Int, p / 4)
     end
 
     active_set = [zeros(Bool, p * 2) for _ in 1:p]
@@ -156,3 +156,16 @@ function main(prefix)
 end
 
 main(ARGS[1])
+
+prefix = "exp_small"
+y = read_data(joinpath("out", "$(prefix)_y.csv"))
+
+# Do calculations
+Σ1 = calc_Σ1(y)
+Σ0 = calc_Σ0(y)
+
+Vhat = constr_Vhat(Σ0, Σ1)
+sigma_hat = vec_sigma_h(Σ1)
+Vhat_d = constr_Vhat_d(Vhat)
+
+band_matrix(Σ1, 2)

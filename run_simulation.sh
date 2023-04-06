@@ -1,13 +1,30 @@
 #!/bin/bash
 
 # Define progress bar function
-function progress {
-    bar="                                                  "
-    percent=$(($1 * 6))
-    for i in $(seq 1 $percent); do
-        bar=${bar:0:1}"="${bar:2}
+print_progress_bar() {
+    local current_step=$1
+    local total_steps=$2
+    local width=$3
+
+    # Calculate the percentage of completion
+    local percentage=$((current_step * 100 / total_steps))
+
+    # Calculate the number of completed and pending characters
+    local completed_chars=$((width * current_step / total_steps))
+    local pending_chars=$((width - completed_chars))
+
+    # Create the progress bar string
+    local progress_bar=""
+    for ((i = 0; i < completed_chars; i++)); do
+        progress_bar+="#"
     done
-    echo -ne "\rProgress: [$bar]"
+    for ((i = 0; i < pending_chars; i++)); do
+        progress_bar+="-"
+    done
+
+    # Print the progress bar
+    printf "\r[%s] %d%%" "$progress_bar" "$percentage"
+    echo ""
 }
 
 # Parse named arguments
@@ -55,38 +72,50 @@ do
 done
 
 # Run first Julia script
-echo "Running simulation_design.jl..."
-julia --project=/path/to/juliaenv/ src/simulation_design.jl $p $T $h_A $h_B $path_prefix
-echo "simulation_design.jl completed."
-progress 10
+step1() {
+    echo "Running simulation_design.jl..."
+    julia --project=/path/to/juliaenv/ src/simulation_design.jl $p $T $h_A $h_B $path_prefix
+    echo "simulation_design.jl completed."
+}
 
-# Run second Julia script
-echo "Running construct_V_simga.jl..."
-julia --project=/path/to/juliaenv/ src/construct_V_sigma.jl $path_prefix
-echo "construct_V_simga.jl completed."
-progress 25
+step2() {
+    # Run second Julia script
+    echo "Running construct_V_simga.jl..."
+    julia --project=/path/to/juliaenv/ src/construct_V_sigma.jl $path_prefix
+    echo "construct_V_simga.jl completed."
+}
 
-# Install PyJulia
-echo "Installing PyJulia..."
-python -m pip install julia > /dev/null 2>&1
-python src/install_pyjulia.py > /dev/null 2>&1
-echo "PyJulia installed."
-progress 40
+step3() {
+    # Install PyJulia
+    echo "Installing PyJulia..."
+    python -m pip install julia igraph > /dev/null 2>&1
+    python src/install_pyjulia.py > /dev/null 2>&1
+    echo "PyJulia installed."
+}
 
-# Run Python script
-echo "Running construct_graph.py..."
-python src/construct_graph.py $p $path_prefix 
-echo "construct_graph.py completed."
-progress 50
+step4() {
+    # Run Python script
+    echo "Running construct_graph.py..."
+    python src/construct_graph.py $p $path_prefix 
+    echo "construct_graph.py completed."
+}
 
-# Run R script
-echo "Running GSPLASH.R..."
-"C:\Program Files\R\R-4.2.1\bin\Rscript.exe" src/GSPLASH.R $path_prefix $gamma
-echo "GSPLASH.R completed."
-progress 95
+step5() {
+    # Run R script
+    echo "Running GSPLASH.R..."
+    Rscript src/GSPLASH.R $path_prefix $gamma > /dev/null 2>&1
+    echo "GSPLASH.R completed."
+}
 
-# Display progress bar
-echo ""
-echo "All scripts completed."
-progress 100
-echo ""
+total_steps=5
+progress_bar_width=50
+
+for ((step = 1; step <= total_steps; step++)); do
+    # Execute a step
+    "step${step}"
+
+    # Update the progress bar
+    print_progress_bar "$step" "$total_steps" "$progress_bar_width"
+done
+
+

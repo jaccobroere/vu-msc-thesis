@@ -13,8 +13,16 @@ venv/
 build/
 dist/
 *.egg-info/
-logs/
+# logs/
 *__pycache__/
 *.lib
 .DS_Store
-
+.RData
+.Rproj.user
+.RHistory
+*Vhat_d*
+*sigma_hat*
+*.graphml
+*.gml
+*.csv
+*.RData

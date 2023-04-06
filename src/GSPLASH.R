@@ -18,6 +18,7 @@ gamma <- as.numeric(args[2])
 path1 <- paste0("out/", path_prefix, "_sigma_hat.csv")
 path2 <- paste0("out/", path_prefix, "_Vhat_d.csv")
 path3 <- paste0("out/", path_prefix, "_graph.csv")
+
 # Read data
 sigma_hat <- t(fread(path1, header = T, skip = 0))
 Vhat_d <- as.matrix(fread(path2, header = T, skip = 0)

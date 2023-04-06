@@ -58,35 +58,35 @@ done
 echo "Running simulation_design.jl..."
 julia --project=/path/to/juliaenv/ src/simulation_design.jl $p $T $h_A $h_B $path_prefix
 echo "simulation_design.jl completed."
-progress 1
+progress 10
 
 # Run second Julia script
 echo "Running construct_V_simga.jl..."
 julia --project=/path/to/juliaenv/ src/construct_V_sigma.jl $path_prefix
 echo "construct_V_simga.jl completed."
-progress 2
+progress 25
 
 # Install PyJulia
 echo "Installing PyJulia..."
-python -m pip install julia
-python src/install_pyjulia.py
+python -m pip install julia > /dev/null 2>&1
+python src/install_pyjulia.py > /dev/null 2>&1
 echo "PyJulia installed."
-progress 3
+progress 40
 
 # Run Python script
 echo "Running construct_graph.py..."
-python src/construct_graph.py $p $path_prefix
+python src/construct_graph.py $p $path_prefix 
 echo "construct_graph.py completed."
-progress 4
+progress 50
 
 # Run R script
 echo "Running GSPLASH.R..."
 "C:\Program Files\R\R-4.2.1\bin\Rscript.exe" src/GSPLASH.R $path_prefix $gamma
 echo "GSPLASH.R completed."
-progress 5
+progress 95
 
 # Display progress bar
 echo ""
 echo "All scripts completed."
-progress 6
+progress 100
 echo ""

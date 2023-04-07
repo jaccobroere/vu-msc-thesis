@@ -32,4 +32,4 @@ model <- genlasso::fusedlasso(y = sigma_hat, X = Vhat_d, graph = gr, gamma = gam
 toc()
 
 # Save R environment
-save.image(file = paste0("out/", path_prefix, "_gsplash_env.RData"))
+# save.image(file = paste0("out/", path_prefix, "_gsplash_env.RData"))

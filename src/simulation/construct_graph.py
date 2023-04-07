@@ -101,4 +101,4 @@ if __name__ == "__main__":
     path_prefix = sys.argv[2]
     h = p // 4
     graph = create_gsplash_graph(p, h)
-    save_graph_as_gml(graph, p, h, path_prefix=path_prefix)
+    save_graph_as_gml(graph, path_prefix=path_prefix)

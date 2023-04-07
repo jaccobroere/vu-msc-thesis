@@ -1,1 +1,1 @@
-sh run_simulation.sh -p 25 -T 500 -h_A 6 -h_B 6 -path_prefix larger_exp -gamma 0.5
+sh run_simulation.sh -p 10 -T 500 -h_A 2 -h_B 2 -path_prefix exp_p10 -gamma 0.5

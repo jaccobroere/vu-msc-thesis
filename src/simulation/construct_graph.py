@@ -1,9 +1,11 @@
+import os
 import sys
 
 import igraph as ig
 from julia import Main
 
-Main.eval('include("src/simulation/utils.jl")')
+path = os.path.dirname(os.path.abspath(__file__))
+Main.eval(f"""include("{os.path.join(path, "utils.jl")}")""")
 
 
 def create_edge(i, p, h):
@@ -29,24 +31,23 @@ def create_edge(i, p, h):
 
     row_num = Main.row_number_of_element(i, p, h)
     n_elements_this_row = Main.nonzero_elements_per_equation(row_num, p, h)
-    delta_elements = (
-        Main.nonzero_elements_per_equation(row_num + 1, p, h) - n_elements_this_row
-    )
+    n_elements_next_row = Main.nonzero_elements_per_equation(row_num + 1, p, h)
+    delta_elements = n_elements_next_row - n_elements_this_row
 
     if Main.belongs_to_A(i, p, h):
         if delta_elements > 0:
-            edge = (i, i + n_elements_this_row + delta_elements - 1)
+            correction = -1
         elif delta_elements == 0:
-            edge = (i, i + n_elements_this_row + delta_elements)
-        else:  # delta_elements < 0
-            edge = (i, i + n_elements_this_row + delta_elements + 2)
+            correction = 0
+        else:
+            correction = 2
     else:  # Belongs to B
-        if delta_elements >= 0:
-            edge = (i, i + n_elements_this_row + delta_elements)
-        else:  # delta_elements < 0
-            edge = (i, i + n_elements_this_row + delta_elements + 1)
+        if delta_elements < 0:
+            correction = 1
+        else:
+            correction = 0
 
-    return edge[0] - 1, edge[1] - 1
+    return i - 1, i + n_elements_this_row + delta_elements + correction - 1
 
 
 def create_gsplash_graph(p, h):

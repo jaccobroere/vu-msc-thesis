@@ -63,6 +63,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        -fit)
+        fit="$2"
+        shift # past argument
+        shift # past value
+        ;;
         *)
         # unknown option
         echo "Unknown option: $1"
@@ -102,9 +107,11 @@ step4() {
 
 step5() {
     # Run R script
-    echo "Running GSPLASH.R..."
-    Rscript src/simulation/GSPLASH.R $path_prefix $gamma > /dev/null 2>&1
-    echo "GSPLASH.R completed."
+    if [ "$fit" = true ] ; then
+        echo "Running GSPLASH.R..."
+        Rscript src/simulation/GSPLASH.R $path_prefix # > /dev/null 2>&1
+        echo "GSPLASH.R completed."
+    fi
 }
 
 total_steps=5

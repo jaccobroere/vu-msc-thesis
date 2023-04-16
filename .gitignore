@@ -28,3 +28,4 @@ dist/
 *.csv
 *.RData
 Zhu/code_fgfl_aaai14/data/
+.lintr

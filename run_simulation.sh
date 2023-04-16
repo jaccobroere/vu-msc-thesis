@@ -109,7 +109,7 @@ step5() {
     # Run R script
     if [ "$fit" = true ] ; then
         echo "Running GSPLASH.R..."
-        Rscript src/simulation/GSPLASH.R $path_prefix # > /dev/null 2>&1
+        Rscript src/simulation/GSPLASH.R $path_prefix 0.5 # > /dev/null 2>&1
         echo "GSPLASH.R completed."
     fi
 }

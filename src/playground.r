@@ -2,23 +2,13 @@ setwd("/Users/jacco/Documents/repos/vu-msc-thesis/Zhu")
 source("R/opt.R")
 source("R/gen_data.R")
 # Install the packages if necessary
-# install.packages("devtools")
-# install.packages("bgsmtr")
-# install.packages("corrplot")
-# install.packages("pheatmap")
-# library(devtools)
-# library(bgsmtr)
-# library(corrplot)
-# library(pheatmap)
 # install_github("monogenea/gflasso")
+# install.packages(c("genlasso","igraph","tictoc","FGSG","data.table"))
+# library(splash)
 # library(gflasso)
-# install.packages("FGSG")
-library(splash)
 library(genlasso)
 library(data.table)
 library(igraph)
-# library(fuser)
-library(splash)
 library(tictoc)
 library(FGSG)
 
@@ -46,7 +36,7 @@ print(length(edge_vector))
 # Fit a single solution of the GFLASSO
 lambda <- 0.086
 tic()
-smodel <- gflasso(y = sigma_hat, A = Vhat_d, tp = edge_vector, s1 = lambda, s2 = lambda)
+smodel <- gflasso(y = sigma_hat, A = Vhat_d, tp = edge_vector, s1 = 0, s2 = lambda)
 toc()
 length(smodel$weight)
 
@@ -57,17 +47,10 @@ toc()
 
 # Fit the a single solution using (Augmented) ADMM
 D <- as(getDgSparse(graph = gr), "TsparseMatrix")
-idx <- D@i
-jdx <- D@j
+idx <- D@i + 1
+jdx <- D@j + 1
 val <- D@x
+
 tic()
-admmmodel <- linreg_path_v2(
-    Y = sigma_hat, X = Vhat_d, val = val, idx = idx, jdx = jdx, lambda_graph = lambda, gamma = 1, p = dim(D)[0], m = dim(D)[1], standard_ADMM = TRUE
-)
+admmmodel <- linreg_path_v2(Y = sigma_hat, X = Vhat_d, val = val, idx = idx, jdx = jdx, lambda_graph = lambda, gamma = 1, p = dim(Vhat_d)[2], m = dim(D)[1], standard_ADMM = TRUE)
 toc()
-# # Check results
-# fmodel$beta[, as.character(lambda)]
-
-# colnames(fmodel$beta)
-
-# sum(smodel$weight != 0)

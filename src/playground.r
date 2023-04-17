@@ -57,15 +57,17 @@ toc()
 
 # Fit the a single solution using (Augmented) ADMM
 D <- as(getDgSparse(graph = gr), "TsparseMatrix")
-idx <- D@i + 1
-jdx <- D@j + 1
+idx <- D@i
+jdx <- D@j
 val <- D@x
 tic()
-admmmodel <- linreg_path_v2(Y = sigma_hat, X = Vhat_d, val = val, idx = idx, jdx = jdx, lambda_graph = lambda, gamma = 1, p = dim(D)[0], m = dim(D)[1])
+admmmodel <- linreg_path_v2(
+    Y = sigma_hat, X = Vhat_d, val = val, idx = idx, jdx = jdx, lambda_graph = lambda, gamma = 1, p = dim(D)[0], m = dim(D)[1], standard_ADMM = TRUE
+)
 toc()
-# Check results
-fmodel$beta[, as.character(lambda)]
+# # Check results
+# fmodel$beta[, as.character(lambda)]
 
-colnames(fmodel$beta)
+# colnames(fmodel$beta)
 
-sum(smodel$weight != 0)
+# sum(smodel$weight != 0)

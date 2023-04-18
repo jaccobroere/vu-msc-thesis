@@ -18,6 +18,7 @@ dist/
 *.lib
 .DS_Store
 .RData
+*.Rproj
 .Rproj.user
 .RHistory
 *Vhat_d*
@@ -26,3 +27,5 @@ dist/
 *.gml
 *.csv
 *.RData
+admm_src_zhu/code_fgfl_aaai14/data/
+.lintr

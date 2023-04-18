@@ -1,1 +1,1 @@
-sh run_simulation.sh -p 10 -T 500 -h_A 2 -h_B 2 -path_prefix exp_p10 -gamma 1 -fit true
+sh run_simulation.sh -p 10 -T 500 -h_A 2 -h_B 2 -path_prefix exp_p10 -gamma 1 -fit false

@@ -1,11 +1,7 @@
 setwd("/Users/jacco/Documents/repos/vu-msc-thesis/Zhu")
 source("R/opt.R")
 source("R/gen_data.R")
-# Install the packages if necessary
-# install_github("monogenea/gflasso")
-# install.packages(c("genlasso","igraph","tictoc","FGSG","data.table"))
-# library(splash)
-# library(gflasso)
+library(splash)
 library(genlasso)
 library(data.table)
 library(igraph)

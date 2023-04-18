@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# Define associative array with Julia script paths for step 1
-step1_julia_scripts=(
-  ["designA"]="src/simulation/simulation_designA.jl"
-  ["script2"]="src/simulation/simulation_designB.jl"
-  ["script3"]="src/simulation/simulation_designC.jl"
-)
-
 print_progress_bar() {
   local current_step=$1
   local total_steps=$2
@@ -33,33 +26,8 @@ while [[ $# -gt 0 ]]; do
   key="$1"
 
   case $key in
-  -p)
-    p="$2"
-    shift # past argument
-    shift # past value
-    ;;
-  -T)
-    T="$2"
-    shift # past argument
-    shift # past value
-    ;;
-  -h_A)
-    h_A="$2"
-    shift # past argument
-    shift # past value
-    ;;
-  -h_B)
-    h_B="$2"
-    shift # past argument
-    shift # past value
-    ;;
   -path_prefix)
     path_prefix="$2"
-    shift # past argument
-    shift # past value
-    ;;
-  -s1|--step1)
-    step1_script="$2"
     shift # past argument
     shift # past value
     ;;
@@ -73,20 +41,14 @@ done
 # Define step 1 function
 step1() {
   # Check if step1_script argument was provided
-  if [[ -z "$step1_script" ]]; then
+  if [[ -z "$path_prefix" ]]; then
     echo "Error: step1_script argument is missing"
     exit 1
   fi
 
-  # Check if step1_script argument is valid
-  if [[ ! ${step1_julia_scripts[$step1_script]+_} ]]; then
-    echo "Error: invalid step1_script argument"
-    exit 1
-  fi
-
   # Run Julia script for step 1
-  echo "Running "${step1_julia_scripts[$step1_script]}" ..."
-  julia --project=/path/to/juliaenv/ "${step1_julia_scripts[$step1_script]}" $p $T $h_A $h_B "${step1_script}_T${T}_p${p}"
+  echo "Running construct_transformation.jl ..."
+  julia --project=/path/to/juliaenv/ src/compute/construct_transformations.jl $path_prefix
   echo "$step1_script completed."
 }
 

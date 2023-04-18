@@ -11,6 +11,7 @@ using Statistics
 using Distributions
 using SparseArrays
 using DataFrames
+using ProgressMeter
 
 # Set random seed
 Random.seed!(2023)
@@ -94,8 +95,9 @@ Matrix{Float64}
 function constr_Vhat(Σ0::Matrix{Float64}, Σ1::Matrix{Float64}; h::Int=0, prebanded::Bool=false)::Matrix{Float64}
     if !prebanded
         if h == 0
-            h = floor(Int, size(Σ1, 1) / 4)
+            h = div(size(Σ0, 1), 4)
         end
+
         Σ1 = band_matrix(Σ1, h)
         Σ0 = band_matrix(Σ0, h)
     end
@@ -119,7 +121,7 @@ Returns
 Vector{Float64}
     The vectorized autocovariance of lag 1.
 """
-function vec_sigma_h(Σ1::Matrix{Float64}; prebanded::Bool=false, h::Int=0)::Vector{Float64}
+function vec_sigma_h(Σ1::Matrix{Float64}; h::Int=0, prebanded::Bool=false)::Vector{Float64}
     if !prebanded
         if h == 0
             h = div(size(Σ1, 1), 4)
@@ -176,9 +178,9 @@ Returns
 SparseMatrixCSC{Float64}
     The resulting diagonal block matrix with dimensions p^2 x K, where K is the number of nonzero columns in V.
 """
-function constr_Vhat_d(V::Matrix{Float64})::SparseMatrixCSC{Float64}
+function constr_Vhat_d(V::Matrix{Float64}, h::Int=0)::SparseMatrixCSC{Float64}
     p = size(V, 1)
-    active = active_cols(p)
+    active = active_cols(p, h)
     res = [V[:, active[i]] for i in 1:p]
     Vhat_d = spzeros(p^2, sum(sum(active)))
 
@@ -233,39 +235,49 @@ Returns
 int
     The estimated bandwidth.
 """
-function bootstrap_estimator_Rj(y::Matrix{Float64}, j::Int, q::Int=500)::Int
+function bootstrap_estimator_R(y::Matrix{Float64}, q::Int=500)::Int
+    prog = Progress(q, 1, "Estimating bandwidth: ", 50)
     N, T = size(y)
-    Σj = calc_Σj(y, j)
-    Rj = zeros(Float64, div(N, 4))
+    Σ0 = calc_Σj(y, 0)
+    Σ1 = calc_Σj(y, 1)
+    R = zeros(Float64, div(N, 4))
     for i in 1:q
-        bootstrap_Σj = bootstrap_estimator_Σj(y, j)
+        next!(prog)
+        bootstrap_Σ0 = bootstrap_estimator_Σj(y, 0)
+        bootstrap_Σ1 = bootstrap_estimator_Σj(y, 1)
         for h in 1:div(N, 4)
-            Rj[h] += norm((band_matrix(bootstrap_Σj, h) - Σj), 1)
+            R[h] += norm((band_matrix(bootstrap_Σ0, h) - Σ0), 1) + norm((band_matrix(bootstrap_Σ1, h) - Σ1), 1)
         end
     end
-    return argmin(Rj)
+    return argmin(R)
 end
 
 
 function main(prefix)
     # Read data 
-    y = read_data(joinpath("out", "$(prefix)_y.csv"))
+    y = read_data(joinpath("data", "simulation", "$(prefix)_y.csv"))
+
+    # Bootstrap the bandwidth
+    h = bootstrap_estimator_R(y, 500)
 
     # Do calculations
     Σ1 = calc_Σj(y, 1)
     Σ0 = calc_Σj(y, 0)
 
-    Vhat = constr_Vhat(Σ0, Σ1)
-    sigma_hat = vec_sigma_h(Σ1)
-    Vhat_d = constr_Vhat_d(Vhat)
+    Vhat = constr_Vhat(Σ0, Σ1, h=h)
+    sigma_hat = vec_sigma_h(Σ1, h=h)
+    Vhat_d = constr_Vhat_d(Vhat, h=h)
 
     # Write output
     CSV.write(joinpath("data", "simulation", "$(prefix)_Vhat_d.csv"), Tables.table(Vhat_d))
     CSV.write(joinpath("data", "simulation", "$(prefix)_sigma_hat.csv"), Tables.table(sigma_hat))
+    CSV.write(joinpath("data", "simulation", "$(prefix)_bandwidth.csv"), Tables.table([h]))
     return nothing
 end
 
 main(ARGS[1])
 
+## TESTING
+# y = read_data(joinpath("data", "simulation", "designA_T500_p100_y.csv"))
 
-
+# h = bootstrap_estimator_R(y, 500)

@@ -1,3 +1,4 @@
+using DataFrames: create_bc_tmp
 # isage example: julia construct_V_sigma.jl "data\y.csv" "version1"
 # Output: version1_Vhat_d.csv, version1_sigma_hat.csv, version1_Vhat_d.feather, version1_sigma_hat.feather
 
@@ -15,6 +16,9 @@ using ProgressMeter
 
 # Set random seed
 Random.seed!(2023)
+
+path = dirname(abspath(@__FILE__))
+include(joinpath(path, "construct_graph.jl"))
 
 """
 Read data from a csv file and return a matrix.
@@ -236,13 +240,11 @@ int
     The estimated bandwidth.
 """
 function bootstrap_estimator_R(y::Matrix{Float64}, q::Int=500)::Int
-    prog = Progress(q, 1, "Estimating bandwidth: ", 50)
     N, T = size(y)
     Σ0 = calc_Σj(y, 0)
     Σ1 = calc_Σj(y, 1)
     R = zeros(Float64, div(N, 4))
     for i in 1:q
-        next!(prog)
         bootstrap_Σ0 = bootstrap_estimator_Σj(y, 0)
         bootstrap_Σ1 = bootstrap_estimator_Σj(y, 1)
         for h in 1:div(N, 4)
@@ -266,18 +268,25 @@ function main(prefix)
 
     Vhat = constr_Vhat(Σ0, Σ1, h=h)
     sigma_hat = vec_sigma_h(Σ1, h=h)
-    Vhat_d = constr_Vhat_d(Vhat, h=h)
+    Vhat_d = constr_Vhat_d(Vhat, h)
+
+    # Construct underlying graph
+    graph = create_gsplash_graph(size(y, 1), h)
 
     # Write output
     CSV.write(joinpath("data", "simulation", "$(prefix)_Vhat_d.csv"), Tables.table(Vhat_d))
     CSV.write(joinpath("data", "simulation", "$(prefix)_sigma_hat.csv"), Tables.table(sigma_hat))
     CSV.write(joinpath("data", "simulation", "$(prefix)_bandwidth.csv"), Tables.table([h]))
+    save_graph_as_gml(graph, joinpath("data", "simulation", "$(prefix)_graph.graphml"))
+
     return nothing
 end
 
 main(ARGS[1])
 
 ## TESTING
-# y = read_data(joinpath("data", "simulation", "designA_T500_p100_y.csv"))
+# y = read_data(joinpath("data", "simulation", "designA_T500_p10_y.csv"))
 
 # h = bootstrap_estimator_R(y, 500)
+
+# create_gsplash_graph(size(y, 1), h)

@@ -56,3 +56,6 @@ toc()
 tic()
 admmmodel2 <- linreg_path_v2(Y = sigma_hat, X = Vhat_d, val = val, idx = idx, jdx = jdx, lambda_graph = lambda, gamma = 1, p = dim(Vhat_d)[2], m = dim(D)[1], standard_ADMM = FALSE)
 toc()
+
+
+splash()

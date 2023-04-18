@@ -15,11 +15,11 @@ args <- commandArgs(trailingOnly = TRUE)
 path_prefix <- args[1]
 # alpha <- as.numeric(args[2])
 
-y <- t(fread("out/sim_y.csv", header = T, skip = 0))
+y <- t(fread("data/simulation/designA_T500_p100_y.csv", header = T, skip = 0))
 
 # Fit SPLASH
 tic()
-model <- splash(y)
+model <- splash(y, alpha = 0.5, n_lambdas = 1, banded_covs=c(TRUE, TRUE), B = 500)
 toc()
 
 # Save R environment

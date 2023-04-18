@@ -1,1 +1,0 @@
-This folder is meant for storing data

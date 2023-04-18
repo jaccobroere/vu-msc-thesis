@@ -1,0 +1,2 @@
+First, type ``make clean" and ``make" to clean and compile the C code. 
+Then, go to scripts/ folder and execute the three .sh files to reproduce the three Figures in the paper. 

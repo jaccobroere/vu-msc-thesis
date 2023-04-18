@@ -1,7 +1,9 @@
-using DataFrames: create_bc_tmp
 # isage example: julia construct_V_sigma.jl "data\y.csv" "version1"
 # Output: version1_Vhat_d.csv, version1_sigma_hat.csv, version1_Vhat_d.feather, version1_sigma_hat.feather
+using Distributed
+Threads.nthreads()
 
+using LoopVectorization
 using Tables
 using Base: setindex
 using LinearAlgebra
@@ -12,7 +14,6 @@ using Statistics
 using Distributions
 using SparseArrays
 using DataFrames
-using ProgressMeter
 
 # Set random seed
 Random.seed!(2023)
@@ -243,17 +244,16 @@ function bootstrap_estimator_R(y::Matrix{Float64}, q::Int=500)::Int
     N, T = size(y)
     Σ0 = calc_Σj(y, 0)
     Σ1 = calc_Σj(y, 1)
-    R = zeros(Float64, div(N, 4))
-    for i in 1:q
+    R = zeros(Float64, q, div(N, 4))
+    Threads.@threads for i in 1:q
         bootstrap_Σ0 = bootstrap_estimator_Σj(y, 0)
         bootstrap_Σ1 = bootstrap_estimator_Σj(y, 1)
         for h in 1:div(N, 4)
-            R[h] += norm((band_matrix(bootstrap_Σ0, h) - Σ0), 1) + norm((band_matrix(bootstrap_Σ1, h) - Σ1), 1)
+            @inbounds R[i, h] += norm((band_matrix(bootstrap_Σ0, h) - Σ0), 1) + norm((band_matrix(bootstrap_Σ1, h) - Σ1), 1)
         end
     end
-    return argmin(R)
+    return argmin(vec(sum(R, dims=1)))
 end
-
 
 function main(prefix)
     # Read data 
@@ -285,8 +285,4 @@ end
 main(ARGS[1])
 
 ## TESTING
-# y = read_data(joinpath("data", "simulation", "designA_T500_p10_y.csv"))
-
-# h = bootstrap_estimator_R(y, 500)
-
-# create_gsplash_graph(size(y, 1), h)
+y = read_data(joinpath("data", "simulation", "designA_T500_p100_y.csv"))

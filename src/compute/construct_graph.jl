@@ -120,15 +120,11 @@ Parameters
 ----------
 graph : SimpleGraphs.SimpleGraph
     The G-SPLASH graph to save.
-path_prefix : str, optional
-    The prefix for the output file path, by default "out/".
+path: str, optional
+    The path to save the graph to. Defaults to "graph.graphml".
 """
-function save_graph_as_gml(graph, path_prefix::AbstractString="out/")
-    if !ispath(path_prefix)
-        mkdir(path_prefix)
-    end
-    gml_file_path = joinpath(path_prefix, "graph.graphml")
-    savegraph(gml_file_path, graph, GraphIO.GraphMLFormat())
+function save_graph_as_gml(graph, path::AbstractString="graph.graphml")
+    savegraph(path, graph, GraphIO.GraphMLFormat())
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

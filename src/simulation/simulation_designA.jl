@@ -55,9 +55,9 @@ function run_simulation(p::Int, T::Int, h_A::Int, h_B::Int, path_prefix::String=
     y = simulate_svar(A, B, errors)
 
     if write == true
-        CSV.write(joinpath("out", path_prefix * "_" * "A.csv"), DataFrame(A, :auto))
-        CSV.write(joinpath("out", path_prefix * "_" * "B.csv"), DataFrame(B, :auto))
-        CSV.write(joinpath("out", path_prefix * "_" * "y.csv"), DataFrame(y, :auto))
+        CSV.write(joinpath("data", "simulation", path_prefix * "_" * "A.csv"), DataFrame(A, :auto))
+        CSV.write(joinpath("data", "simulation", path_prefix * "_" * "B.csv"), DataFrame(B, :auto))
+        CSV.write(joinpath("data", "simulation", path_prefix * "_" * "y.csv"), DataFrame(y, :auto))
     end
 
     return y

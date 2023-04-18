@@ -150,8 +150,8 @@ function main(prefix)
     Vhat_d = constr_Vhat_d(Vhat)
 
     # Write output
-    CSV.write(joinpath("out", "$(prefix)_Vhat_d.csv"), Tables.table(Vhat_d))
-    CSV.write(joinpath("out", "$(prefix)_sigma_hat.csv"), Tables.table(sigma_hat))
+    CSV.write(joinpath("data", "simulation", "$(prefix)_Vhat_d.csv"), Tables.table(Vhat_d))
+    CSV.write(joinpath("data", "simulation", "$(prefix)_sigma_hat.csv"), Tables.table(sigma_hat))
     return nothing
 end
 

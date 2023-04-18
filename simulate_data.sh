@@ -1,14 +1,11 @@
 #!/bin/bash
 
 # Define associative array with Julia script paths for step 1
-declare -A step1_julia_scripts=(
-  ["script1"]="src/simulation/simulation_design1.jl"
-  ["script2"]="src/simulation/simulation_design2.jl"
-  ["script3"]="src/simulation/simulation_design3.jl"
+step1_julia_scripts=(
+  ["designA"]="src/simulation/simulation_designA.jl"
+  ["script2"]="src/simulation/simulation_designB.jl"
+  ["script3"]="src/simulation/simulation_designC.jl"
 )
-
-# Define path to Julia script for step 2
-step2_julia_script="src/compute/construct_V_sigma.jl"
 
 print_progress_bar() {
   local current_step=$1
@@ -89,19 +86,11 @@ step1() {
 
   # Run Julia script for step 1
   echo "Running $step1_script ..."
-  julia --project=/path/to/juliaenv/ "${step1_julia_scripts[$step1_script]}" $p $T $h_A $h_B $path_prefix
+  julia --project=/path/to/juliaenv/ "${step1_julia_scripts[$step1_script]}" $p $T $h_A $h_B "${step1_script}_T${T}_p${p}"
   echo "$step1_script completed."
 }
 
-# Define step 2 function
-step2() {
-  # Run Julia script for step 2
-  echo "Running step 2 ..."
-  julia --project=/path/to/juliaenv/ "$step2_julia_script" $path_prefix
-  echo "Step 2 completed."
-}
-
-total_steps=2
+total_steps=1
 progress_bar_width=50
 
 for ((step = 1; step <= total_steps; step++)); do

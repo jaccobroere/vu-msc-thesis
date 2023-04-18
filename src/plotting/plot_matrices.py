@@ -104,4 +104,4 @@ def save_figure(fig, filename):
     fig.savefig(filename)
 
 
-plot_side_by_side_matrices(15, 3)
+plot_side_by_side_matrices(16, 4)

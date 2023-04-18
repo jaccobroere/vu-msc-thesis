@@ -1,4 +1,4 @@
-setwd("/Users/jacco/Documents/repos/vu-msc-thesis/Zhu")
+setwd("/Users/jacco/Documents/repos/vu-msc-thesis/admm_src_zhu")
 source("R/opt.R")
 source("R/gen_data.R")
 library(splash)
@@ -9,8 +9,8 @@ library(tictoc)
 library(FGSG)
 
 # Set up directories
-data_dir <- "/Users/jacco/Documents/repos/vu-msc-thesis/out/"
-path_prefix <- "exp_p10"
+data_dir <- "/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/"
+path_prefix <- "exp_p100"
 
 # Parse paths
 path1 <- paste0(data_dir, path_prefix, "_sigma_hat.csv")
@@ -22,6 +22,8 @@ sigma_hat <- t(fread(path1, header = T, skip = 0))
 Vhat_d <- as.matrix(fread(path2, header = T, skip = 0))
 gr <- read_graph(path3, format = "graphml")
 edge_vector <- as.vector(t(as_edgelist(gr)))
+
+gr2 <- read_graph("/Users/jacco/Documents/repos/vu-msc-thesis/out/graph.graphml", format="graphml")
 
 # Print dimensions of the data
 print(dim(sigma_hat))
@@ -49,4 +51,8 @@ val <- D@x
 
 tic()
 admmmodel <- linreg_path_v2(Y = sigma_hat, X = Vhat_d, val = val, idx = idx, jdx = jdx, lambda_graph = lambda, gamma = 1, p = dim(Vhat_d)[2], m = dim(D)[1], standard_ADMM = TRUE)
+toc()
+
+tic()
+admmmodel2 <- linreg_path_v2(Y = sigma_hat, X = Vhat_d, val = val, idx = idx, jdx = jdx, lambda_graph = lambda, gamma = 1, p = dim(Vhat_d)[2], m = dim(D)[1], standard_ADMM = FALSE)
 toc()

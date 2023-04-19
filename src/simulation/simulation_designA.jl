@@ -72,16 +72,16 @@ function calc_sigma_e(e::Vector{Vector{Float64}})::Matrix{Float64}
     return sigma_e / (length(e) - 1)
 end
 
-# Parse command line argument
-p = parse(Int, ARGS[1])
-T = parse(Int, ARGS[2])
-h_A = parse(Int, ARGS[3])
-h_B = parse(Int, ARGS[4])
-path_prefix = ARGS[5]
+if abspath(PROGRAM_FILE) == @__FILE__
+    # Parse command line argument        
+    p = parse(Int, ARGS[1])
+    T = parse(Int, ARGS[2])
+    h_A = parse(Int, ARGS[3])
+    h_B = parse(Int, ARGS[4])
+    path_prefix = ARGS[5]
 
-# Run simulation
-run_simulation(p, T, h_A, h_B, path_prefix, true)
-
-
+    # Run simulation
+    run_simulation(p, T, h_A, h_B, path_prefix, true)
+end
 
 

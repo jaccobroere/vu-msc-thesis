@@ -86,7 +86,7 @@ Construct the V matrix containing the columns of C' = [A B]', that are nonzero.
 ## Returns
 - `Matrix{Float64}`: The V matrix with dimensions N x (N+1), containing the columns of C' = [A B]', that are nonzero.
 """
-function constr_Vhat(Σ0::Matrix{Float64}, Σ1::Matrix{Float64}; h0::Int=0, h1::Int=0)::Matrix{Float64}
+function constr_Vhat(Σ0::Matrix{Float64}, Σ1::Matrix{Float64}, h0::Int=0, h1::Int=0)::Matrix{Float64}
     if h0 == 0 || h1 == 0
         return [Σ1' Σ0]
     end
@@ -106,7 +106,7 @@ Construct the vectorized autocovariance of lag 1 from the banded autocovariance 
 ## Returns
 - `Vector{Float64}`: The vectorized autocovariance of lag 1.
 """
-function vec_sigma_h(Σ1::Matrix{Float64}; h1::Int=0)::Vector{Float64}
+function vec_sigma_h(Σ1::Matrix{Float64}, h1::Int=0)::Vector{Float64}
     if h1 == 0
         return vec(Σ1')
     end
@@ -229,10 +229,10 @@ function main(prefix)
 
     Vhat = constr_Vhat(Σ0, Σ1, h0, h1)
     sigma_hat = vec_sigma_h(Σ1, h1)
-    Vhat_d = constr_Vhat_d(Vhat)
+    Vhat_d = constr_Vhat_d(Vhat) # Bandwitdh is set to floor(p/4) by default
 
-    # Construct underlying graph
-    graph = create_gsplash_graph(size(y, 1), h)
+    # Construct underlying graph 
+    graph = create_gsplash_graph(size(y, 1)) # Bandwitdh is set to floor(p/4) by default
 
     # Write output
     CSV.write(joinpath("data", "simulation", "$(prefix)_Vhat_d.csv"), Tables.table(Vhat_d))

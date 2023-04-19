@@ -53,7 +53,11 @@ h (int): The bandwidth of the matrix.
 Returns:
 SimpleGraphs.SimpleGraph{Int}: A G-SPLASH graph representing the system of equations.
 """
-function create_gsplash_graph(p::Int, h::Int)::SimpleGraph{Int}
+function create_gsplash_graph(p::Int, h::Int=0)::SimpleGraph{Int}
+    if h == 0
+        h = div(p, 4)
+    end
+
     # Define the maximum numbers of vertices
     M::Int = total_number_nonzero_elements(p, h)
     graph = SimpleGraph(M)

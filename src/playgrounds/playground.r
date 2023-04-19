@@ -46,3 +46,14 @@ fwrite(data.table(splash$B), file = paste0(out_dir, path_prefix, "_splash_estima
 
 
 model_splash <- splash(t(y), banded_covs = c(FALSE, FALSE), alphas = c(0.5), lambdas = c(lambda))
+
+
+AB <- model_splash$AB
+
+dim(AB)
+
+p <- 25
+A <- AB[, 1:p, ]
+B <- AB[, (p + 1):(2 * p), ]
+
+A

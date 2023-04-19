@@ -52,7 +52,7 @@ regular_splash <- function(y, ...) {
 
     # Fit SPLASH from Reuvers and Wijler (2021)
     t0 <- Sys.time()
-    splashmodel <- splash::splash(t(y), ...) # Take transpose because splash() accepts T x p matrix
+    model <- splash::splash(t(y), ...) # Take transpose because splash() accepts T x p matrix
     runtime <- Sys.time() - t0
 
     # Print how long it took to run formatted with a message
@@ -60,10 +60,10 @@ regular_splash <- function(y, ...) {
 
     # Return the fitted model
     output_list <- list(
-        model = splashmodel,
-        A = coef_to_AB(splashmodel$beta_path[, 1], p)$A,
-        B = coef_to_AB(splashmodel$beta_path[, 1], p)$B,
+        model = model,
+        A = model$AB[, 1:p, ],
+        B = model$AB[, (p + 1):(2 * p), ],
         runtime = runtime
     )
-    return(splashmodel)
+    return(output_list)
 }

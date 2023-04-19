@@ -40,7 +40,7 @@ function generate_B(m::Int)::Matrix{Float64}
     return B
 end
 
-function run_simulation(m::Int, T::Int, path_prefix::String="sim", write::Bool=true)::Matrix{Float64}
+function run_simulation(m::Int, T::Int, path_prefix::String="sim", write::Bool=true)::Nothing
     A = generate_A(m)
     B = generate_B(m)
     errors = generate_errors_over_time(T, p)
@@ -49,13 +49,15 @@ function run_simulation(m::Int, T::Int, path_prefix::String="sim", write::Bool=t
     if write == true
         write_simulation_output(A, B, y, path_prefix)
     end
+    return nothing
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
     # Parse command line argument
     p = parse(Int, ARGS[1])
+    m = Int(sqrt(p))
     T = parse(Int, ARGS[2])
-    path_prefix = ARGS[5]
+    path_prefix = ARGS[3]
 
     # Run simulation
     run_simulation(m, T, path_prefix, true)

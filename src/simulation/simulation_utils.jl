@@ -1,5 +1,6 @@
 using LinearAlgebra
 using Random
+using DataFrames
 
 """
 generate_random_vector(p)
@@ -74,8 +75,9 @@ Write simulation outputs to CSV files.
 # Returns
 - None
 """
-function write_simulation_output(A::Matrix{Float64}, B::Matrix{Float64}, y::Matrix{Float64}, path_prefix)::Void
+function write_simulation_output(A::Matrix{Float64}, B::Matrix{Float64}, y::Matrix{Float64}, path_prefix)::Nothing
     CSV.write(joinpath("data", "simulation", path_prefix * "_" * "A.csv"), DataFrame(A, :auto))
     CSV.write(joinpath("data", "simulation", path_prefix * "_" * "B.csv"), DataFrame(B, :auto))
     CSV.write(joinpath("data", "simulation", path_prefix * "_" * "y.csv"), DataFrame(y, :auto))
+    return nothing
 end

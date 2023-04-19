@@ -1,3 +1,5 @@
+setwd("/Users/jacco/Documents/repos/vu-msc-thesis/")
+source("src/compute/utils.R")
 setwd("/Users/jacco/Documents/repos/vu-msc-thesis/admm_src_zhu")
 source("R/opt.R")
 source("R/gen_data.R")
@@ -6,6 +8,9 @@ library(igraph)
 library(splash)
 
 admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, gamma, ...) {
+    # Retrieve the cross-sectional dimension of the problem
+    p <- as.integer(sqrt(dim(Vhat_d)[1]))
+
     # Convert graph to sparse matrix
     D <- as(getDgSparse(graph = graph), "TsparseMatrix")
     idx <- D@i + 1
@@ -14,7 +19,7 @@ admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, gamma, ...) {
 
     # Fit linear regression model using ADMM
     t0 <- Sys.time()
-    admmmodel <- linreg_path_v2(
+    model <- linreg_path_v2(
         Y = sigma_hat,
         X = Vhat_d,
         val = val,
@@ -32,10 +37,19 @@ admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, gamma, ...) {
     message(paste0("ADMM took ", round(runtime, 2), " seconds to run."))
 
     # Return the fitted model
-    return(admmmodel)
+    output_list <- list(
+        model = model,
+        A = coef_to_AB(model$beta_path[, 1], p)$A,
+        B = coef_to_AB(model$beta_path[, 1], p)$B,
+        runtime = runtime
+    )
+    return(model)
 }
 
 regular_splash <- function(y, ...) {
+    # Retrieve the cross-sectional dimension of the problem
+    p <- as.integer(dim(y)[1])
+
     # Fit SPLASH from Reuvers and Wijler (2021)
     t0 <- Sys.time()
     splashmodel <- splash::splash(y, ...)
@@ -45,5 +59,11 @@ regular_splash <- function(y, ...) {
     message(paste0("SPLASH took ", round(runtime, 2), " seconds to run."))
 
     # Return the fitted model
+    output_list <- list(
+        model = splashmodel,
+        A = coef_to_AB(splashmodel$beta_path[, 1], p)$A,
+        B = coef_to_AB(splashmodel$beta_path[, 1], p)$B,
+        runtime = runtime
+    )
     return(splashmodel)
 }

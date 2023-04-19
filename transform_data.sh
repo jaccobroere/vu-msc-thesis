@@ -26,31 +26,6 @@ while [[ $# -gt 0 ]]; do
   key="$1"
 
   case $key in
-  -p)
-    p="$2"
-    shift # past argument
-    shift # past value
-    ;;
-  -T)
-    T="$2"
-    shift # past argument
-    shift # past value
-    ;;
-  -h_A)
-    h_A="$2"
-    shift # past argument
-    shift # past value
-    ;;
-  -h_B)
-    h_B="$2"
-    shift # past argument
-    shift # past value
-    ;;
-  -s1)
-    s1="$2"
-    shift # past argument
-    shift # past value
-    ;;
   -prefix)
     prefix="$2"
     shift # past argument
@@ -65,10 +40,16 @@ done
 
 # Define step 1 function
 step1() {
+  # Check if step1_script argument was provided
+  if [[ -z "$prefix" ]]; then
+    echo "Error: step1_script argument is missing"
+    exit 1
+  fi
+
   # Run Julia script for step 1
-  echo "Running $s1 ..."
-  julia --project=juliaenv/ $s1 $p $T $h_A $h_B "${prefix}_T${T}_p${p}"
-  echo "$s1 completed."
+  echo "Running transform_bootstrap_graph.jl ..."
+  julia --project=juliaenv/ src/compute/transform_bootstrap_graph.jl $prefix
+  echo "transform_bootstrap_graph.jl completed."
 }
 
 total_steps=1

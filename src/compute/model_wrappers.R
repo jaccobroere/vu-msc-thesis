@@ -12,10 +12,12 @@ admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, gamma, ...) {
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
     # Convert graph to sparse matrix
+    t0 <- Sys.time()
     D <- as(getDgSparse(graph = graph), "TsparseMatrix")
     idx <- D@i + 1
     jdx <- D@j + 1
     val <- D@x
+    runtimeD <- Sys.time() - t0
 
     # Fit linear regression model using ADMM
     t0 <- Sys.time()
@@ -31,19 +33,28 @@ admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, gamma, ...) {
         m = dim(D)[1],
         ...
     )
-    runtime <- Sys.time() - t0
+    runtimeM <- Sys.time() - t0
+
+    t0 <- Sys.time()
+    A <- coef_to_AB(model$beta_path[, 1], p)$A
+    B <- coef_to_AB(model$beta_path[, 1], p)$B
+    runtimeC <- Sys.time() - t0
 
     # Print how long it took to run formatted with a message
-    message(paste0("ADMM took ", round(runtime, 2), " seconds to run."))
+    message(paste0("ADMM took ", round(runtimeD, 2), " seconds to run for the calculation of D."))
+    message(paste0("ADMM took ", round(runtimeM, 2), " seconds to run for the model."))
+    message(paste0("ADMM took ", round(runtimeC, 2), " seconds to run for conversion to A, B."))
 
     # Return the fitted model
     output_list <- list(
         model = model,
-        A = coef_to_AB(model$beta_path[, 1], p)$A,
-        B = coef_to_AB(model$beta_path[, 1], p)$B,
-        runtime = runtime
+        A = A,
+        B = B,
+        runtimeD = runtimeD,
+        runtimeM = runtimeM,
+        runtimeC = runtimeC
     )
-    return(model)
+    return(output_list)
 }
 
 regular_splash <- function(y, ...) {

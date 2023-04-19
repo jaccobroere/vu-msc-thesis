@@ -1,2 +1,6 @@
+This code belongs directly to the paper "Zhu, Y. (2017). An Augmented ADMM Algorithm With Application to the Generalized Lasso Problem. Journal of Computational and Graphical Statistics, 26(1), 195–204. https://doi.org/10.1080/10618600.2015.1114491"
+I have used their code to solve the Generalized Lasso problem using the Augmented ADMM algorithm, described in their paper.
+
+Original README:
 First, type ``make clean" and ``make" to clean and compile the C code. 
 Then, go to scripts/ folder and execute the three .sh files to reproduce the three Figures in the paper. 

@@ -1,3 +1,4 @@
+using Base: vect
 using CSV
 using Tables
 using LinearAlgebra
@@ -54,3 +55,33 @@ end
 # y = Matrix(CSV.read("out/sim_y.csv", DataFrame))
 # Vhat_d = Matrix(CSV.read("out/v2_Vhat_d.csv", DataFrame))
 # sigma_hat = Matrix(CSV.read("out/v2_sigma_hat.csv", DataFrame))
+
+using CSV, DataFrames, Tables
+
+coef = Matrix(CSV.read("/Users/jacco/Documents/repos/vu-msc-thesis/out/simulation/coef/designB_T500_p25_admm_estimate.csv", DataFrame))
+coef = vec(coef)
+
+function coef_to_AB(coef::Vector{Float64}, p::Int)::Tuple{Matrix{Float64},Matrix{Float64}}
+    rcoef = reverse(coef)
+    bandwidth = div(p, 4)
+    AB = zeros(p, 2p)
+    cnt = 1
+    for i in 1:p
+        for j in 1:2p
+            if j <= p # Belongs to A
+                if abs(i - j) <= bandwidth && i != j
+                    AB[i, j] = pop!(rcoef)
+                end
+            else # Belongs to B
+                if abs(i - abs(j - p)) <= bandwidth
+                    AB[i, j] = pop!(rcoef)
+                end
+            end
+        end
+    end
+    return AB[:, 1:p], AB[:, (p+1):end]
+end
+
+A, B = coef_to_AB(coef, 25)
+
+A

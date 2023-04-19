@@ -43,3 +43,6 @@ fwrite(data.table(gsplash$A), file = paste0(out_dir, path_prefix, "_admm_gsplash
 fwrite(data.table(gsplash$B), file = paste0(out_dir, path_prefix, "_admm_gsplash_estimate_B.csv"))
 fwrite(data.table(splash$A), file = paste0(out_dir, path_prefix, "_splash_estimate_A.csv"))
 fwrite(data.table(splash$B), file = paste0(out_dir, path_prefix, "_splash_estimate_B.csv"))
+
+
+model_splash <- splash(t(y), banded_covs = c(FALSE, FALSE), alphas = c(0.5), lambdas = c(lambda))

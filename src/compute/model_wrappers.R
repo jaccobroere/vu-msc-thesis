@@ -52,7 +52,7 @@ regular_splash <- function(y, ...) {
 
     # Fit SPLASH from Reuvers and Wijler (2021)
     t0 <- Sys.time()
-    splashmodel <- splash::splash(y, ...)
+    splashmodel <- splash::splash(t(y), ...)
     runtime <- Sys.time() - t0
 
     # Print how long it took to run formatted with a message

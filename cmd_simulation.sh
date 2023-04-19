@@ -1,7 +1,7 @@
-p=100
+p=49
 T=500
-h_A=2
-h_B=2
+h_A=3
+h_B=7
 s1=src/simulation/simulation_designA.jl
 prefix=designA
 

@@ -221,7 +221,7 @@ function main(prefix)
     y = read_data(joinpath("data", "simulation", "$(prefix)_y.csv"))
 
     # Bootstrap the bandwidth
-    h1, h2 = bootstrap_estimator_R(y, 500)
+    h0, h1 = bootstrap_estimator_R(y, 500)
 
     # Do calculations
     Σ1 = calc_Σj(y, 1)
@@ -237,7 +237,6 @@ function main(prefix)
     # Write output
     CSV.write(joinpath("data", "simulation", "$(prefix)_Vhat_d.csv"), Tables.table(Vhat_d))
     CSV.write(joinpath("data", "simulation", "$(prefix)_sigma_hat.csv"), Tables.table(sigma_hat))
-    CSV.write(joinpath("data", "simulation", "$(prefix)_bandwidth.csv"), Tables.table([h]))
     save_graph_as_gml(graph, joinpath("data", "simulation", "$(prefix)_graph.graphml"))
 
     return nothing

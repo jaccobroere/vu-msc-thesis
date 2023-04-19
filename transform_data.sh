@@ -47,9 +47,9 @@ step1() {
   fi
 
   # Run Julia script for step 1
-  echo "Running construct_transformation.jl ..."
-  julia --project=juliaenv/ src/compute/construct_transformations.jl $prefix
-  echo "construct_transformations.jl completed."
+  echo "Running transform_bootstrap_graph.jl ..."
+  julia --project=juliaenv/ src/compute/transform_bootstrap_graph.jl $prefix
+  echo "transform_bootstrap_graph.jl completed."
 }
 
 total_steps=1

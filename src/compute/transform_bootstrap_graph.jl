@@ -244,7 +244,7 @@ end
 
 main(ARGS[1])
 
-## TESTING
-y = read_data(joinpath("data", "simulation", "designA_T500_p100_y.csv"))
+# ## TESTING
+# y = read_data(joinpath("data", "simulation", "designA_T500_p100_y.csv"))
 
-bootstrap_estimator_R(y, 500)
+# bootstrap_estimator_R(y, 500)

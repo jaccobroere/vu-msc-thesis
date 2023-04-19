@@ -18,7 +18,7 @@ include(joinpath(dirname(abspath(@__FILE__)), "simulation_utils.jl"))
 # Set random seed
 Random.seed!(2023)
 
-function generate_A(m::Int)::Matrix{Float64}
+function design_B_generate_A(m::Int)::Matrix{Float64}
     p = m^2
     A = zeros(p, p)
     for i in 1:p
@@ -31,7 +31,7 @@ function generate_A(m::Int)::Matrix{Float64}
     return A
 end
 
-function generate_B(m::Int)::Matrix{Float64}
+function design_B_generate_B(m::Int)::Matrix{Float64}
     p = m^2
     B = zeros(p, p)
     for i in 1:p
@@ -41,8 +41,8 @@ function generate_B(m::Int)::Matrix{Float64}
 end
 
 function run_simulation(m::Int, T::Int, path_prefix::String="sim", write::Bool=true)::Nothing
-    A = generate_A(m)
-    B = generate_B(m)
+    A = design_A_generate_A(m)
+    B = design_B_generate_B(m)
     errors = generate_errors_over_time(T, p)
     y = simulate_svar(A, B, errors)
 

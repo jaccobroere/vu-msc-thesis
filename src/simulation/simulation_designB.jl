@@ -41,7 +41,7 @@ function design_B_generate_B(m::Int)::Matrix{Float64}
 end
 
 function run_simulation(m::Int, T::Int, path_prefix::String="sim", write::Bool=true)::Nothing
-    A = design_A_generate_A(m)
+    A = design_B_generate_A(m)
     B = design_B_generate_B(m)
     errors = generate_errors_over_time(T, p)
     y = simulate_svar(A, B, errors)

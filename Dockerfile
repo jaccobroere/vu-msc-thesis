@@ -2,6 +2,7 @@
 # Run the following command to run the container and mount the correct folder.
 # docker run -it --rm -v /path/to/local/vu-msc-thesis:/app/vu-msc-thesis my-image
 FROM ubuntu:latest
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install necessary packages
 RUN apt-get update && \
@@ -18,7 +19,7 @@ RUN apt-get update && \
 # Install Julia
 RUN wget https://julialang-s3.julialang.org/bin/linux/x64/1.8/julia-1.8.5-linux-x86_64.tar.gz && \
     tar zxvf julia-1.8.5-linux-x86_64.tar.gz && \
-    MV julia-1.8.5 /usr/local/julia-1.8.5 && \
+    mv julia-1.8.5 /usr/local/julia-1.8.5 && \
     ln -s /usr/local/julia-1.8.5/bin/julia /usr/local/bin/julia
 
 # Add Julia to system PATH
@@ -33,19 +34,23 @@ RUN apt-get update && \
 #     apt-get install -y git && \
 #     git clone https://github.com/jaccobroere/vu-msc-thesis.git /app
 
-VOLUME /app/vu-msc-thesis
+COPY python-requirements.txt /app/python-requirements.txt
+COPY r-requirements.R /app/r-requirements.R
+COPY juliaenv /app/juliaenv
+COPY admm_src_zhu /app/admm_src_zhu
 
 # Install Python, R and Julia packages
-RUN pip3 install -r /app/vu-msc-thesis/python-requirements.txt
-RUN Rscript /app/vu-msc-thesis/r-requirements.R
-RUN julia --project=/app/vu-msc-thesis/juliaenv -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
+RUN pip3 install -r /app/python-requirements.txt
+RUN Rscript /app/r-requirements.R
+RUN julia --project=/app/juliaenv -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
 
 # Install C dependencies for R package from Zhu et al. (2015)
-RUN cd /app/vu-msc-thesis/admm_src_zhu && \
+RUN cd /app/admm_src_zhu && \
+    make clean && \
     make
 
 # Set working directory
-WORKDIR /app/vu-msc-thesis
+WORKDIR /app
 
 # Specify command to run when container starts
 CMD ["bash"]

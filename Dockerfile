@@ -19,7 +19,9 @@ RUN apt-get update && \
 # Clone Git repository into container
 RUN apt-get update && \
     apt-get install -y git && \
-    git clone https://github.com/your-username/your-repo.git /app
+    git clone https://github.com/jaccobroere/vu-msc-thesis.git /app && \
+    cd /app/vu-msc-thesis/admm_src_zhu && \
+    make
 
 # Set working directory
 WORKDIR /app

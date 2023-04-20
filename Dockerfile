@@ -16,11 +16,13 @@ RUN apt-get update && \
 RUN apt-get update && \
     apt-get install -y build-essential libcurl4-gnutls-dev libxml2-dev libssl-dev
 
+# Clone Git repository into container
+RUN apt-get update && \
+    apt-get install -y git && \
+    git clone https://github.com/your-username/your-repo.git /app
+
 # Set working directory
 WORKDIR /app
-
-# Copy any necessary files into the container
-COPY . /app
 
 # Compile C code for R package using Makefile
 RUN make myfile.o

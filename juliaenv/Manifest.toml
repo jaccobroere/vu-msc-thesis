@@ -880,18 +880,6 @@ git-tree-sha1 = "c97f60dd4f2331e1a495527f80d242501d2f9865"
 uuid = "8290d209-cae3-49c0-8002-c8c24d57dab5"
 version = "0.5.1"
 
-[[deps.TikzGraphs]]
-deps = ["Graphs", "LaTeXStrings", "TikzPictures"]
-git-tree-sha1 = "e8f41ed9a2cabf6699d9906c195bab1f773d4ca7"
-uuid = "b4f28e30-c73f-5eaf-a395-8a9db949a742"
-version = "1.4.0"
-
-[[deps.TikzPictures]]
-deps = ["LaTeXStrings", "Poppler_jll", "Requires", "Tectonic"]
-git-tree-sha1 = "4e75374d207fefb21105074100034236fceed7cb"
-uuid = "37f6aa50-8035-52d0-81c2-5a1d08754b2d"
-version = "3.4.2"
-
 [[deps.TranscodingStreams]]
 deps = ["Random", "Test"]
 git-tree-sha1 = "0b829474fed270a4b0ab07117dce9b9a2fa7581a"

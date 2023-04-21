@@ -38,10 +38,11 @@ COPY python-requirements.txt /app/python-requirements.txt
 COPY r-requirements.R /app/r-requirements.R
 COPY juliaenv /app/juliaenv
 COPY admm_src_zhu /app/admm_src_zhu
+COPY splash_1.0.tar.gz /app/splash_1.0.tar.gz
 
 # Install Python, R and Julia packages
 RUN pip3 install -r /app/python-requirements.txt
-RUN Rscript /app/r-requirements.R
+RUN cd /app && Rscript /app/r-requirements.R && cd ..
 RUN julia --project=/app/juliaenv -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
 
 # Install C dependencies for R package from Zhu et al. (2015)

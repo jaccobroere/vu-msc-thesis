@@ -9,9 +9,13 @@ library(splash)
 library(FGSG)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
 
-admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, gamma, ...) {
+admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, labmda2, ...) {
     # Retrieve the cross-sectional dimension of the problem
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
+
+    # Translate lambdas to gamma
+    lambda <- lambda1
+    gamma <- lambda2 / lambda1
 
     # Convert graph to sparse matrix
     t0 <- Sys.time()

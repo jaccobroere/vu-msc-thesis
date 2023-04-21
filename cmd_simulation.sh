@@ -1,6 +1,4 @@
 #!/bin/bash
-# Prepare environment
-bash prep_env.sh
 
 # Progress bar
 total_steps=2
@@ -28,18 +26,18 @@ print_progress_bar() {
 }
 
 # DESIGN A
-# p=50
-# T=500
-# h_A=3
-# h_B=3
-# path=src/simulation/simulation_designA.jl
-# prefix=designA
+p=25
+T=500
+h_A=3
+h_B=3
+path=src/simulation/simulation_designA.jl
+prefix=designA
 
 # DESIGN B
-p=100 # m^2 
-T=1000
-path=src/simulation/simulation_designB.jl
-prefix=designB
+# p=100 # m^2 
+# T=1000
+# path=src/simulation/simulation_designB.jl
+# prefix=designB
 
 
 step_simA() {
@@ -65,5 +63,5 @@ step_transform () {
     print_progress_bar $current_step $total_steps 50
 }
 
-step_simB && step_transform
-# step_simA && step_transform
+# step_simB && step_transform
+step_simA && step_transform

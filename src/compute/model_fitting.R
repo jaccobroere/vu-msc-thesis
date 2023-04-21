@@ -1,4 +1,5 @@
-setwd(system("echo $PROJ_DIR", intern = TRUE))
+PROJ_DIR <- system("echo $PROJ_DIR", intern = TRUE)
+setwd(PROJ_DIR)
 source("src/compute/utils.R")
 source("src/compute/model_wrappers.R")
 library(data.table)
@@ -8,10 +9,10 @@ library(tictoc)
 args <- commandArgs(trailingOnly = TRUE)
 
 # Set up directories
-data_dir <- "/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/"
-out_dir <- "/Users/jacco/Documents/repos/vu-msc-thesis/out/simulation/coef/"
+data_dir <- paste0(PROJ_DIR, "/data/simulation/")
+out_dir <- paste0(PROJ_DIR, "/out/simulation/coef/")
 
-path_prefix <- "designB_T500_p25"
+path_prefix <- "designA_T500_p25"
 # Read arguments from command line input
 # path_prefix <- args[1]
 
@@ -38,19 +39,22 @@ y <- as.matrix(fread(path6, header = T, skip = 0))
 message(cat("The dimension of y: ", dim(y)[1], dim(y)[2]))
 
 # Set the regularization parameter
-lambda <- 0.001
+lambda1 <- 0.01
+lambda2 <- 0
+
+lambda_splash <- 0.05
 
 # Fit the a single solution using (Augmented) ADMM
-gsplash <- admm_gsplash(sigma_hat, Vhat_d, gr, lambda, 0.5, standard_ADMM = TRUE)
+gsplash <- admm_gsplash(sigma_hat, Vhat_d, gr, lambda1, lambda2, standard_ADMM = TRUE)
 
 # Fit a single solution using FGSG
-gsplash_2 <- fgsg_gsplash(sigma_hat, Vhat_d, gr, lambda, lambda)
+gsplash_2 <- fgsg_gsplash(sigma_hat, Vhat_d, gr, lambda1, lambda2)
 
 # Fit the a single solution using SPLASH
-splash <- regular_splash(y, banded_covs = c(FALSE, FALSE), B = 500, alphas = c(0.5), lambdas = c(lambda))
+splash <- regular_splash(y, banded_covs = c(FALSE, FALSE), B = 500, alphas = c(0.5), lambdas = c(lambda_splash))
 
 # Fit a single solution using PVAR(1)
-pvar <- pvar1(y, lambda)
+# pvar <- pvar1(y, lambda)
 
 # Fit a single solution using GMWK TODO
 
@@ -66,3 +70,5 @@ fwrite(data.table(splash$B), file = paste0(out_dir, path_prefix, "_splash_estima
 
 gsplash$A
 gsplash$B
+
+data.frame(gsplash_2$A)

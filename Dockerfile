@@ -40,7 +40,7 @@ RUN cd /app/admm_src_zhu && \
     make
 
 # Set working directory
-WORKDIR /app
+WORKDIR /app/vu-msc-thesis
 
 # Specify command to run when container starts
 CMD ["bash"]

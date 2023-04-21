@@ -4,6 +4,7 @@ source("src/compute/utils.R")
 source("src/compute/model_wrappers.R")
 library(data.table)
 library(tictoc)
+library(matrixStats)
 
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
@@ -39,8 +40,8 @@ y <- as.matrix(fread(path6, header = T, skip = 0))
 message(cat("The dimension of y: ", dim(y)[1], dim(y)[2]))
 
 # Set the regularization parameter
-lambda1 <- 0.01
-lambda2 <- 0
+lambda1 <- 0.1 # Fused penalty
+lambda2 <- 0.001 # Lasso penalty
 
 lambda_splash <- 0.05
 
@@ -68,7 +69,10 @@ fwrite(data.table(splash$A), file = paste0(out_dir, path_prefix, "_splash_estima
 fwrite(data.table(splash$B), file = paste0(out_dir, path_prefix, "_splash_estimate_B.csv"))
 
 
-gsplash$A
-gsplash$B
+norm(gsplash$A - A, "2")
+norm(splash$A - A, "2")
+norm(gsplash_2$A - A, "2")
 
-data.frame(gsplash_2$A)
+norm(gsplash$B - B, "2")
+norm(splash$B - B, "2")
+norm(gsplash_2$B - B, "2")

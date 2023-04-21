@@ -20,8 +20,8 @@ RUN apt-get update && \
     apt-get install -y build-essential libcurl4-gnutls-dev libxml2-dev libssl-dev
 
 # Clone Git repository into container
-# RUN apt-get update && \
-#     apt-get install -y git && \
+RUN apt-get update && \
+    apt-get install -y git
 #     git clone https://github.com/jaccobroere/vu-msc-thesis.git /app
 
 COPY python-requirements.txt /app/python-requirements.txt

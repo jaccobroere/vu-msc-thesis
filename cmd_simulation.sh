@@ -1,3 +1,7 @@
+#!/bin/bash
+# Prepare environment
+bash prep_env.sh
+
 # Progress bar
 total_steps=2
 current_step=0
@@ -56,7 +60,7 @@ step_simB() {
 
 # Transform data
 step_transform () {
-    sh transform_data.sh -prefix ${prefix}_T${T}_p${p}
+    bash transform_data.sh -prefix ${prefix}_T${T}_p${p}
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
 }

@@ -1,6 +1,6 @@
-setwd("/Users/jacco/Documents/repos/vu-msc-thesis/")
+setwd(system("echo $ROOT_DIR", intern = TRUE))
 source("src/compute/utils.R")
-setwd("/Users/jacco/Documents/repos/vu-msc-thesis/admm_src_zhu")
+setwd(system("echo $ZHU_DIR", intern = TRUE))
 source("R/opt.R")
 source("R/gen_data.R")
 library(genlasso)

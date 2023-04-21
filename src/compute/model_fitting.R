@@ -1,4 +1,4 @@
-# setwd("/Users/jacco/Documents/repos/vu-msc-thesis")
+setwd("/Users/jacco/Documents/repos/vu-msc-thesis")
 source("src/compute/utils.R")
 source("src/compute/model_wrappers.R")
 library(data.table)
@@ -46,7 +46,7 @@ gsplash <- admm_gsplash(sigma_hat, Vhat_d, gr, lambda, 1, standard_ADMM = TRUE)
 # Fit the a single solution using SPLASH
 splash <- regular_splash(y, banded_covs = c(FALSE, FALSE), B = 500, alphas = c(0.5), lambdas = c(lambda))
 
-# Fit a single solution using PVAR(1) TODO
+# Fit a single solution using PVAR(1)
 pvar <- pvar1(y, lambda)
 
 # Fit a single solution using GMWK TODO
@@ -59,3 +59,9 @@ fwrite(data.table(gsplash$A), file = paste0(out_dir, path_prefix, "_admm_gsplash
 fwrite(data.table(gsplash$B), file = paste0(out_dir, path_prefix, "_admm_gsplash_estimate_B.csv"))
 fwrite(data.table(splash$A), file = paste0(out_dir, path_prefix, "_splash_estimate_A.csv"))
 fwrite(data.table(splash$B), file = paste0(out_dir, path_prefix, "_splash_estimate_B.csv"))
+
+# AB to coef
+AB <- cbind(A, B)
+cc <- AB_to_coef(AB, dim(A)[1])
+
+# Ab to coef

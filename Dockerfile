@@ -1,6 +1,6 @@
 # This Dockerfile is meant to build the image for working and running code related to my MSc thesis.
 # Run the following command to run the container and mount the correct folder.
-# docker run -it --rm -v /path/to/local/vu-msc-thesis:/app/vu-msc-thesis my-image
+# ocker run -it --rm -v $(pwd):/app/vu-msc-thesis jaccusaurelius/vu-msc-thesis:bullseye
 FROM julia:1.8-bullseye
 
 # Install necessary packages

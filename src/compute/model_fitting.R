@@ -1,9 +1,7 @@
-# setwd("/Users/jacco/Documents/repos/vu-msc-thesis")
 setwd(system("echo $PROJ_DIR", intern = TRUE))
 source("src/compute/utils.R")
 source("src/compute/model_wrappers.R")
 library(data.table)
-library(FGSG)
 library(tictoc)
 
 # Read CLI arguments
@@ -29,6 +27,7 @@ path6 <- paste0(data_dir, path_prefix, "_y.csv")
 sigma_hat <- t(fread(path1, header = T, skip = 0))
 Vhat_d <- as.matrix(fread(path2, header = T, skip = 0))
 gr <- read_graph(path3, format = "graphml")
+edge_vector <- as.vector(t(as_edgelist(gr)))
 
 # Load the true values
 A <- as.matrix(fread(path4, header = T, skip = 0))
@@ -39,10 +38,13 @@ y <- as.matrix(fread(path6, header = T, skip = 0))
 message(cat("The dimension of y: ", dim(y)[1], dim(y)[2]))
 
 # Set the regularization parameter
-lambda <- 0.01
+lambda <- 0.001
 
 # Fit the a single solution using (Augmented) ADMM
-gsplash <- admm_gsplash(sigma_hat, Vhat_d, gr, lambda, 1, standard_ADMM = TRUE)
+gsplash <- admm_gsplash(sigma_hat, Vhat_d, gr, lambda, 0.5, standard_ADMM = TRUE)
+
+# Fit a single solution using FGSG
+gsplash_2 <- fgsg_gsplash(sigma_hat, Vhat_d, gr, lambda, lambda)
 
 # Fit the a single solution using SPLASH
 splash <- regular_splash(y, banded_covs = c(FALSE, FALSE), B = 500, alphas = c(0.5), lambdas = c(lambda))
@@ -61,8 +63,6 @@ fwrite(data.table(gsplash$B), file = paste0(out_dir, path_prefix, "_admm_gsplash
 fwrite(data.table(splash$A), file = paste0(out_dir, path_prefix, "_splash_estimate_A.csv"))
 fwrite(data.table(splash$B), file = paste0(out_dir, path_prefix, "_splash_estimate_B.csv"))
 
-# AB to coef
-AB <- cbind(A, B)
-cc <- AB_to_coef(AB, dim(A)[1])
 
-# Ab to coef
+gsplash$A
+gsplash$B

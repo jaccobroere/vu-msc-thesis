@@ -6,6 +6,8 @@ source("R/gen_data.R")
 library(genlasso)
 library(igraph)
 library(splash)
+library(FGSG)
+setwd(system("echo $PROJ_DIR", intern = TRUE))
 
 admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, gamma, ...) {
     # Retrieve the cross-sectional dimension of the problem
@@ -36,8 +38,9 @@ admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, gamma, ...) {
     runtimeM <- Sys.time() - t0
 
     t0 <- Sys.time()
-    A <- coef_to_AB(model$beta_path[, 1], p)$A
-    B <- coef_to_AB(model$beta_path[, 1], p)$B
+    AB <- coef_to_AB(model$beta_path[, 1], p)
+    A <- AB$A
+    B <- AB$B
     runtimeC <- Sys.time() - t0
 
     # Print how long it took to run formatted with a message
@@ -77,4 +80,34 @@ regular_splash <- function(y, ...) {
         runtime = runtime
     )
     return(output_list)
+}
+
+fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, lambda2, ...) {
+    # Retrieve the cross-sectional dimension of the problem
+    p <- as.integer(sqrt(dim(Vhat_d)[1]))
+
+    # Create edge vector
+    edge_vector <- as.vector(t(as_edgelist(graph)))
+
+    # Fit FGSG GFLASSO implementation
+    t0 <- Sys.time()
+    model <- FGSG::gflasso(y = sigma_hat, A = Vhat_d, tp = edge_vector, s1 = lambda1, s2 = lambda2, ...)
+    runtime <- Sys.time() - t0
+
+    # Print how long it took to run formatted with a message
+    message(paste0("FGSG took ", round(runtime, 2), " seconds to run."))
+
+    # Transform back to A, B
+    coef <- model$weight
+    AB <- coef_to_AB(coef, p)
+    A <- AB$A
+    B <- AB$B
+
+    # Return the fitted model
+    output_list <- list(
+        model = model,
+        A = A,
+        B = B,
+        runtime = runtime
+    )
 }

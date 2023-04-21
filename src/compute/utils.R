@@ -23,7 +23,7 @@ coef_to_AB <- function(coef, p) {
 
 AB_to_coef <- function(AB, p) {
     bandwidth <- p %/% 4
-    coef <- rep(0, p * (4 * bandwidth + 1) - 2(bandwidth^2 + bandwidth))
+    coef <- rep(0, p * (4 * bandwidth + 1) - 2 * (bandwidth^2 + bandwidth))
     cnt <- 1
     for (i in 1:p) {
         for (j in 1:(2 * p)) {

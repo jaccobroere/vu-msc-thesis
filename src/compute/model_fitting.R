@@ -1,5 +1,5 @@
 # setwd("/Users/jacco/Documents/repos/vu-msc-thesis")
-setwd(system("echo $ROOT_DIR", intern = TRUE))
+setwd(system("echo $PROJ_DIR", intern = TRUE))
 source("src/compute/utils.R")
 source("src/compute/model_wrappers.R")
 library(data.table)

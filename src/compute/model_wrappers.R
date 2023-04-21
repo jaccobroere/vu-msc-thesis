@@ -1,4 +1,4 @@
-setwd(system("echo $ROOT_DIR", intern = TRUE))
+setwd(system("echo $PROJ_DIR", intern = TRUE))
 source("src/compute/utils.R")
 setwd(system("echo $ZHU_DIR", intern = TRUE))
 source("R/opt.R")

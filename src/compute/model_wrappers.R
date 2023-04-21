@@ -95,7 +95,7 @@ fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, lambda2, ...) {
 
     # Fit FGSG GFLASSO implementation
     t0 <- Sys.time()
-    model <- FGSG::gflasso(y = sigma_hat, A = Vhat_d, tp = edge_vector, s1 = lambda1, s2 = lambda2, ...)
+    model <- FGSG::gflasso(y = sigma_hat, A = Vhat_d, tp = edge_vector, s1 = lambda2, s2 = lambda1, ...) # Notice that \lambda1 and \lambda2 are swapped here
     runtime <- Sys.time() - t0
 
     # Print how long it took to run formatted with a message

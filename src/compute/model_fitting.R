@@ -40,8 +40,8 @@ y <- as.matrix(fread(path6, header = T, skip = 0))
 message(cat("The dimension of y: ", dim(y)[1], dim(y)[2]))
 
 # Set the regularization parameter
-lambda1 <- 0.1 # Fused penalty
-lambda2 <- 0.001 # Lasso penalty
+lambda1 <- 0.05 # Fused penalty
+lambda2 <- 0.01 # Lasso penalty
 
 lambda_splash <- 0.05
 

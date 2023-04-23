@@ -13,7 +13,7 @@ args <- commandArgs(trailingOnly = TRUE)
 data_dir <- paste0(PROJ_DIR, "/data/simulation/")
 out_dir <- paste0(PROJ_DIR, "/out/simulation/coef/")
 
-path_prefix <- "designB_T1000_p100"
+path_prefix <- "designA_T500_p50"
 # Read arguments from command line input
 # path_prefix <- args[1]
 
@@ -33,9 +33,9 @@ gr <- read_graph(path3, format = "graphml")
 sym_gr <- read_graph(path4, format = "graphml")
 
 # Load the true values
-A <- as.matrix(fread(path4, header = T, skip = 0))
-B <- as.matrix(fread(path5, header = T, skip = 0))
-y <- as.matrix(fread(path6, header = T, skip = 0))
+A <- as.matrix(fread(path5, header = T, skip = 0))
+B <- as.matrix(fread(path6, header = T, skip = 0))
+y <- as.matrix(fread(path7, header = T, skip = 0))
 
 # Print the dimensions of the data
 message(cat("The dimension of y: ", dim(y)[1], dim(y)[2]))
@@ -51,7 +51,7 @@ lambda_pvar <- 1
 gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, gr, lambda1, lambda2, standard_ADMM = TRUE)
 
 # Fit a single solution of symmetric_GSPLASH
-sym_gsplash <- fit_sym_gsplash(sigma_hat, Vhat_d, gr, lambda1, lambda2, standard_ADMM = TRUE)
+sym_gsplash <- fit_sym_gsplash(sigma_hat, Vhat_d, sym_gr, lambda1, lambda2, standard_ADMM = TRUE)
 
 # Fit the a single solution using SPLASH
 splash <- fit_regular_splash(y, banded_covs = c(TRUE, TRUE), B = 500, alphas = c(0.5), lambdas = c(lambda_splash))

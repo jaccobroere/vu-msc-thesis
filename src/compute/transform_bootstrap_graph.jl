@@ -242,7 +242,7 @@ function main(prefix)
     CSV.write(joinpath("data", "simulation", "$(prefix)_Vhat_d.csv"), Tables.table(Vhat_d))
     CSV.write(joinpath("data", "simulation", "$(prefix)_sigma_hat.csv"), Tables.table(sigma_hat))
     save_graph_as_gml(regular_graph, joinpath("data", "simulation", "$(prefix)_graph.graphml"))
-    save_graph_as_gml(symmetric_graph, joinpath("data", "simulation", "$(prefix)_sym_graph_.graphml"))
+    save_graph_as_gml(symmetric_graph, joinpath("data", "simulation", "$(prefix)_sym_graph.graphml"))
 
     return nothing
 end

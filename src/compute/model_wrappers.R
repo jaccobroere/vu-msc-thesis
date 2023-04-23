@@ -7,9 +7,10 @@ library(genlasso)
 library(igraph)
 library(splash)
 library(FGSG)
+library(BigVAR)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
 
-admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, labmda2, ...) {
+fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, labmda2, ...) {
     # Retrieve the cross-sectional dimension of the problem
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
@@ -64,7 +65,7 @@ admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, labmda2, ...) {
     return(output_list)
 }
 
-regular_splash <- function(y, ...) {
+fit_regular_splash <- function(y, ...) {
     # Retrieve the cross-sectional dimension of the problem
     p <- as.integer(dim(y)[1])
 
@@ -86,7 +87,7 @@ regular_splash <- function(y, ...) {
     return(output_list)
 }
 
-fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, lambda2, ...) {
+fit_fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, lambda2, ...) {
     # Retrieve the cross-sectional dimension of the problem
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
@@ -115,3 +116,54 @@ fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, lambda2, ...) {
         runtime = runtime
     )
 }
+
+fit_pvar_bigvar <- function(y, lambda,  ...) {
+    # Split y into training and testing sets
+    y_train = y[, 1:floor(dim(y)[2] / 5) * 4]
+    y_test = y[, (floor(dim(y)[2] / 5) * 4 + 1):dim(y)[2]]
+
+    # Fit a single solution using PVAR(1) with the BigVAR package
+    # Retrieve the cross-sectional dimension of the problem
+    p <- as.integer(sqrt(dim(Vhat_d)[1]))
+
+    # Perform cross-validation for the selection of the penalty parameter
+    model <- constructModel(
+        Y = t(y_train),
+        p = 1,
+        struct = "Basic",
+        gran = c(100, 10, 1, 0.1, 0.01),
+        loss = "L1",
+        T1 = floor(dim(y_train)[2] / 5) * 4 + 1,
+        ownlambdas = TRUE,
+        model.controls = list(
+            intercept = FALSE,
+            loss = "L1"
+        )
+    )
+    cvmodel <- cv.BigVAR(model)
+
+    # Fit PVAR(1) using the optimal value for lambda
+    t0 <- Sys.time()
+    model <- BigVAR.fit(
+        Y = t(y_train), # Take transpose becasue BigVAR.fit expects a matrix with rows as observations and columns as variables
+        p = 1,
+        struct = "Basic",
+        lambda = cvmodel@OptimalLambda,
+        intercept = FALSE,
+        ...
+    )
+    runtime <- Sys.time() - t0
+
+    # Print how long it took to run formatted with a message
+    message(paste0("PVAR took ", round(runtime, 2), " seconds to run for the model."))
+
+    # Return the fitted model
+    output_list <- list(
+        model = model,
+        cvmodel = cvmodel,
+        C = model[, , 1][, -1], # Remove the first column (intercept)
+        runtime = runtime
+    )
+    return(output_list)
+}
+

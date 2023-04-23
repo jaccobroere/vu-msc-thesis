@@ -104,5 +104,7 @@ def save_figure(fig, filename):
     fig.savefig(filename)
 
 
-p = 25
-plot_side_by_side_matrices(p, p // 4)
+p = 7
+# h = p // 4
+h = 2
+plot_side_by_side_matrices(p, h)

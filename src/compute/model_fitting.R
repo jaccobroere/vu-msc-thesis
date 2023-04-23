@@ -43,24 +43,17 @@ message(cat("The dimension of y: ", dim(y)[1], dim(y)[2]))
 lambda1 <- 0.05 # Fused penalty
 lambda2 <- 0.01 # Lasso penalty
 
-lambda_splash <- 0.05
+lambda_splash <- 0.01
 lambda_pvar <- 1
 
 # Fit the a single solution using (Augmented) ADMM
 gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, gr, lambda1, lambda2, standard_ADMM = TRUE)
 
-# Fit a single solution using FGSG
-gsplash_2 <- fit_fgsg_gsplash(sigma_hat, Vhat_d, gr, lambda1, lambda2)
-
 # Fit the a single solution using SPLASH
-splash <- fit_regular_splash(y_train, banded_covs = c(FALSE, FALSE), B = 500, alphas = c(0.5), lambdas = c(lambda_splash))
+splash <- fit_regular_splash(y, banded_covs = c(TRUE, TRUE), B = 500, alphas = c(0.5), lambdas = c(lambda_splash))
 
 # Fit a single solution using PVAR(1) with the BigVAR package
 pvar <- fit_pvar_bigvar(y_train, lambda_pvar)
-
-# Fit a single solution using GMWK TODO
-
-# Fit a single solution using GMWK(k_0) TODOa
 
 # Save the results
 fwrite(data.table(gsplash$A), file = paste0(out_dir, path_prefix, "_admm_gsplash_estimate_A.csv"))
@@ -71,8 +64,6 @@ fwrite(data.table(splash$B), file = paste0(out_dir, path_prefix, "_splash_estima
 
 norm(gsplash$A - A, "2")
 norm(splash$A - A, "2")
-norm(gsplash_2$A - A, "2")
 
 norm(gsplash$B - B, "2")
 norm(splash$B - B, "2")
-norm(gsplash_2$B - B, "2")

@@ -220,6 +220,9 @@ function main(prefix)
     # Read data 
     y = read_data(joinpath("data", "simulation", "$(prefix)_y.csv"))
 
+    # Subset the first 80% of the data
+    y = y[:, 1:div(size(y, 2), 5) * 4]
+
     # Bootstrap the bandwidth
     h0, h1 = bootstrap_estimator_R(y, 500)
 

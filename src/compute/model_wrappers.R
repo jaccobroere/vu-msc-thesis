@@ -24,7 +24,7 @@ fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, labmda2, ...) {
     idx <- D@i + 1
     jdx <- D@j + 1
     val <- D@x
-    runtimeD <- Sys.time() - t0
+    runtimeD <- difftime(Sys.time() - t0, units = "secs")[[1]]
 
     # Fit linear regression model using ADMM
     t0 <- Sys.time()
@@ -46,7 +46,7 @@ fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, labmda2, ...) {
     AB <- coef_to_AB(model$beta_path[, 1], p)
     A <- AB$A
     B <- AB$B
-    runtimeC <- Sys.time() - t0
+    runtimeC <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     # Print how long it took to run formatted with a message
     message(paste0("ADMM took ", round(runtimeD, 2), " seconds to run for the calculation of D."))
@@ -72,7 +72,7 @@ fit_regular_splash <- function(y, ...) {
     # Fit SPLASH from Reuvers and Wijler (2021)
     t0 <- Sys.time()
     model <- splash::splash(t(y), ...) # Take transpose because splash() accepts T x p matrix
-    runtime <- Sys.time() - t0
+    runtime <- difftime(Sys.time() - t0, units = "secs")[[1]]
 
     # Print how long it took to run formatted with a message
     message(paste0("SPLASH took ", round(runtime, 2), " seconds to run."))
@@ -97,7 +97,7 @@ fit_fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, lambda2, ...) {
     # Fit FGSG GFLASSO implementation
     t0 <- Sys.time()
     model <- FGSG::gflasso(y = sigma_hat, A = Vhat_d, tp = edge_vector, s1 = lambda2, s2 = lambda1, ...) # Notice that \lambda1 and \lambda2 are swapped here
-    runtime <- Sys.time() - t0
+    runtime <- difftime(Sys.time() - t0, units = "secs")[[1]]
 
     # Print how long it took to run formatted with a message
     message(paste0("FGSG took ", round(runtime, 2), " seconds to run."))
@@ -127,6 +127,7 @@ fit_pvar_bigvar <- function(y, lambda,  ...) {
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
     # Perform cross-validation for the selection of the penalty parameter
+    t0 <- Sys.time()
     model <- constructModel(
         Y = t(y_train),
         p = 1,
@@ -141,6 +142,7 @@ fit_pvar_bigvar <- function(y, lambda,  ...) {
         )
     )
     cvmodel <- cv.BigVAR(model)
+    runtimeCV <- difftime(Sys.time() - t0, units = "secs")[[1]]
 
     # Fit PVAR(1) using the optimal value for lambda
     t0 <- Sys.time()
@@ -152,7 +154,7 @@ fit_pvar_bigvar <- function(y, lambda,  ...) {
         intercept = FALSE,
         ...
     )
-    runtime <- Sys.time() - t0
+    runtime <- difftime(Sys.time() - t0, units = "secs")[[1]]
 
     # Print how long it took to run formatted with a message
     message(paste0("PVAR took ", round(runtime, 2), " seconds to run for the model."))
@@ -162,7 +164,8 @@ fit_pvar_bigvar <- function(y, lambda,  ...) {
         model = model,
         cvmodel = cvmodel,
         C = model[, , 1][, -1], # Remove the first column (intercept)
-        runtime = runtime
+        runtime = runtime,
+        runtimeCV = runtimeCV
     )
     return(output_list)
 }

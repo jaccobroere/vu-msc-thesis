@@ -53,7 +53,8 @@ function design_A_generate_B(p::Int, h::Int)::Matrix{Float64}
     return eta * matrix / sqrt(spectral_norm)
 end
 
-function run_simulation(p::Int, T::Int, h_A::Int, h_B::Int, path_prefix::String="sim", write::Bool=true)::Matrix{Float64}
+function run_simulation(p::Int, T::Int, h_A::Int, h_B::Int, path_prefix::String="sim", write::Bool=true, test_mult::Float64=1.2)::Matrix{Float64}
+    T = Int(T * test_mult)
     A = design_A_generate_A(p, h_A)
     B = design_A_generate_B(p, h_B)
     errors = generate_errors_over_time(T, p)

@@ -103,7 +103,7 @@ h (int): The bandwidth of the matrix.
 Returns:
 SimpleGraphs.SimpleGraph{Int}: A G-SPLASH graph representing the system of equations.
 """
-function create_gsplash_graph2(p::Int, h::Int=0, bidirectional::Bool=false)::SimpleGraph{Int}
+function create_gsplash_graph(p::Int, h::Int=0, bidirectional::Bool=false)::SimpleGraph{Int}
     if h == 0
         h = div(p, 4)
     end

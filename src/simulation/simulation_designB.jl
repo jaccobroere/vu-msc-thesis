@@ -40,7 +40,8 @@ function design_B_generate_B(m::Int)::Matrix{Float64}
     return B
 end
 
-function run_simulation(m::Int, T::Int, path_prefix::String="sim", write::Bool=true)::Nothing
+function run_simulation(m::Int, T::Int, path_prefix::String="sim", write::Bool=true, test_mult::Float64=1.2)::Nothing
+    T = Int(T * test_mult)
     A = design_B_generate_A(m)
     B = design_B_generate_B(m)
     errors = generate_errors_over_time(T, p)

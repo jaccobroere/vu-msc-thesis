@@ -29,3 +29,4 @@ dist/
 *.RData
 admm_src_zhu/code_fgfl_aaai14/data/
 .lintr
+!splash_1.0.tar.gz

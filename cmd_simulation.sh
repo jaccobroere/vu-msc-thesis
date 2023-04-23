@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Progress bar
 total_steps=2
 current_step=0
@@ -24,18 +26,18 @@ print_progress_bar() {
 }
 
 # DESIGN A
-# p=50
-# T=500
-# h_A=3
-# h_B=3
-# path=src/simulation/simulation_designA.jl
-# prefix=designA
+p=25
+T=500
+h_A=3
+h_B=3
+path=src/simulation/simulation_designA.jl
+prefix=designA
 
 # DESIGN B
-p=100 # m^2 
-T=1000
-path=src/simulation/simulation_designB.jl
-prefix=designB
+# p=100 # m^2 
+# T=1000
+# path=src/simulation/simulation_designB.jl
+# prefix=designB
 
 
 step_simA() {
@@ -56,10 +58,10 @@ step_simB() {
 
 # Transform data
 step_transform () {
-    sh transform_data.sh -prefix ${prefix}_T${T}_p${p}
+    bash transform_data.sh -prefix ${prefix}_T${T}_p${p}
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
 }
 
-step_simB && step_transform
-# step_simA && step_transform
+# step_simB && step_transform
+step_simA && step_transform

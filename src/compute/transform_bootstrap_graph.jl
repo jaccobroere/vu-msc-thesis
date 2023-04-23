@@ -16,7 +16,7 @@ using SparseArrays
 using DataFrames
 
 # Set random seed
-Random.seed!(2023)
+# Random.seed!(2023)
 
 path = dirname(abspath(@__FILE__))
 include(joinpath(path, "construct_graph.jl"))
@@ -221,7 +221,7 @@ function main(prefix)
     y = read_data(joinpath("data", "simulation", "$(prefix)_y.csv"))
 
     # Subset the first 80% of the data
-    y = y[:, 1:div(size(y, 2), 5) * 4]
+    y = y[:, 1:div(size(y, 2), 5)*4]
 
     # Bootstrap the bandwidth
     h0, h1 = bootstrap_estimator_R(y, 500)
@@ -236,6 +236,7 @@ function main(prefix)
 
     # Construct underlying graph 
     graph = create_gsplash_graph(size(y, 1)) # Bandwitdh is set to floor(p/4) by default
+    bidirectional_graph = create_gsplash_graph(size(y, 1), bidirectional_graph=true)
 
     # Write output
     CSV.write(joinpath("data", "simulation", "$(prefix)_Vhat_d.csv"), Tables.table(Vhat_d))

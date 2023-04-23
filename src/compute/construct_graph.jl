@@ -79,11 +79,11 @@ Arguments:
 Returns:
 - A tuple representing a bidirectional edge in the graph, or nothing if the edge cannot be created.
 """
-function create_bidirectional_edge(i, j, mapping_dict)
+function create_bidirectional_edge(i, j, p, mapping_dict)
     current = get(mapping_dict, (i, j), -1)
-    neighbor = get(mapping_dict, (j, i), -1)
+    neighbor = get(mapping_dict, (rem(j, p), i + div(j, p) * p), -1)
 
-    if current == -1 || neighbor == -1 || i < j
+    if current == -1 || neighbor == -1 || i <= rem(j, p)
         return nothing
     end
 
@@ -103,7 +103,7 @@ h (int): The bandwidth of the matrix.
 Returns:
 SimpleGraphs.SimpleGraph{Int}: A G-SPLASH graph representing the system of equations.
 """
-function create_gsplash_graph(p::Int, h::Int=0, bidirectional::Bool=false)::SimpleGraph{Int}
+function create_gsplash_graph(p::Int, h::Int=0; bidirectional::Bool=false)::SimpleGraph{Int}
     if h == 0
         h = div(p, 4)
     end
@@ -121,7 +121,7 @@ function create_gsplash_graph(p::Int, h::Int=0, bidirectional::Bool=false)::Simp
 
         # If bidirectional, add bidirectional edges as well
         if bidirectional
-            edge = create_bidirectional_edge(i, j, mapping_dict)
+            edge = create_bidirectional_edge(i, j, p, mapping_dict)
             if edge !== nothing
                 add_edge!(graph, edge)
             end

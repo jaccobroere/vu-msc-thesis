@@ -5,7 +5,6 @@ source("src/compute/model_wrappers.R")
 library(data.table)
 library(tictoc)
 library(matrixStats)
-library(BigVAR)
 
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
@@ -14,7 +13,7 @@ args <- commandArgs(trailingOnly = TRUE)
 data_dir <- paste0(PROJ_DIR, "/data/simulation/")
 out_dir <- paste0(PROJ_DIR, "/out/simulation/coef/")
 
-path_prefix <- "designA_T500_p25"
+path_prefix <- "designB_T1000_p100"
 # Read arguments from command line input
 # path_prefix <- args[1]
 
@@ -57,7 +56,6 @@ gsplash_2 <- fit_fgsg_gsplash(sigma_hat, Vhat_d, gr, lambda1, lambda2)
 splash <- fit_regular_splash(y_train, banded_covs = c(FALSE, FALSE), B = 500, alphas = c(0.5), lambdas = c(lambda_splash))
 
 # Fit a single solution using PVAR(1) with the BigVAR package
-lambda_pvar <- 10
 pvar <- fit_pvar_bigvar(y_train, lambda_pvar)
 
 # Fit a single solution using GMWK TODO

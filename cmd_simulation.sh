@@ -25,21 +25,6 @@ print_progress_bar() {
   echo ""
 }
 
-# DESIGN A
-p=25
-T=500
-h_A=3
-h_B=3
-path=src/simulation/simulation_designA.jl
-prefix=designA
-
-# DESIGN B
-# p=100 # m^2 
-# T=1000
-# path=src/simulation/simulation_designB.jl
-# prefix=designB
-
-
 step_simA() {
     echo "Running $path ..."
     julia --project=juliaenv/ $path $p $T $h_A $h_B ${prefix}_T${T}_p${p}
@@ -63,5 +48,20 @@ step_transform () {
     print_progress_bar $current_step $total_steps 50
 }
 
-# step_simB && step_transform
+# # DESIGN A
+p=100
+T=500
+h_A=3
+h_B=3
+path=src/simulation/simulation_designA.jl
+prefix=designA
+
 step_simA && step_transform
+
+# DESIGN B
+# p=100 # m^2 
+# T=500
+# path=src/simulation/simulation_designB.jl
+# prefix=designB
+
+# step_simB && step_transform

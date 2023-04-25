@@ -98,7 +98,7 @@ create_lambda_df <- function(lambda_grid, filename) {
     # If the file does not exist, create it
     if (!file.exists(filename)) {
         # Save the dataframe as a .csv file
-        write.csv(df, file = filename, row.names = FALSE)
+        write.csv(df, file = filename, row.names = FALSE, quote = FALSE)
     }
     return(df)
 }
@@ -125,6 +125,6 @@ run_lambda_finder <- function(sigma_hat, Vhat_d, graph, alpha, path) {
     }
 
     # Append the results to the table
-    write.table(df_lam, path, row.names = FALSE, col.names = FALSE, append = TRUE)
+    write.table(df_lam, path, row.names = FALSE, col.names = FALSE, append = TRUE, sep = ",")
     return(df_lam)
 }

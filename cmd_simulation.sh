@@ -49,7 +49,7 @@ step_transform () {
 }
 
 # # DESIGN A
-p=100
+p=25
 T=500
 h_A=3
 h_B=3

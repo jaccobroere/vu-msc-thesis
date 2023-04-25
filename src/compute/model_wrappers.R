@@ -58,6 +58,7 @@ fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, labmda2, ...) {
         model = model,
         A = A,
         B = B,
+        C = AB_to_C(A, B),
         runtimeD = runtimeD,
         runtimeM = runtimeM,
         runtimeC = runtimeC
@@ -67,8 +68,8 @@ fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, labmda2, ...) {
 
 fit_regular_splash <- function(y, ...) {
     # Split y into training and testing sets
-    y_train = y[, 1:floor(dim(y)[2] / 5) * 4]
-    y_test = y[, (floor(dim(y)[2] / 5) * 4 + 1):dim(y)[2]]
+    y_train <- y[, 1:floor(dim(y)[2] / 5) * 4]
+    y_test <- y[, (floor(dim(y)[2] / 5) * 4 + 1):dim(y)[2]]
 
     # Retrieve the cross-sectional dimension of the problem
     p <- as.integer(dim(y)[1])
@@ -81,20 +82,23 @@ fit_regular_splash <- function(y, ...) {
     # Print how long it took to run formatted with a message
     message(paste0("SPLASH took ", round(runtime, 2), " seconds to run."))
 
+    A <- model$AB[, 1:p, ]
+    B <- model$AB[, (p + 1):(2 * p), ]
     # Return the fitted model
     output_list <- list(
         model = model,
-        A = model$AB[, 1:p, ],
-        B = model$AB[, (p + 1):(2 * p), ],
+        A = A,
+        B = B,
+        C = AB_to_C(A, B),
         runtime = runtime
     )
     return(output_list)
 }
 
-fit_pvar_bigvar <- function(y, lambda,  ...) {
+fit_pvar_bigvar <- function(y, lambda, ...) {
     # Split y into training and testing sets
-    y_train = y[, 1:floor(dim(y)[2] / 5) * 4]
-    y_test = y[, (floor(dim(y)[2] / 5) * 4 + 1):dim(y)[2]]
+    y_train <- y[, 1:floor(dim(y)[2] / 5) * 4]
+    y_test <- y[, (floor(dim(y)[2] / 5) * 4 + 1):dim(y)[2]]
 
     # Fit a single solution using PVAR(1) with the BigVAR package
     # Retrieve the cross-sectional dimension of the problem
@@ -172,6 +176,7 @@ fit_fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, lambda2, ...) {
         model = model,
         A = A,
         B = B,
+        C = AB_to_C(A, B),
         runtime = runtime
     )
 }

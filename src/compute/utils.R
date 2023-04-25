@@ -42,3 +42,22 @@ AB_to_coef <- function(AB, p) {
     }
     return(coef)
 }
+
+AB_to_C <- function(A, B) {
+    C <- solve(diag(nrow(A)) - A) %*% B
+    return(C)
+}
+
+predict_with_C <- function(C, y) {
+    train_idx <- 1:floor(dim(y)[2] / 5) * 4
+    y_train <- y[, 1:train_idx]
+    y_test <- y[, train_idx:ncol(y)] # Notice leaving out + 1 here to have a predictions for the first element of y_test
+    predictions <- matrix(0, nrow = nrow(y), ncol = ncol(y_test))
+
+    # Predictions
+    predictions[, 1] <- C %*% y_train[, ncol(y_train)] # First prediction is based on last element of y_train
+    for (i in 2:ncol(y_test)) {
+        predictions[, i] <- C %*% y_test[, i - 1]
+    }
+    return(predictions)
+}

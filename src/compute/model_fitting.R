@@ -48,26 +48,49 @@ lambda_splash <- 0.01
 lambda_pvar <- 1
 
 # Fit the a single solution using (Augmented) ADMM of GSPLASH
-gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, gr, lambda1, lambda2, standard_ADMM = TRUE)
+model_gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, gr, lambda1, lambda2, standard_ADMM = TRUE)
 
 # Fit a single solution of symmetric_GSPLASH
-sym_gsplash <- fit_sym_gsplash(sigma_hat, Vhat_d, sym_gr, lambda1, lambda2, standard_ADMM = TRUE)
+model_sym_gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, sym_gr, lambda1, lambda2, standard_ADMM = TRUE)
 
 # Fit the a single solution using SPLASH
-splash <- fit_regular_splash(y, banded_covs = c(TRUE, TRUE), B = 500, alphas = c(0.5), lambdas = c(lambda_splash))
+model_splash <- fit_regular_splash(y, banded_covs = c(TRUE, TRUE), B = 500, alphas = c(0.5), lambdas = c(lambda_splash))
 
 # Fit a single solution using PVAR(1) with the BigVAR package
-pvar <- fit_pvar_bigvar(y_train, lambda_pvar)
+model_pvar <- fit_pvar_bigvar(y, lambda_pvar)
+
+# Compute and save the predictions
+yhat_gsplash <- predict_with_C(model_gsplash$C, y)
+yhat_splash <- predict_with_C(model_splash$C, y)
+yhat_sym_gsplash <- predict_with_C(model_sym_gsplash$C, y)
+yhat_pvar <- predict_with_C(model_pvar$C, y)
 
 # Save the results
-fwrite(data.table(gsplash$A), file = paste0(out_dir, path_prefix, "_admm_gsplash_estimate_A.csv"))
-fwrite(data.table(gsplash$B), file = paste0(out_dir, path_prefix, "_admm_gsplash_estimate_B.csv"))
-fwrite(data.table(splash$A), file = paste0(out_dir, path_prefix, "_splash_estimate_A.csv"))
-fwrite(data.table(splash$B), file = paste0(out_dir, path_prefix, "_splash_estimate_B.csv"))
+fwrite(data.table(model_gsplash$A), file = paste0(out_dir, path_prefix, "_gsplash_estimate_A.csv"))
+fwrite(data.table(model_gsplash$B), file = paste0(out_dir, path_prefix, "_gsplash_estimate_B.csv"))
+fwrite(data.table(model_splash$A), file = paste0(out_dir, path_prefix, "_splash_estimate_A.csv"))
+fwrite(data.table(model_splash$B), file = paste0(out_dir, path_prefix, "_splash_estimate_B.csv"))
+fwrite(data.table(model_sym_gsplash$A), file = paste0(out_dir, path_prefix, "_sym_gsplash_estimate_A.csv"))
+fwrite(data.table(model_sym_gsplash$B), file = paste0(out_dir, path_prefix, "_sym_gsplash_estimate_B.csv"))
+fwrite(data.table(model_pvar$A), file = paste0(out_dir, path_prefix, "_pvar_estimate_C.csv"))
+fwrite(data.table(yhat_gsplash), file = paste0(out_dir, path_prefix, "_gsplash_estimate_yhat.csv"))
+fwrite(data.table(yhat_splash), file = paste0(out_dir, path_prefix, "_splash_estimate_yhat.csv"))
+fwrite(data.table(yhat_sym_gsplash), file = paste0(out_dir, path_prefix, "_sym_gsplash_estimate_yhat.csv"))
+fwrite(data.table(yhat_pvar), file = paste0(out_dir, path_prefix, "_pvar_estimate_yhat.csv"))
 
 
-norm(gsplash$A - A, "2")
-norm(splash$A - A, "2")
 
-norm(gsplash$B - B, "2")
-norm(splash$B - B, "2")
+# Playground
+# norm(model_gsplash$A - A, "2")
+# norm(model_splash$A - A, "2")
+# norm(model_sym_gsplash$A - A, "2")
+
+# norm(model_gsplash$B - B, "2")
+# norm(model_splash$B - B, "2")
+# norm(model_sym_gsplash$B - B, "2")
+
+
+m1 <- fit_regular_splash(y, banded_covs = c(TRUE, TRUE), B = 500, alphas = c(0, 0.5, 1), lambdas = c(lambda_splash))
+
+
+splash(t(y), banded_covs = c(TRUE, TRUE), B = 500, alphas = c(0, 0.5, 1), lambdas = c(lambda_splash, lambda_splash, lambda_splash))

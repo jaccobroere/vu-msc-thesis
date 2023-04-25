@@ -31,7 +31,7 @@ Read data from a csv file and return a matrix.
 - `Matrix{Float64}`: matrix of shape (N, T) where N is the number of variables and T is the number of time periods.
 """
 function read_data(path::String)::Matrix{Float64}
-    return Matrix(CSV.read(path, DataFrame))
+    return Matrix(CSV.read(path, DataFrame; types=Float64))
 end
 
 
@@ -250,6 +250,11 @@ end
 main(ARGS[1])
 
 # ## TESTING
-# y = read_data(joinpath("data", "simulation", "designA_T500_p100_y.csv"))
+y = read_data(joinpath("data", "simulation", "designA_T500_p50_y.csv"))
 
 # bootstrap_estimator_R(y, 500)
+y[1, 1]
+
+# path = joinpath("data", "simulation", "designA_T500_p50_y.csv")
+
+# Matrix{Float64}(CSV.read(path, DataFrame, header=false))

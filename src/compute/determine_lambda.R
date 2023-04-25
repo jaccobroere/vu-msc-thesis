@@ -41,25 +41,6 @@ reg_gr <- read_graph(path_reg_graph, format = "graphml")
 sym_gr <- read_graph(path_sym_graph, format = "graphml")
 y <- as.matrix(fread(path_y, header = T, skip = 0))
 
-# Calculate lambda_0 for the GSPLASH
-# lam0_reg_a0 <- calc_lambda_0(sigma_hat, Vhat_d, reg_gr, alpha = 0)
-# lam0_reg_a05 <- calc_lambda_0(sigma_hat, Vhat_d, reg_gr, alpha = 0.5)
-# lam0_sym_a0 <- calc_lambda_0(sigma_hat, Vhat_d, sym_gr, alpha = 0)
-# lam0_sym_a05 <- calc_lambda_0(sigma_hat, Vhat_d, sym_gr, alpha = 0.5)
-
-# # Generate grid of values for lambda
-# grid_lam_reg_a0 <- gen_lambda_grid(lam0_reg_a0)
-# grid_lam_reg_a05 <- gen_lambda_grid(lam0_reg_a05)
-# grid_lam_sym_a0 <- gen_lambda_grid(lam0_sym_a0)
-# grid_lam_sym_a05 <- gen_lambda_grid(lam0_sym_a05)
-
-# # Call the function for each specification and create file if it does not exist yet
-# df_lam_reg_a0 <- create_lambda_df(grid_lam_reg_a0, file.path(sim_id_dir, "reg_a0.csv"))
-# df_lam_reg_a05 <- create_lambda_df(grid_lam_reg_a05, file.path(sim_id_dir, "reg_a05.csv"))
-# df_lam_sym_a0 <- create_lambda_df(grid_lam_sym_a0, file.path(sim_id_dir, "sym_a0.csv"))
-# df_lam_sym_a05 <- create_lambda_df(grid_lam_sym_a05, file.path(sim_id_dir, "sym_a05.csv"))
-
-
 res_reg_a0 <- run_lambda_finder(sigma_hat, Vhat_d, reg_gr, alpha = 0, path = file.path(sim_id_dir, "reg_a0.csv"))
 res_reg_a05 <- run_lambda_finder(sigma_hat, Vhat_d, reg_gr, alpha = 0.5, path = file.path(sim_id_dir, "reg_a05.csv"))
 res_sym_a0 <- run_lambda_finder(sigma_hat, Vhat_d, sym_gr, alpha = 0, path = file.path(sim_id_dir, "sym_a0.csv"))

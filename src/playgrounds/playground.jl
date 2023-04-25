@@ -85,3 +85,24 @@ end
 A, B = coef_to_AB(coef, 25)
 
 A
+
+function gamma_to_alpha(gamma::Float64)::Float64
+    return gamma / (1 + gamma)
+end
+
+function gamma_lambda_to_lambda_new(gamma::Float64, lambda::Float64)::Float64
+    return lambda * (1 + gamma)
+end
+
+
+λ = 0.2
+γ = 0.3
+
+
+α = gamma_to_alpha(γ)
+λ_star = gamma_lambda_to_lambda_new(γ, λ)
+
+isapprox(λ, (1 - α) * λ_star)
+isapprox(γ * λ, α * λ_star)
+
+(1 - α) * λ_star

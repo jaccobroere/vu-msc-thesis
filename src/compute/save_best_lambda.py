@@ -54,7 +54,7 @@ best_lam_sym_a05 = parse_float(avg_lam_sym_a05.index[np.argmin(avg_lam_sym_a05)]
 # save the grid of best lambdas selected lambda values
 best_lambdas = pd.DataFrame(
     {
-        "variable": [
+        "model": [
             "best_lam_reg_a0",
             "best_lam_reg_a05",
             "best_lam_sym_a0",
@@ -72,5 +72,5 @@ best_lambdas = pd.DataFrame(
 best_lambdas.to_csv(
     os.path.join(out_dir, sim_id_dir, f"{path_prefix}_best_lambdas.csv"),
     index=False,
-    header=False,
+    header=True,
 )

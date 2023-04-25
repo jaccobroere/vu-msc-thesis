@@ -61,3 +61,19 @@ predict_with_C <- function(C, y) {
     }
     return(predictions)
 }
+
+# Calcualte lambda_0 for the generalized lasso cases
+calc_lambda_0 <- function(sigma_hat, Vhat_d, graph, alpha, ...) {
+    # Check validity of alpha value
+    if (alpha < 0 | alpha >= 1) stop("alpha must be between 0 and 1")
+
+    # Fit genlasso for only the first two iterations (1 iteration does not work)
+    model <- fusedlasso(sigma_hat, Vhat_d, graph = graph, gamma = alpha / (1 - alpha), maxsteps = 2, ...)
+
+    # Retreive the lambda from the first iteration
+    lambda_0 <- coef(model)$lambda[1]
+
+    # Transform lambda_0 back to (lambda, alpha) parametrization
+    lambda_res <- lambda_0 * (1 + alpha / (1 - alpha))
+    return(lambda_res)
+}

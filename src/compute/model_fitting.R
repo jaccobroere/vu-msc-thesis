@@ -79,34 +79,16 @@ fwrite(data.table(yhat_sym_gsplash), file = paste0(out_dir, path_prefix, "_sym_g
 fwrite(data.table(yhat_pvar), file = paste0(out_dir, path_prefix, "_pvar_estimate_yhat.csv"))
 
 
+library(genlasso)
 
-# Playground
-# norm(model_gsplash$A - A, "2")
-# norm(model_splash$A - A, "2")
-# norm(model_sym_gsplash$A - A, "2")
+alpha <- 0.5
+gamma <- alpha / (1 - alpha)
+lambda_admm <- lambda / (1 + gamma)
 
-# norm(model_gsplash$B - B, "2")
-# norm(model_splash$B - B, "2")
-# norm(model_sym_gsplash$B - B, "2")
+mgenlasso <- fusedlasso(sigma_hat, Vhat_d, graph = gr, gamma = gamma, maxsteps = 2, verbose = TRUE)
+lambda_0 <- coef(mgenlasso)$lambda[1]
+print(lambda_0)
+mgsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, gr, lambda_0 * (1 + gamma), alpha)
+msplash <- fit_regular_splash(y, lambda_0, alpha)
 
-
-m1 <- fit_regular_splash(y, lambda_splash, 1, banded_covs = c(TRUE, TRUE), B = 500)
-m1$model
-
-m2 <- fit_admm_gsplash(sigma_hat, Vhat_d, gr, lambda_splash, 1, standard_ADMM = TRUE)
-
-m2 <- splash(t(y), banded_covs = c(TRUE, TRUE), B = 500, alphas = c(0, 0.5, 1), lambdas = c(lambda_splash, lambda_splash, lambda_splash))
-
-
-library(FGSG)
-
-
-lam <- 0.01
-alp <- 1
-
-lam1 <- (1 - alp) * lam
-lam2 <- alp * lam
-
-
-msplash$A
-mfgsg$A
+sum(mgsplash$model$beta_path)

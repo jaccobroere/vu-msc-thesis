@@ -47,9 +47,14 @@ Thus, y is a N x T matrix, where N is the number of variables and T is the numbe
 ## Returns
 - `Matrix{Float64}`: covariance matrix of lag j with shape (N, N).
 """
-function calc_Σj(y::Matrix{Float64}, j::Int, bias::Bool=false)::Matrix{Float64}
-    # Calculate covariance matrix of lag j
-    return cov(y[:, 1:end-j], y[:, j+1:end], dims=2, corrected=bias)
+function calc_Σj(y::Matrix{Float64}, j::Int)::Matrix{Float64}
+    p, T = size(y)
+    sigma_j = zeros(p, p)
+    ymean = mean(y, dims=2)
+    for t in 1:(T-j)
+        @inbounds sigma_j += (y[:, t] - ymean) * (y[:, t+j] - ymean)'
+    end
+    return sigma_j / T
 end
 
 
@@ -181,9 +186,10 @@ Estimate the covariance matrix of lag j using a bootstrap method (Guo et al. 201
 function bootstrap_estimator_Σj(y::Matrix{Float64}, j::Int)::Matrix{Float64}
     N, T = size(y)
     Σj = zeros(N, N)
+    y_mean = mean(y, dims=2)
     for t in 1:(T-j)
         u_t = rand(Exponential(1))
-        @inbounds Σj += u_t * y[:, t] * y[:, t+j]'
+        @inbounds Σj += u_t * (y[:, t] - y_mean) * (y[:, t+j] - y_mean)'
     end
     return Σj / T
 end
@@ -209,8 +215,8 @@ function bootstrap_estimator_R(y::Matrix{Float64}, q::Int=500)::Tuple{Int,Int}
         bootstrap_Σ0 = bootstrap_estimator_Σj(y, 0)
         bootstrap_Σ1 = bootstrap_estimator_Σj(y, 1)
         for h in 1:div(N, 4)
-            @inbounds R0[i, h] += norm((band_matrix(bootstrap_Σ0, h) - Σ0), 1)
-            @inbounds R1[i, h] += norm((band_matrix(bootstrap_Σ1, h) - Σ1), 1)
+            @inbounds R0[i, h] += norm((band_matrix(bootstrap_Σ0, h) - Σ0), 1) / q
+            @inbounds R1[i, h] += norm((band_matrix(bootstrap_Σ1, h) - Σ1), 1) / q
         end
     end
     return (argmin(vec(sum(R0, dims=1))), argmin(vec(sum(R1, dims=1))))
@@ -250,11 +256,17 @@ end
 main(ARGS[1])
 
 # ## TESTING
-y = read_data(joinpath("data", "simulation", "designA_T500_p50_y.csv"))
+# y = read_data(joinpath("data", "simulation", "designA_T500_p50_y.csv"))
 
-# bootstrap_estimator_R(y, 500)
-y[1, 1]
+# y_train = y[:, 1:div(size(y, 2), 5)*4]
+# bootstrap_estimator_R(y_train, 500)
 
-# path = joinpath("data", "simulation", "designA_T500_p50_y.csv")
+# Σ = calc_Σj(y_train, 1)
 
-# Matrix{Float64}(CSV.read(path, DataFrame, header=false))
+# band_matrix(Σ, 3)
+
+
+
+# # Random 5x5 matrix
+# A = rand(5, 5)
+# band_matrix(A, 2)

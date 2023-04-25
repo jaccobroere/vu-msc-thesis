@@ -11,9 +11,9 @@ args <- commandArgs(trailingOnly = TRUE)
 
 # Set up directories
 data_dir <- paste0(PROJ_DIR, "/data/simulation/")
-out_dir <- paste0(PROJ_DIR, "/out/simulation/coef/")
+coef_dir <- paste0(PROJ_DIR, "/out/simulation/coef/")
 
-path_prefix <- "designB_T1000_p100"
+path_prefix <- "designA_T500_p50"
 # Read arguments from command line input
 # path_prefix <- args[1]
 
@@ -21,49 +21,67 @@ path_prefix <- "designB_T1000_p100"
 path1 <- paste0(data_dir, path_prefix, "_sigma_hat.csv")
 path2 <- paste0(data_dir, path_prefix, "_Vhat_d.csv")
 path3 <- paste0(data_dir, path_prefix, "_graph.graphml")
-path4 <- paste0(data_dir, path_prefix, "_A.csv")
-path5 <- paste0(data_dir, path_prefix, "_B.csv")
-path6 <- paste0(data_dir, path_prefix, "_y.csv")
+path4 <- paste0(data_dir, path_prefix, "_sym_graph.graphml")
+path5 <- paste0(data_dir, path_prefix, "_A.csv")
+path6 <- paste0(data_dir, path_prefix, "_B.csv")
+path7 <- paste0(data_dir, path_prefix, "_y.csv")
 
 # Load the data
 sigma_hat <- t(fread(path1, header = T, skip = 0))
 Vhat_d <- as.matrix(fread(path2, header = T, skip = 0))
 gr <- read_graph(path3, format = "graphml")
-edge_vector <- as.vector(t(as_edgelist(gr)))
+sym_gr <- read_graph(path4, format = "graphml")
 
 # Load the true values
-A <- as.matrix(fread(path4, header = T, skip = 0))
-B <- as.matrix(fread(path5, header = T, skip = 0))
-y <- as.matrix(fread(path6, header = T, skip = 0))
+A <- as.matrix(fread(path5, header = T, skip = 0))
+B <- as.matrix(fread(path6, header = T, skip = 0))
+y <- as.matrix(fread(path7, header = T, skip = 0))
 
 # Print the dimensions of the data
 message(cat("The dimension of y: ", dim(y)[1], dim(y)[2]))
 
-# Set the regularization parameter
-lambda1 <- 0.05 # Fused penalty
-lambda2 <- 0.01 # Lasso penalty
+# Fit the a single solution using (Augmented) ADMM of GSPLASH
+model_gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, gr, lambda1, lambda2, standard_ADMM = TRUE)
 
-lambda_splash <- 0.01
-lambda_pvar <- 1
-
-# Fit the a single solution using (Augmented) ADMM
-gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, gr, lambda1, lambda2, standard_ADMM = TRUE)
+# Fit a single solution of symmetric_GSPLASH
+model_sym_gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, sym_gr, lambda1, lambda2, standard_ADMM = TRUE)
 
 # Fit the a single solution using SPLASH
-splash <- fit_regular_splash(y, banded_covs = c(TRUE, TRUE), B = 500, alphas = c(0.5), lambdas = c(lambda_splash))
+model_splash <- fit_regular_splash(y, banded_covs = c(TRUE, TRUE), B = 500, alphas = c(0.5), lambdas = c(lambda_splash))
 
 # Fit a single solution using PVAR(1) with the BigVAR package
-pvar <- fit_pvar_bigvar(y_train, lambda_pvar)
+model_pvar <- fit_pvar_bigvar(y, lambda_pvar)
+
+# Compute and save the predictions
+yhat_gsplash <- predict_with_C(model_gsplash$C, y)
+yhat_splash <- predict_with_C(model_splash$C, y)
+yhat_sym_gsplash <- predict_with_C(model_sym_gsplash$C, y)
+yhat_pvar <- predict_with_C(model_pvar$C, y)
 
 # Save the results
-fwrite(data.table(gsplash$A), file = paste0(out_dir, path_prefix, "_admm_gsplash_estimate_A.csv"))
-fwrite(data.table(gsplash$B), file = paste0(out_dir, path_prefix, "_admm_gsplash_estimate_B.csv"))
-fwrite(data.table(splash$A), file = paste0(out_dir, path_prefix, "_splash_estimate_A.csv"))
-fwrite(data.table(splash$B), file = paste0(out_dir, path_prefix, "_splash_estimate_B.csv"))
+fwrite(data.table(model_gsplash$A), file = paste0(coef_dir, path_prefix, "_gsplash_estimate_A.csv"))
+fwrite(data.table(model_gsplash$B), file = paste0(coef_dir, path_prefix, "_gsplash_estimate_B.csv"))
+fwrite(data.table(model_splash$A), file = paste0(coef_dir, path_prefix, "_splash_estimate_A.csv"))
+fwrite(data.table(model_splash$B), file = paste0(coef_dir, path_prefix, "_splash_estimate_B.csv"))
+fwrite(data.table(model_sym_gsplash$A), file = paste0(coef_dir, path_prefix, "_sym_gsplash_estimate_A.csv"))
+fwrite(data.table(model_sym_gsplash$B), file = paste0(coef_dir, path_prefix, "_sym_gsplash_estimate_B.csv"))
+fwrite(data.table(model_pvar$A), file = paste0(coef_dir, path_prefix, "_pvar_estimate_C.csv"))
+fwrite(data.table(yhat_gsplash), file = paste0(coef_dir, path_prefix, "_gsplash_estimate_yhat.csv"))
+fwrite(data.table(yhat_splash), file = paste0(coef_dir, path_prefix, "_splash_estimate_yhat.csv"))
+fwrite(data.table(yhat_sym_gsplash), file = paste0(coef_dir, path_prefix, "_sym_gsplash_estimate_yhat.csv"))
+fwrite(data.table(yhat_pvar), file = paste0(coef_dir, path_prefix, "_pvar_estimate_yhat.csv"))
 
 
-norm(gsplash$A - A, "2")
-norm(splash$A - A, "2")
+library(genlasso)
 
-norm(gsplash$B - B, "2")
-norm(splash$B - B, "2")
+alpha <- 0.5
+gamma <- alpha / (1 - alpha)
+lambda_admm <- lambda / (1 + gamma)
+
+mgenlasso <- fusedlasso(sigma_hat, Vhat_d, graph = gr, gamma = gamma, maxsteps = 2, verbose = TRUE)
+lambda_0 <- coef(mgenlasso)$lambda[1]
+print(lambda_0)
+mgsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, gr, lambda_0 * (1 + gamma), alpha)
+msplash <- fit_regular_splash(y, lambda_0, alpha)
+
+sum(mgsplash$model$beta_path)

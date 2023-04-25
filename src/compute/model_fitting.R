@@ -90,7 +90,8 @@ fwrite(data.table(yhat_pvar), file = paste0(out_dir, path_prefix, "_pvar_estimat
 # norm(model_sym_gsplash$B - B, "2")
 
 
-m1 <- fit_regular_splash(y, banded_covs = c(TRUE, TRUE), B = 500, alphas = c(0, 0.5, 1), lambdas = c(lambda_splash))
+m1 <- fit_regular_splash(y, banded_covs = c(TRUE, TRUE), B = 500, alphas = c(1), lambdas = c(lambda_splash))
+m2 <- fit_admm_gsplash(sigma_hat, Vhat_d, gr, lambda, standard_ADMM = TRUE)
 
 
-splash(t(y), banded_covs = c(TRUE, TRUE), B = 500, alphas = c(0, 0.5, 1), lambdas = c(lambda_splash, lambda_splash, lambda_splash))
+m2 <- splash(t(y), banded_covs = c(TRUE, TRUE), B = 500, alphas = c(0, 0.5, 1), lambdas = c(lambda_splash, lambda_splash, lambda_splash))

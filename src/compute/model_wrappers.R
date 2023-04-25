@@ -10,13 +10,13 @@ library(FGSG)
 library(BigVAR)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
 
-fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, labmda2, ...) {
+fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, ...) {
     # Retrieve the cross-sectional dimension of the problem
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
-    # Translate lambdas to gamma
-    lambda <- lambda1
-    gamma <- lambda2 / lambda1
+    # Reparameterize the lambda and alpha
+    gamma <- alpha / (1 - alpha)
+    lambda_admm <- lambda / (1 + gamma)
 
     # Convert graph to sparse matrix
     t0 <- Sys.time()
@@ -34,7 +34,7 @@ fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, labmda2, ...) {
         val = val,
         idx = idx,
         jdx = jdx,
-        lambda_graph = lambda,
+        lambda_graph = lambda_admm,
         gamma = gamma,
         p = dim(Vhat_d)[2],
         m = dim(D)[1],
@@ -66,17 +66,17 @@ fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, labmda2, ...) {
     return(output_list)
 }
 
-fit_regular_splash <- function(y, ...) {
+fit_regular_splash <- function(y, lambda, alpha, ...) {
     # Split y into training and testing sets
-    y_train <- y[, 1:floor(dim(y)[2] / 5) * 4]
-    y_test <- y[, (floor(dim(y)[2] / 5) * 4 + 1):dim(y)[2]]
+    y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
+    y_test <- y[, ((floor(dim(y)[2] / 5) * 4) + 1):dim(y)[2]]
 
     # Retrieve the cross-sectional dimension of the problem
     p <- as.integer(dim(y)[1])
 
     # Fit SPLASH from Reuvers and Wijler (2021)
     t0 <- Sys.time()
-    model <- splash::splash(t(y_train), ...) # Take transpose because splash() accepts T x p matrix
+    model <- splash::splash(t(y_train), alphas = c(alpha), lambdas = c(lambda), ...) # Take transpose because splash() accepts T x p matrix
     runtime <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     # Print how long it took to run formatted with a message
@@ -97,7 +97,7 @@ fit_regular_splash <- function(y, ...) {
 
 fit_pvar_bigvar <- function(y, lambda, ...) {
     # Split y into training and testing sets
-    y_train <- y[, 1:floor(dim(y)[2] / 5) * 4]
+    y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
     y_test <- y[, (floor(dim(y)[2] / 5) * 4 + 1):dim(y)[2]]
 
     # Fit a single solution using PVAR(1) with the BigVAR package
@@ -148,35 +148,4 @@ fit_pvar_bigvar <- function(y, lambda, ...) {
         runtimeCV = runtimeCV
     )
     return(output_list)
-}
-
-fit_fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda1, lambda2, ...) {
-    # Retrieve the cross-sectional dimension of the problem
-    p <- as.integer(sqrt(dim(Vhat_d)[1]))
-
-    # Create edge vector
-    edge_vector <- as.vector(t(as_edgelist(graph)))
-
-    # Fit FGSG GFLASSO implementation
-    t0 <- Sys.time()
-    model <- FGSG::gflasso(y = sigma_hat, A = Vhat_d, tp = edge_vector, s1 = lambda2, s2 = lambda1, ...) # Notice that \lambda1 and \lambda2 are swapped here
-    runtime <- difftime(Sys.time(), t0, units = "secs")[[1]]
-
-    # Print how long it took to run formatted with a message
-    message(paste0("FGSG took ", round(runtime, 2), " seconds to run."))
-
-    # Transform back to A, B
-    coef <- model$weight
-    AB <- coef_to_AB(coef, p)
-    A <- AB$A
-    B <- AB$B
-
-    # Return the fitted model
-    output_list <- list(
-        model = model,
-        A = A,
-        B = B,
-        C = AB_to_C(A, B),
-        runtime = runtime
-    )
 }

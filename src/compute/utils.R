@@ -77,3 +77,22 @@ calc_lambda_0 <- function(sigma_hat, Vhat_d, graph, alpha, ...) {
     lambda_res <- lambda_0 * (1 + alpha / (1 - alpha))
     return(lambda_res)
 }
+
+# Generate grid of values for lambda
+gen_lambda_grid <- function(lambda_0, length.out = 20) {
+    log_vals <- seq(from = -4, to = log10(lambda_0), length.out = length.out)
+    return(10^log_vals)
+}
+
+# Create dataframes with lambda values as column names
+create_lambda_df <- function(lambda_grid, filename) {
+    if (!file.exists(filename)) {
+        df <- data.frame(matrix(ncol = length(lambda_grid), nrow = 0))
+        colnames(df) <- paste0("lambda_", seq_along(lambda_grid))
+
+        # Save the dataframe as a .csv file
+        write.csv(df, file = filename, row.names = FALSE)
+    }
+
+    return(df)
+}

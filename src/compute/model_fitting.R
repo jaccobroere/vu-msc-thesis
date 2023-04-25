@@ -11,7 +11,7 @@ args <- commandArgs(trailingOnly = TRUE)
 
 # Set up directories
 data_dir <- paste0(PROJ_DIR, "/data/simulation/")
-out_dir <- paste0(PROJ_DIR, "/out/simulation/coef/")
+coef_dir <- paste0(PROJ_DIR, "/out/simulation/coef/")
 
 path_prefix <- "designA_T500_p50"
 # Read arguments from command line input
@@ -41,14 +41,9 @@ y <- as.matrix(fread(path7, header = T, skip = 0))
 message(cat("The dimension of y: ", dim(y)[1], dim(y)[2]))
 
 # Set the regularization parameter
-lambda1 <- 0.05 # Fused penalty
-lambda2 <- 0.01 # Lasso penalty
-
-lambda_splash <- 0.01
-lambda_pvar <- 1
-
-# Fit the a single solution using (Augmented) ADMM of GSPLASH
-model_gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, gr, lambda1, lambda2, standard_ADMM = TRUE)
+lam_reg_a0 <-
+    # Fit the a single solution using (Augmented) ADMM of GSPLASH
+    model_gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, gr, lambda1, lambda2, standard_ADMM = TRUE)
 
 # Fit a single solution of symmetric_GSPLASH
 model_sym_gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, sym_gr, lambda1, lambda2, standard_ADMM = TRUE)
@@ -66,17 +61,17 @@ yhat_sym_gsplash <- predict_with_C(model_sym_gsplash$C, y)
 yhat_pvar <- predict_with_C(model_pvar$C, y)
 
 # Save the results
-fwrite(data.table(model_gsplash$A), file = paste0(out_dir, path_prefix, "_gsplash_estimate_A.csv"))
-fwrite(data.table(model_gsplash$B), file = paste0(out_dir, path_prefix, "_gsplash_estimate_B.csv"))
-fwrite(data.table(model_splash$A), file = paste0(out_dir, path_prefix, "_splash_estimate_A.csv"))
-fwrite(data.table(model_splash$B), file = paste0(out_dir, path_prefix, "_splash_estimate_B.csv"))
-fwrite(data.table(model_sym_gsplash$A), file = paste0(out_dir, path_prefix, "_sym_gsplash_estimate_A.csv"))
-fwrite(data.table(model_sym_gsplash$B), file = paste0(out_dir, path_prefix, "_sym_gsplash_estimate_B.csv"))
-fwrite(data.table(model_pvar$A), file = paste0(out_dir, path_prefix, "_pvar_estimate_C.csv"))
-fwrite(data.table(yhat_gsplash), file = paste0(out_dir, path_prefix, "_gsplash_estimate_yhat.csv"))
-fwrite(data.table(yhat_splash), file = paste0(out_dir, path_prefix, "_splash_estimate_yhat.csv"))
-fwrite(data.table(yhat_sym_gsplash), file = paste0(out_dir, path_prefix, "_sym_gsplash_estimate_yhat.csv"))
-fwrite(data.table(yhat_pvar), file = paste0(out_dir, path_prefix, "_pvar_estimate_yhat.csv"))
+fwrite(data.table(model_gsplash$A), file = paste0(coef_dir, path_prefix, "_gsplash_estimate_A.csv"))
+fwrite(data.table(model_gsplash$B), file = paste0(coef_dir, path_prefix, "_gsplash_estimate_B.csv"))
+fwrite(data.table(model_splash$A), file = paste0(coef_dir, path_prefix, "_splash_estimate_A.csv"))
+fwrite(data.table(model_splash$B), file = paste0(coef_dir, path_prefix, "_splash_estimate_B.csv"))
+fwrite(data.table(model_sym_gsplash$A), file = paste0(coef_dir, path_prefix, "_sym_gsplash_estimate_A.csv"))
+fwrite(data.table(model_sym_gsplash$B), file = paste0(coef_dir, path_prefix, "_sym_gsplash_estimate_B.csv"))
+fwrite(data.table(model_pvar$A), file = paste0(coef_dir, path_prefix, "_pvar_estimate_C.csv"))
+fwrite(data.table(yhat_gsplash), file = paste0(coef_dir, path_prefix, "_gsplash_estimate_yhat.csv"))
+fwrite(data.table(yhat_splash), file = paste0(coef_dir, path_prefix, "_splash_estimate_yhat.csv"))
+fwrite(data.table(yhat_sym_gsplash), file = paste0(coef_dir, path_prefix, "_sym_gsplash_estimate_yhat.csv"))
+fwrite(data.table(yhat_pvar), file = paste0(coef_dir, path_prefix, "_pvar_estimate_yhat.csv"))
 
 
 library(genlasso)

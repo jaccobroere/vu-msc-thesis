@@ -48,8 +48,8 @@ AB_to_C <- function(A, B) {
     return(C)
 }
 
-predict_with_C <- function(C, y) {
-    train_idx <- 1:floor(dim(y)[2] / 5) * 4
+predict_with_C <- function(C, y, rmsfe = FALSE) {
+    train_idx <- (floor(dim(y)[2] / 5) * 4)
     y_train <- y[, 1:train_idx]
     y_test <- y[, train_idx:ncol(y)] # Notice leaving out + 1 here to have a predictions for the first element of y_test
     predictions <- matrix(0, nrow = nrow(y), ncol = ncol(y_test))
@@ -59,6 +59,12 @@ predict_with_C <- function(C, y) {
     for (i in 2:ncol(y_test)) {
         predictions[, i] <- C %*% y_test[, i - 1]
     }
+
+    if (rmsfe) {
+        # Calculate the root mean squared forecast error
+        return(calc_rmsfe(y_test, predictions))
+    }
+
     return(predictions)
 }
 
@@ -86,13 +92,39 @@ gen_lambda_grid <- function(lambda_0, length.out = 20) {
 
 # Create dataframes with lambda values as column names
 create_lambda_df <- function(lambda_grid, filename) {
-    if (!file.exists(filename)) {
-        df <- data.frame(matrix(ncol = length(lambda_grid), nrow = 0))
-        colnames(df) <- paste0("lambda_", seq_along(lambda_grid))
+    df <- data.frame(matrix(ncol = length(lambda_grid), nrow = 0))
+    colnames(df) <- paste0("lambda_", lambda_grid)
 
+    # If the file does not exist, create it
+    if (!file.exists(filename)) {
         # Save the dataframe as a .csv file
         write.csv(df, file = filename, row.names = FALSE)
     }
-
     return(df)
+}
+
+calc_rmsfe <- function(y, y_hat) {
+    # Calculate the root mean squared forecast error
+    rmsfe <- sqrt(mean((y - y_hat)^2))
+    return(rmsfe)
+}
+
+run_lambda_finder <- function(sigma_hat, Vhat_d, graph, alpha, path) {
+    # Calculate lambda_0 for the GSPLASH
+    lam0 <- calc_lambda_0(sigma_hat, Vhat_d, graph, alpha = alpha)
+    # Generate grid of values for lambda
+    grid_lam <- gen_lambda_grid(lam0, length.out = 5)
+    # Call the function for each specification and create file if it does not exist yet
+    df_lam <- create_lambda_df(grid_lam, path)
+    # Fit the models and save the prediction results in the data.frame
+    for (i in 1:length(grid_lam)) {
+        lam <- grid_lam[i]
+        model <- fit_admm_gsplash(sigma_hat, Vhat_d, graph, lam, alpha = alpha)
+        error_metric <- predict_with_C(model$C, y, rmsfe = TRUE)
+        df_lam[1, colnames(df_lam)[i]] <- error_metric
+    }
+
+    # Append the results to the table
+    write.table(df_lam, path, row.names = FALSE, col.names = FALSE, append = TRUE)
+    return(df_lam)
 }

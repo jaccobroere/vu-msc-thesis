@@ -40,10 +40,8 @@ y <- as.matrix(fread(path7, header = T, skip = 0))
 # Print the dimensions of the data
 message(cat("The dimension of y: ", dim(y)[1], dim(y)[2]))
 
-# Set the regularization parameter
-lam_reg_a0 <-
-    # Fit the a single solution using (Augmented) ADMM of GSPLASH
-    model_gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, gr, lambda1, lambda2, standard_ADMM = TRUE)
+# Fit the a single solution using (Augmented) ADMM of GSPLASH
+model_gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, gr, lambda1, lambda2, standard_ADMM = TRUE)
 
 # Fit a single solution of symmetric_GSPLASH
 model_sym_gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, sym_gr, lambda1, lambda2, standard_ADMM = TRUE)

@@ -10,7 +10,7 @@ library(FGSG)
 library(BigVAR)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
 
-fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, ...) {
+fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALSE, ...) {
     # Retrieve the cross-sectional dimension of the problem
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
@@ -49,9 +49,9 @@ fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, ...) {
     runtimeC <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     # Print how long it took to run formatted with a message
-    message(paste0("ADMM took ", round(runtimeD, 2), " seconds to run for the calculation of D."))
-    message(paste0("ADMM took ", round(runtimeM, 2), " seconds to run for the model."))
-    message(paste0("ADMM took ", round(runtimeC, 2), " seconds to run for conversion to A, B."))
+    if (verbose) {
+        message(paste0("ADMM took ", round(runtimeM, 2), " seconds to run for the model."))
+    }
 
     # Return the fitted model
     output_list <- list(
@@ -66,7 +66,7 @@ fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, ...) {
     return(output_list)
 }
 
-fit_regular_splash <- function(y, lambda, alpha, ...) {
+fit_regular_splash <- function(y, lambda, alpha, verbose = FALSE, ...) {
     # Split y into training and testing sets
     y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
     y_test <- y[, ((floor(dim(y)[2] / 5) * 4) + 1):dim(y)[2]]
@@ -80,7 +80,9 @@ fit_regular_splash <- function(y, lambda, alpha, ...) {
     runtime <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     # Print how long it took to run formatted with a message
-    message(paste0("SPLASH took ", round(runtime, 2), " seconds to run."))
+    if (verbose) {
+        message(paste0("SPLASH took ", round(runtime, 2), " seconds to run."))
+    }
 
     A <- model$AB[, 1:p, ]
     B <- model$AB[, (p + 1):(2 * p), ]
@@ -95,7 +97,7 @@ fit_regular_splash <- function(y, lambda, alpha, ...) {
     return(output_list)
 }
 
-fit_pvar_bigvar <- function(y, lambda, ...) {
+fit_pvar_bigvar <- function(y, lambda, verbose = FALSE, ...) {
     # Split y into training and testing sets
     y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
     y_test <- y[, (floor(dim(y)[2] / 5) * 4 + 1):dim(y)[2]]
@@ -136,8 +138,10 @@ fit_pvar_bigvar <- function(y, lambda, ...) {
     runtime <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     # Print how long it took to run formatted with a message
-    message(paste0("PVAR took ", round(runtime, 2), " seconds to run for the model."))
-    message(paste0("PVAR took ", round(runtimeCV, 2), " seconds to run for cross-validation."))
+    if (verbose) {
+        message(paste0("PVAR took ", round(runtime, 2), " seconds to run for the model."))
+        message(paste0("PVAR took ", round(runtimeCV, 2), " seconds to run for cross-validation."))
+    }
 
     # Return the fitted model
     output_list <- list(
@@ -151,7 +155,7 @@ fit_pvar_bigvar <- function(y, lambda, ...) {
 }
 
 
-fit_fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, ...) {
+fit_fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALSE, ...) {
     # Retrieve the cross-sectional dimension of the problem
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
@@ -168,7 +172,9 @@ fit_fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, ...) {
     runtime <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     # Print how long it took to run formatted with a message
-    message(paste0("FGSG took ", round(runtime, 2), " seconds to run."))
+    if (verbose) {
+        message(paste0("FGSG took ", round(runtime, 2), " seconds to run."))
+    }
 
     # Transform back to A, B
     coef <- model$weight

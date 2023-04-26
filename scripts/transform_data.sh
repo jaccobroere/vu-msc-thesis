@@ -27,7 +27,7 @@ step1() {
 
   # Run Julia script for step 1
   echo "Running transform_bootstrap_graph.jl ..."
-  julia --project=juliaenv/ src/compute/transform_bootstrap_graph.jl $prefix
+  julia --project=$JULIA_DIR src/compute/transform_bootstrap_graph.jl $prefix
   echo "transform_bootstrap_graph.jl completed."
 }
 

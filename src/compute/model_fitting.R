@@ -6,25 +6,23 @@ library(data.table)
 library(tictoc)
 library(matrixStats)
 
-# Read CLI arguments
-args <- commandArgs(trailingOnly = TRUE)
-
 # Set up directories
 data_dir <- paste0(PROJ_DIR, "/data/simulation/")
 coef_dir <- paste0(PROJ_DIR, "/out/simulation/coef/")
 
-path_prefix <- "designA_T500_p50"
-# Read arguments from command line input
-# path_prefix <- args[1]
+# Read CLI arguments
+args <- commandArgs(trailingOnly = TRUE)
+sim_design_id <- "designA_T500_p50"
+# sim_design_id <- args[1]
 
 # Parse paths
-path1 <- paste0(data_dir, path_prefix, "_sigma_hat.csv")
-path2 <- paste0(data_dir, path_prefix, "_Vhat_d.csv")
-path3 <- paste0(data_dir, path_prefix, "_graph.graphml")
-path4 <- paste0(data_dir, path_prefix, "_sym_graph.graphml")
-path5 <- paste0(data_dir, path_prefix, "_A.csv")
-path6 <- paste0(data_dir, path_prefix, "_B.csv")
-path7 <- paste0(data_dir, path_prefix, "_y.csv")
+path_sigma_hat <- paste0(data_dir, sim_design_id, "_sigma_hat.csv")
+path_Vhat_d <- paste0(data_dir, sim_design_id, "_Vhat_d.csv")
+path_reg_graph <- paste0(data_dir, sim_design_id, "_graph.graphml")
+path_sym_graph <- paste0(data_dir, sim_design_id, "_sym_graph.graphml")
+path_y <- paste0(data_dir, sim_design_id, "_y.csv")
+path_A <- paste0(data_dir, sim_design_id, "_A.csv")
+path_B <- paste0(data_dir, sim_design_id, "_B.csv")
 
 # Load the data
 sigma_hat <- t(fread(path1, header = T, skip = 0))
@@ -59,29 +57,14 @@ yhat_sym_gsplash <- predict_with_C(model_sym_gsplash$C, y)
 yhat_pvar <- predict_with_C(model_pvar$C, y)
 
 # Save the results
-fwrite(data.table(model_gsplash$A), file = paste0(coef_dir, path_prefix, "_gsplash_estimate_A.csv"))
-fwrite(data.table(model_gsplash$B), file = paste0(coef_dir, path_prefix, "_gsplash_estimate_B.csv"))
-fwrite(data.table(model_splash$A), file = paste0(coef_dir, path_prefix, "_splash_estimate_A.csv"))
-fwrite(data.table(model_splash$B), file = paste0(coef_dir, path_prefix, "_splash_estimate_B.csv"))
-fwrite(data.table(model_sym_gsplash$A), file = paste0(coef_dir, path_prefix, "_sym_gsplash_estimate_A.csv"))
-fwrite(data.table(model_sym_gsplash$B), file = paste0(coef_dir, path_prefix, "_sym_gsplash_estimate_B.csv"))
-fwrite(data.table(model_pvar$A), file = paste0(coef_dir, path_prefix, "_pvar_estimate_C.csv"))
-fwrite(data.table(yhat_gsplash), file = paste0(coef_dir, path_prefix, "_gsplash_estimate_yhat.csv"))
-fwrite(data.table(yhat_splash), file = paste0(coef_dir, path_prefix, "_splash_estimate_yhat.csv"))
-fwrite(data.table(yhat_sym_gsplash), file = paste0(coef_dir, path_prefix, "_sym_gsplash_estimate_yhat.csv"))
-fwrite(data.table(yhat_pvar), file = paste0(coef_dir, path_prefix, "_pvar_estimate_yhat.csv"))
-
-
-library(genlasso)
-
-alpha <- 0.5
-gamma <- alpha / (1 - alpha)
-lambda_admm <- lambda / (1 + gamma)
-
-mgenlasso <- fusedlasso(sigma_hat, Vhat_d, graph = gr, gamma = gamma, maxsteps = 2, verbose = TRUE)
-lambda_0 <- coef(mgenlasso)$lambda[1]
-print(lambda_0)
-mgsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, gr, lambda_0 * (1 + gamma), alpha)
-msplash <- fit_regular_splash(y, lambda_0, alpha)
-
-sum(mgsplash$model$beta_path)
+fwrite(data.table(model_gsplash$A), file = paste0(coef_dir, sim_design_id, "_gsplash_estimate_A.csv"))
+fwrite(data.table(model_gsplash$B), file = paste0(coef_dir, sim_design_id, "_gsplash_estimate_B.csv"))
+fwrite(data.table(model_splash$A), file = paste0(coef_dir, sim_design_id, "_splash_estimate_A.csv"))
+fwrite(data.table(model_splash$B), file = paste0(coef_dir, sim_design_id, "_splash_estimate_B.csv"))
+fwrite(data.table(model_sym_gsplash$A), file = paste0(coef_dir, sim_design_id, "_sym_gsplash_estimate_A.csv"))
+fwrite(data.table(model_sym_gsplash$B), file = paste0(coef_dir, sim_design_id, "_sym_gsplash_estimate_B.csv"))
+fwrite(data.table(model_pvar$A), file = paste0(coef_dir, sim_design_id, "_pvar_estimate_C.csv"))
+fwrite(data.table(yhat_gsplash), file = paste0(coef_dir, sim_design_id, "_gsplash_estimate_yhat.csv"))
+fwrite(data.table(yhat_splash), file = paste0(coef_dir, sim_design_id, "_splash_estimate_yhat.csv"))
+fwrite(data.table(yhat_sym_gsplash), file = paste0(coef_dir, sim_design_id, "_sym_gsplash_estimate_yhat.csv"))
+fwrite(data.table(yhat_pvar), file = paste0(coef_dir, sim_design_id, "_pvar_estimate_yhat.csv"))

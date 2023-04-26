@@ -58,7 +58,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
     p = parse(Int, ARGS[1])
     m = Int(sqrt(p))
     T = parse(Int, ARGS[2])
-    path_prefix = ARGS[3]
+    path_prefix = ARGS[5]
 
     # Run simulation
     run_simulation(m, T, path_prefix, true)

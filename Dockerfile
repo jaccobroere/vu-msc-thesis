@@ -5,6 +5,7 @@ FROM julia:1.8-bullseye
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PROJ_DIR=/app/vu-msc-thesis
 ENV ZHU_DIR=/app/admm_src_zhu
+ENV JULIA_DIR=/app/juliaenv
 
 # Install necessary packages
 RUN apt-get update && \
@@ -43,12 +44,17 @@ COPY splash_1.0.tar.gz /app/splash_1.0.tar.gz
 # Install Python, R and Julia packages
 RUN pip3 install -r /app/python-requirements.txt
 RUN cd /app && Rscript /app/r-requirements.R && cd ..
-RUN julia --project=/app/juliaenv -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
+RUN julia --project=$JULIA_DIR -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
 
 # Install C dependencies for R package from Zhu et al. (2015)
 RUN cd /app/admm_src_zhu && \
     make clean && \
     make
+
+# Copy code to run
+COPY src /app/vu-msc-thesis/src
+COPY out /app/vu-msc-thesis/out
+COPY scripts /app/vu-msc-thesis/scripts
 
 # Set working directory
 WORKDIR /app/vu-msc-thesis

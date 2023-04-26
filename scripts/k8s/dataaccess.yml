@@ -6,7 +6,7 @@ spec:
   containers:
   - name: debian
     image: debian:latest
-    command: ['sleep', 'infinity']
+    command: ['sh', '-c', 'rm -rf /app/vu-msc-thesis/out/simulation/lambdas && sleep infinity']
     volumeMounts:
     - name: shared-pv-out
       mountPath: /app/vu-msc-thesis/out

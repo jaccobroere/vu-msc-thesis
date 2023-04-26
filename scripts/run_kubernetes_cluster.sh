@@ -1,4 +1,8 @@
+#!/bin/bash
+
 cd $PROJ_DIR
+
+bash scripts/clear_k8s.sh
 
 kubectl apply -f scripts/k8s/setup_pv.yml
 

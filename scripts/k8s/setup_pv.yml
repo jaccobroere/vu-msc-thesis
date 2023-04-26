@@ -23,29 +23,3 @@ spec:
     requests:
       storage: 10Gi
   storageClassName: manual
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: shared-pv-data
-spec:
-  capacity:
-    storage: 10Gi
-  accessModes:
-    - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: manual
-  hostPath:
-    path: /Users/jacco/Documents/repos/vu-msc-thesis/data
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: shared-pvc-data
-spec:
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 10Gi
-  storageClassName: manual

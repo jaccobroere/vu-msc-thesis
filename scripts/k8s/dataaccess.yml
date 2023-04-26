@@ -10,12 +10,7 @@ spec:
     volumeMounts:
     - name: shared-pv-out
       mountPath: /app/vu-msc-thesis/out
-    - name: shared-pv-data
-      mountPath: /app/vu-msc-thesis/data
   volumes:
     - name: shared-pv-out
       persistentVolumeClaim:
         claimName: shared-pvc-out
-    - name: shared-pv-data
-      persistentVolumeClaim:
-        claimName: shared-pvc-data

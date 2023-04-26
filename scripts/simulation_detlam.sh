@@ -41,6 +41,7 @@ step_transform () {
 }
 
 step_detlam () {
+    # rm -rf out/simulation/lambdas/${prefix}_T${T}_p${p}
     Rscript src/compute/determine_lambda.R ${prefix}_T${T}_p${p}
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50

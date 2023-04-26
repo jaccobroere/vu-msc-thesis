@@ -25,7 +25,7 @@ lambdas_dir <- file.path(PROJ_DIR, "out/simulation/lambdas/")
 
 # Create directory for the simulation ID
 sim_id_dir <- file.path(lambdas_dir, sim_design_id)
-dir.create(sim_id_dir)
+dir.create(sim_id_dir, showWarnings = FALSE)
 
 # Calculate lambda_0 for the GSPLASH
 path_sigma_hat <- paste0(data_dir, sim_design_id, "_sigma_hat.csv")

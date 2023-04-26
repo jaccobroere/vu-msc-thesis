@@ -60,4 +60,4 @@ COPY scripts /app/vu-msc-thesis/scripts
 WORKDIR /app/vu-msc-thesis
 
 # Specify command to run when container starts
-CMD bash scripts/cmd_simulation.sh && Rscript src/compute/determine_lambda.R designA_T500_p25
+CMD ["bash"]

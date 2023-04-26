@@ -15,7 +15,8 @@ setwd(PROJ_DIR)
 
 # Read arguments from CLI
 args <- commandArgs(trailingOnly = TRUE)
-sim_design_id <- "designA_T500_p25" # sim_design_id <- args[1]
+sim_design_id <- "designA_T500_p25"
+sim_design_id <- args[1]
 
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation/")

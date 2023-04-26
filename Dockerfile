@@ -50,8 +50,13 @@ RUN cd /app/admm_src_zhu && \
     make clean && \
     make
 
+# Copy code to run
+COPY src /app/vu-msc-thesis/src
+COPY out /app/vu-msc-thesis/out
+COPY scripts /app/vu-msc-thesis/scripts
+
 # Set working directory
 WORKDIR /app/vu-msc-thesis
 
 # Specify command to run when container starts
-CMD echo "Hello there then!"
+CMD bash scripts/cmd_simulation.sh && Rscript src/compute/determine_lambda.R designA_T500_p25

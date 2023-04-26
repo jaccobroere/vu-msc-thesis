@@ -22,14 +22,13 @@ proj_dir = os.environ["PROJ_DIR"]
 os.chdir(proj_dir)
 
 # read CLI arguments
-path_prefix = "designA_T500_p25"  # sys.argv[1]
-sim_id = "1343"  # sys.argv[2]
+sim_design_id = "designA_T500_p25"  # sys.argv[1]
 
 # set up directory paths
 data_dir = os.path.join(proj_dir, "data", "simulation")
 out_dir = os.path.join(proj_dir, "out")
 lambdas_dir = os.path.join(out_dir, "simulation", "lambdas")
-sim_id_dir = os.path.join(lambdas_dir, sim_id)
+sim_id_dir = os.path.join(lambdas_dir, sim_design_id)
 
 # read in the lambda dataframes
 grid_lam_reg_a0 = pd.read_csv(os.path.join(sim_id_dir, "reg_a0.csv"), delimiter=",")
@@ -68,9 +67,9 @@ best_lambdas = pd.DataFrame(
         ],
     }
 )
-# %%
+
 best_lambdas.to_csv(
-    os.path.join(out_dir, sim_id_dir, f"{path_prefix}_best_lambdas.csv"),
+    os.path.join(out_dir, sim_id_dir, f"{sim_design_id}_best_lambdas.csv"),
     index=False,
     header=True,
 )

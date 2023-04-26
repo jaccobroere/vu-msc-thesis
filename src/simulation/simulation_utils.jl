@@ -76,6 +76,10 @@ Write simulation outputs to CSV files.
 - None
 """
 function write_simulation_output(A::Matrix{Float64}, B::Matrix{Float64}, y::Matrix{Float64}, path_prefix)::Nothing
+    if !isdir(joinpath("data", "simulation"))
+        mkpath(joinpath("data", "simulation"))
+    end
+
     CSV.write(joinpath("data", "simulation", path_prefix * "_" * "A.csv"), DataFrame(A, :auto))
     CSV.write(joinpath("data", "simulation", path_prefix * "_" * "B.csv"), DataFrame(B, :auto))
     CSV.write(joinpath("data", "simulation", path_prefix * "_" * "y.csv"), DataFrame(y, :auto))

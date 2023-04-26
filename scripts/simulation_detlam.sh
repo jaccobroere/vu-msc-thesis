@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Progress bar
-total_steps=2
+total_steps=3
 current_step=0
 
 print_progress_bar() {
@@ -25,17 +25,9 @@ print_progress_bar() {
   echo ""
 }
 
-step_simA() {
+step_sim() {
     echo "Running $path ..."
-    julia --project=juliaenv/ $path $p $T $h_A $h_B ${prefix}_T${T}_p${p}
-    echo "$path completed."
-    current_step=$((current_step+1))
-    print_progress_bar $current_step $total_steps 50
-}
-
-step_simB() {
-    echo "Running $path ..."
-    julia --project=juliaenv/ $path $p $T ${prefix}_T${T}_p${p}
+    julia --project=$JULIA_DIR $path $p $T $h_A $h_B ${prefix}_T${T}_p${p}
     echo "$path completed."
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
@@ -43,12 +35,18 @@ step_simB() {
 
 # Transform data
 step_transform () {
-    bash transform_data.sh -prefix ${prefix}_T${T}_p${p}
+    bash scripts/transform_data.sh -prefix ${prefix}_T${T}_p${p}
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
 }
 
-# # DESIGN A
+step_detlam () {
+    Rscript src/compute/determine_lambda.R ${prefix}_T${T}_p${p}
+    current_step=$((current_step+1))
+    print_progress_bar $current_step $total_steps 50
+}
+
+# DESIGN A
 p=25
 T=500
 h_A=3
@@ -56,12 +54,12 @@ h_B=3
 path=src/simulation/simulation_designA.jl
 prefix=designA
 
-step_simA && step_transform
-
 # DESIGN B
 # p=100 # m^2 
 # T=500
 # path=src/simulation/simulation_designB.jl
 # prefix=designB
 
-# step_simB && step_transform
+step_sim && step_transform && step_detlam
+
+

@@ -13,9 +13,6 @@ using DataFrames
 # Include simulation utils
 include(joinpath(dirname(abspath(@__FILE__)), "simulation_utils.jl"))
 
-# Set random seed
-Random.seed!(2023)
-
 # Generates a banded matrix with random values between -2 and 2, with bandwidth h on both sides of the main diagonal
 function design_A_generate_A(p::Int, h::Int)::Matrix{Float64}
     matrix = zeros(p, p)

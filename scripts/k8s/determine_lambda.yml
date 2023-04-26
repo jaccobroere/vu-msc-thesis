@@ -3,8 +3,8 @@ kind: Job
 metadata:
   name: detlam
 spec:
-  completions: 3
-  parallelism: 3
+  completions: 10
+  parallelism: 5
   template:
     spec:
       containers:
@@ -15,15 +15,8 @@ spec:
         volumeMounts:
         - name: shared-pv-out
           mountPath: /app/vu-msc-thesis/out
-        - name: shared-pv-data
-          mountPath: /app/vu-msc-thesis/data
       restartPolicy: Never
       volumes:
       - name: shared-pv-out
         persistentVolumeClaim:
           claimName: shared-pvc-out
-      - name: shared-pv-data
-        persistentVolumeClaim:
-          claimName: shared-pvc-data
-
-

@@ -15,9 +15,6 @@ using DataFrames
 # Include simulation utils
 include(joinpath(dirname(abspath(@__FILE__)), "simulation_utils.jl"))
 
-# Set random seed
-Random.seed!(2023)
-
 function design_B_generate_A(m::Int)::Matrix{Float64}
     p = m^2
     A = zeros(p, p)

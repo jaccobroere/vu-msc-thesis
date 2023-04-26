@@ -14,6 +14,7 @@ data_dir <- paste0(PROJ_DIR, "/data/simulation/")
 coef_dir <- paste0(PROJ_DIR, "/out/simulation/coef/")
 
 path_prefix <- "designA_T500_p50"
+sim_
 # Read arguments from command line input
 # path_prefix <- args[1]
 
@@ -70,18 +71,3 @@ fwrite(data.table(yhat_gsplash), file = paste0(coef_dir, path_prefix, "_gsplash_
 fwrite(data.table(yhat_splash), file = paste0(coef_dir, path_prefix, "_splash_estimate_yhat.csv"))
 fwrite(data.table(yhat_sym_gsplash), file = paste0(coef_dir, path_prefix, "_sym_gsplash_estimate_yhat.csv"))
 fwrite(data.table(yhat_pvar), file = paste0(coef_dir, path_prefix, "_pvar_estimate_yhat.csv"))
-
-
-library(genlasso)
-
-alpha <- 0.5
-gamma <- alpha / (1 - alpha)
-lambda_admm <- lambda / (1 + gamma)
-
-mgenlasso <- fusedlasso(sigma_hat, Vhat_d, graph = gr, gamma = gamma, maxsteps = 2, verbose = TRUE)
-lambda_0 <- coef(mgenlasso)$lambda[1]
-print(lambda_0)
-mgsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, gr, lambda_0 * (1 + gamma), alpha)
-msplash <- fit_regular_splash(y, lambda_0, alpha)
-
-sum(mgsplash$model$beta_path)

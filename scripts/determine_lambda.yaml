@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: detlam
+spec:
+  template:
+    spec:
+      containers:
+      - name: determine-lambda-cont
+        image: jaccusaurelius/vu-msc-thesis:kube
+        volumeMounts:
+        - name: shared-volume-out
+          mountPath: /app/vu-msc-thesis/out
+        - name: shared-volume-data
+          mountPath: /app/vu-msc-thesis/data
+      restartPolicy: Never
+      volumes:
+      - name: shared-volume-out
+        persistentVolumeClaim:
+          claimName: shared-pvc-out
+      - name: shared-volume-data
+        persistentVolumeClaim:
+          claimName: shared-pvc-data
+
+

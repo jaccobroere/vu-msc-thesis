@@ -54,4 +54,4 @@ RUN cd /app/admm_src_zhu && \
 WORKDIR /app/vu-msc-thesis
 
 # Specify command to run when container starts
-CMD ["bash"]
+CMD echo "Hello there then!"

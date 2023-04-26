@@ -27,7 +27,7 @@ print_progress_bar() {
 
 step_simA() {
     echo "Running $path ..."
-    julia --project=juliaenv/ $path $p $T $h_A $h_B ${prefix}_T${T}_p${p}
+    julia --project=$JULIA_DIR $path $p $T $h_A $h_B ${prefix}_T${T}_p${p}
     echo "$path completed."
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
@@ -35,7 +35,7 @@ step_simA() {
 
 step_simB() {
     echo "Running $path ..."
-    julia --project=juliaenv/ $path $p $T ${prefix}_T${T}_p${p}
+    julia --project=$JULIA_DIR $path $p $T ${prefix}_T${T}_p${p}
     echo "$path completed."
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
@@ -43,7 +43,7 @@ step_simB() {
 
 # Transform data
 step_transform () {
-    bash transform_data.sh -prefix ${prefix}_T${T}_p${p}
+    bash scripts/transform_data.sh -prefix ${prefix}_T${T}_p${p}
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
 }

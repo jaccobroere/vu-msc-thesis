@@ -20,18 +20,26 @@ def save_best_lam(subdir):
     grid_lam_sym_a05 = pd.read_csv(
         os.path.join(sim_id_dir, "sym_a05.csv"), delimiter=","
     )
+    grid_lam_spl_a0 = pd.read_csv(os.path.join(sim_id_dir, "spl_a0.csv"), delimiter=",")
+    grid_lam_spl_a05 = pd.read_csv(
+        os.path.join(sim_id_dir, "spl_a05.csv"), delimiter=","
+    )
 
     # calculate the average for each column
     avg_lam_reg_a0 = np.mean(grid_lam_reg_a0, axis=0)
     avg_lam_reg_a05 = np.mean(grid_lam_reg_a05, axis=0)
     avg_lam_sym_a0 = np.mean(grid_lam_sym_a0, axis=0)
     avg_lam_sym_a05 = np.mean(grid_lam_sym_a05, axis=0)
+    avg_lam_spl_a0 = np.mean(grid_lam_spl_a0, axis=0)
+    avg_lam_spl_a05 = np.mean(grid_lam_spl_a05, axis=0)
 
     # calculate what lambda was the best
     best_lam_reg_a0 = parse_float(avg_lam_reg_a0.index[np.argmin(avg_lam_reg_a0)])
     best_lam_reg_a05 = parse_float(avg_lam_reg_a05.index[np.argmin(avg_lam_reg_a05)])
     best_lam_sym_a0 = parse_float(avg_lam_sym_a0.index[np.argmin(avg_lam_sym_a0)])
     best_lam_sym_a05 = parse_float(avg_lam_sym_a05.index[np.argmin(avg_lam_sym_a05)])
+    best_lam_spl_a0 = parse_float(avg_lam_spl_a0.index[np.argmin(avg_lam_spl_a0)])
+    best_lam_spl_a05 = parse_float(avg_lam_spl_a05.index[np.argmin(avg_lam_spl_a05)])
 
     # save the grid of best lambdas selected lambda values
     best_lambdas = pd.DataFrame(
@@ -41,12 +49,16 @@ def save_best_lam(subdir):
                 "best_lam_reg_a05",
                 "best_lam_sym_a0",
                 "best_lam_sym_a05",
+                "best_lam_spl_a0",
+                "best_lam_spl_a05",
             ],
             "lambda": [
                 best_lam_reg_a0,
                 best_lam_reg_a05,
                 best_lam_sym_a0,
                 best_lam_sym_a05,
+                best_lam_spl_a0,
+                best_lam_spl_a05,
             ],
         }
     )

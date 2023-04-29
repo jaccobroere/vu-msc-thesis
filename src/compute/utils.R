@@ -129,7 +129,7 @@ run_lambda_finder_gfsplash <- function(y, sigma_hat, Vhat_d, C_true, graph, alph
         # Calculate predictions and error metric
         y_hat <- predict_with_C(model$C, y)
         y_true_pred <- predict_with_C(C_true, y)
-        error_metric <- calc_msfe(y_test, y_hat, y_true_pred)
+        error_metric <- calc_msfe(y_test, y_hat)
         df_lam[1, colnames(df_lam)[i]] <- error_metric
     }
 
@@ -157,7 +157,7 @@ run_lambda_finder_splash <- function(y, alpha, C_true, path, lambda_min_mult = 1
         # Calculate predictions and error metric
         y_hat <- predict_with_C(C, y)
         y_true_pred <- predict_with_C(C_true, y)
-        error_metric <- calc_msfe(y_test, y_hat, y_true_pred)
+        error_metric <- calc_msfe(y_test, y_hat)
         df_lam[1, colnames(df_lam)[i]] <- error_metric
     }
 

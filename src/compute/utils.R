@@ -131,8 +131,10 @@ run_lambda_finder_gfsplash <- function(y, sigma_hat, Vhat_d, graph, alpha, path)
 }
 
 run_lambda_finder_splash <- function(y, alpha, path, lambda_min_mult = 1e-4) {
+    # Split the training set off
+    y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
     # Run the SPLASH model with the given lambda_grid
-    model <- splash::splash(t(y), banded_covs = c(TRUE, TRUE), B = 500, n_lambdas = 5, alphas = c(alpha), lambda_min_mult = lambda_min_mult)
+    model <- splash::splash(t(y_train), banded_covs = c(TRUE, TRUE), B = 500, n_lambdas = 5, alphas = c(alpha), lambda_min_mult = lambda_min_mult)
     p <- dim(model$AB)[1]
     # Create placeholder dataframe
     df_lam <- create_lambda_df(c(model$lambdas), path)
@@ -141,7 +143,7 @@ run_lambda_finder_splash <- function(y, alpha, path, lambda_min_mult = 1e-4) {
         A <- model$AB[, 1:p, i]
         B <- model$AB[, (p + 1):(2 * p), i]
         C <- AB_to_C(A, B)
-        error_metric <- predict_with_C(C, y, rmsfe = TRUE) # Returns the RMSFE when rmfse = TRUE
+        error_metric <- predict_with_C(C, y, rmsfe = TRUE) # This functions splits into train/test itself
         df_lam[1, colnames(df_lam)[i]] <- error_metric
     }
 

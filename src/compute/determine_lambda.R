@@ -46,3 +46,5 @@ res_reg_a0 <- run_lambda_finder_gfsplash(sigma_hat, Vhat_d, reg_gr, alpha = 0, p
 res_reg_a05 <- run_lambda_finder_gfsplash(sigma_hat, Vhat_d, reg_gr, alpha = 0.5, path = file.path(sim_id_dir, "reg_a05.csv"))
 res_sym_a0 <- run_lambda_finder_gfsplash(sigma_hat, Vhat_d, sym_gr, alpha = 0, path = file.path(sim_id_dir, "sym_a0.csv"))
 res_sym_a05 <- run_lambda_finder_gfsplash(sigma_hat, Vhat_d, sym_gr, alpha = 0.5, path = file.path(sim_id_dir, "sym_a05.csv"))
+res_spl_a0 <- run_lambda_finder_splash(y, alpha = 0, path = file.path(sim_id_dir, "spl_a0.csv"))
+res_spl_a05 <- run_lambda_finder_splash(y, alpha = 0.5, path = file.path(sim_id_dir, "spl_a05.csv"))

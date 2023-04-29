@@ -75,8 +75,11 @@ fwrite(data.table(yhat_sym_gsplash), file = paste0(coef_dir, sim_design_id, "_sy
 fwrite(data.table(yhat_pvar), file = paste0(coef_dir, sim_design_id, "_pvar_estimate_yhat.csv"))
 
 
-spl <- splash::splash(t(y), banded_covs = c(TRUE, TRUE), B = 500)
+spl <- splash::splash(t(y), banded_covs = c(TRUE, TRUE), B = 500, n_lambdas = 5, alphas = c(0.5), lambda_min_mult = 1e-4)
 
-spl$bandwidth_covs
 
-dim(y)
+run_lambda_finder_gfsplash(sigma_hat, Vhat_d, reg_gr, 0.5, "gsplash_runner.csv")
+run_lambda_finder_splash(y, 0.5, "splash_runner.csv")
+
+
+spl$AB

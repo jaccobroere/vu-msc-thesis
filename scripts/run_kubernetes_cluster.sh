@@ -19,6 +19,6 @@ kubectl wait --for=condition=complete --timeout=30m job/detlam
 
 kubectl exec -it dataaccess -- bash -c "python3 src/compute/save_best_lambda.py"
 
-# kubectl wait --timeout=10s
+kubectl wait --timeout=10s
 
-# kubectl cp dataaccess:/app/vu-msc-thesis/out/simulation k8s_export
+kubectl cp dataaccess:/app/vu-msc-thesis/out/simulation k8s_export

@@ -84,12 +84,10 @@ calc_lambda_0_gfsplash <- function(sigma_hat, Vhat_d, graph, alpha, ...) {
     return(lambda_res)
 }
 
-# Calculate lambda_0 for the regular SPLASH (Reuvers and Wijler)
-# calc_lambda_0_splash <- function(sigma_hat, Vhat_d, )
-
 # Generate grid of values for lambda
 gen_lambda_grid <- function(lambda_0, length.out = 20) {
     log_vals <- seq(from = -4, to = log10(lambda_0), length.out = length.out)
+    # Return 10 ^ log_vals to convert back to normal scale
     return(10^log_vals)
 }
 
@@ -112,11 +110,11 @@ calc_rmsfe <- function(y, y_hat) {
     return(rmsfe)
 }
 
-run_lambda_finder_gfsplash <- function(sigma_hat, Vhat_d, graph, alpha, path) {
+run_lambda_finder_gfsplash <- function(y, sigma_hat, Vhat_d, graph, alpha, path) {
     # Calculate lambda_0 for the GSPLASH
     lam0 <- calc_lambda_0_gfsplash(sigma_hat, Vhat_d, graph, alpha = alpha)
     # Generate grid of values for lambda
-    grid_lam <- gen_lambda_grid(lam0, length.out = 2)
+    grid_lam <- gen_lambda_grid(lam0, length.out = 5)
     # Call the function for each specification and create file if it does not exist yet
     df_lam <- create_lambda_df(grid_lam, path)
     # Fit the models and save the prediction results in the data.frame
@@ -132,7 +130,22 @@ run_lambda_finder_gfsplash <- function(sigma_hat, Vhat_d, graph, alpha, path) {
     return(df_lam)
 }
 
-run_lambda_finder_splash <- function(y, alpha, path) {
-    # Calculate lambda_0 for the SPLASH
-    lam0 <- calc_lambda_0_splash(sigma_hat, Vhat_d, graph, alpha = alpha)
+run_lambda_finder_splash <- function(y, alpha, path, lambda_min_mult = 1e-4) {
+    # Run the SPLASH model with the given lambda_grid
+    model <- splash::splash(t(y), banded_covs = c(TRUE, TRUE), B = 500, n_lambdas = 5, alphas = c(alpha), lambda_min_mult = lambda_min_mult)
+    p <- dim(model$AB)[1]
+    # Create placeholder dataframe
+    df_lam <- create_lambda_df(c(model$lambdas), path)
+    # Generate and save predictions for each lambda value
+    for (i in 1:dim(model$AB)[3]) {
+        A <- model$AB[, 1:p, i]
+        B <- model$AB[, (p + 1):(2 * p), i]
+        C <- AB_to_C(A, B)
+        error_metric <- predict_with_C(C, y, rmsfe = TRUE) # Returns the RMSFE when rmfse = TRUE
+        df_lam[1, colnames(df_lam)[i]] <- error_metric
+    }
+
+    # Append the results to the table
+    write.table(df_lam, path, row.names = FALSE, col.names = FALSE, append = TRUE, sep = ",")
+    return(df_lam)
 }

@@ -74,6 +74,12 @@ calc_rmsfe(y_test, yhat_splash, y_hat_true)
 calc_rmsfe(y_test, yhat_sym_gsplash, y_hat_true)
 calc_rmsfe(y_test, yhat_pvar, y_hat_true)
 
+calc_msfe(y_test, yhat_gsplash)
+calc_msfe(y_test, yhat_splash)
+calc_msfe(y_test, yhat_sym_gsplash)
+calc_msfe(y_test, yhat_pvar)
+
+
 # Save the results
 fwrite(data.table(model_gsplash$A), file = paste0(coef_dir, sim_design_id, "_gsplash_estimate_A.csv"))
 fwrite(data.table(model_gsplash$B), file = paste0(coef_dir, sim_design_id, "_gsplash_estimate_B.csv"))

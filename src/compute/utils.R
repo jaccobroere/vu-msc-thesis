@@ -55,6 +55,11 @@ calc_rmsfe <- function(y, y_hat, y_true) {
     return(sum_hat / sum_true)
 }
 
+calc_msfe <- function(y, y_hat) {
+    # Calculate the mean squared forecast error
+    return(mean((y - y_hat)^2))
+}
+
 predict_with_C <- function(C, y) {
     train_idx <- (floor(dim(y)[2] / 5) * 4)
     y_train <- y[, 1:train_idx]

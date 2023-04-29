@@ -69,7 +69,7 @@ predict_with_C <- function(C, y, rmsfe = FALSE) {
 }
 
 # Calcualte lambda_0 for the generalized lasso cases
-calc_lambda_0 <- function(sigma_hat, Vhat_d, graph, alpha, ...) {
+calc_lambda_0_gfsplash <- function(sigma_hat, Vhat_d, graph, alpha, ...) {
     # Check validity of alpha value
     if (alpha < 0 | alpha >= 1) stop("alpha must be between 0 and 1")
 
@@ -83,6 +83,9 @@ calc_lambda_0 <- function(sigma_hat, Vhat_d, graph, alpha, ...) {
     lambda_res <- lambda_0 * (1 + alpha / (1 - alpha))
     return(lambda_res)
 }
+
+# Calculate lambda_0 for the regular SPLASH (Reuvers and Wijler)
+# calc_lambda_0_splash <- function(sigma_hat, Vhat_d, )
 
 # Generate grid of values for lambda
 gen_lambda_grid <- function(lambda_0, length.out = 20) {
@@ -111,7 +114,7 @@ calc_rmsfe <- function(y, y_hat) {
 
 run_lambda_finder_gfsplash <- function(sigma_hat, Vhat_d, graph, alpha, path) {
     # Calculate lambda_0 for the GSPLASH
-    lam0 <- calc_lambda_0(sigma_hat, Vhat_d, graph, alpha = alpha)
+    lam0 <- calc_lambda_0_gfsplash(sigma_hat, Vhat_d, graph, alpha = alpha)
     # Generate grid of values for lambda
     grid_lam <- gen_lambda_grid(lam0, length.out = 2)
     # Call the function for each specification and create file if it does not exist yet

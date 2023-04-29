@@ -183,12 +183,23 @@ Estimate the covariance matrix of lag j using a bootstrap method (Guo et al. 201
 ## Returns
 - `Matrix{Float64}`: The estimated covariance matrix of lag j with dimensions N x N.
 """
-function bootstrap_estimator_Σj(y::Matrix{Float64}, j::Int)::Matrix{Float64}
+function bootstrap_estimator_Σj_exp(y::Matrix{Float64}, j::Int)::Matrix{Float64}
     N, T = size(y)
     Σj = zeros(N, N)
     y_mean = mean(y, dims=2)
     for t in 1:(T-j)
         u_t = rand(Exponential(1))
+        @inbounds Σj += u_t * (y[:, t] - y_mean) * (y[:, t+j] - y_mean)'
+    end
+    return Σj / T
+end
+
+function bootstrap_estimator_Σj_norm(y::Matrix{Float64}, j::Int)::Matrix{Float64}
+    N, T = size(y)
+    Σj = zeros(N, N)
+    y_mean = mean(y, dims=2)
+    for t in 1:(T-j)
+        u_t = diagm(rand(Normal(0, 1) + 1, N))
         @inbounds Σj += u_t * (y[:, t] - y_mean) * (y[:, t+j] - y_mean)'
     end
     return Σj / T
@@ -209,12 +220,12 @@ function bootstrap_estimator_R(y::Matrix{Float64}, q::Int=500)::Tuple{Int,Int}
     N, T = size(y)
     Σ0 = calc_Σj(y, 0)
     Σ1 = calc_Σj(y, 1)
-    R0 = zeros(Float64, q, div(N, 4))
-    R1 = zeros(Float64, q, div(N, 4))
+    R0 = zeros(Float64, q, N - 1)
+    R1 = zeros(Float64, q, N - 1)
     Threads.@threads for i in 1:q
-        bootstrap_Σ0 = bootstrap_estimator_Σj(y, 0)
-        bootstrap_Σ1 = bootstrap_estimator_Σj(y, 1)
-        for h in 1:div(N, 4)
+        bootstrap_Σ0 = bootstrap_estimator_Σj_norm(y, 0)
+        bootstrap_Σ1 = bootstrap_estimator_Σj_norm(y, 1)
+        for h in 1:(N-1)
             @inbounds R0[i, h] += norm((band_matrix(bootstrap_Σ0, h) - Σ0), 1) / q
             @inbounds R1[i, h] += norm((band_matrix(bootstrap_Σ1, h) - Σ1), 1) / q
         end
@@ -256,14 +267,15 @@ end
 main(ARGS[1])
 
 # ## TESTING
-# y = read_data(joinpath("data", "simulation", "designA_T500_p50_y.csv"))
+# y = read_data(joinpath("data", "simulation", "designB_T500_p25_y.csv"))
+
 
 # y_train = y[:, 1:div(size(y, 2), 5)*4]
-# bootstrap_estimator_R(y_train, 500)
+# bootstrap_estimator_R(y, 500)
 
 # Σ = calc_Σj(y_train, 1)
 
-# band_matrix(Σ, 3)
+# band_matrix(Σ, 23)
 
 
 

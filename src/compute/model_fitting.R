@@ -12,7 +12,7 @@ coef_dir <- paste0(PROJ_DIR, "/out/simulation/coef/")
 
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
-sim_design_id <- "designA_T500_p50"
+sim_design_id <- "designB_T500_p25"
 # sim_design_id <- args[1]
 
 # Parse paths
@@ -25,30 +25,35 @@ path_A <- paste0(data_dir, sim_design_id, "_A.csv")
 path_B <- paste0(data_dir, sim_design_id, "_B.csv")
 
 # Load the data
-sigma_hat <- t(fread(path1, header = T, skip = 0))
-Vhat_d <- as.matrix(fread(path2, header = T, skip = 0))
-gr <- read_graph(path3, format = "graphml")
-sym_gr <- read_graph(path4, format = "graphml")
+sigma_hat <- t(fread(path_sigma_hat, header = T, skip = 0))
+Vhat_d <- as.matrix(fread(path_Vhat_d, header = T, skip = 0))
+reg_gr <- read_graph(path_reg_graph, format = "graphml")
+sym_gr <- read_graph(path_sym_graph, format = "graphml")
 
 # Load the true values
-A <- as.matrix(fread(path5, header = T, skip = 0))
-B <- as.matrix(fread(path6, header = T, skip = 0))
-y <- as.matrix(fread(path7, header = T, skip = 0))
+A <- as.matrix(fread(path_A, header = T, skip = 0))
+B <- as.matrix(fread(path_B, header = T, skip = 0))
+y <- as.matrix(fread(path_y, header = T, skip = 0))
 
 # Print the dimensions of the data
 message(cat("The dimension of y: ", dim(y)[1], dim(y)[2]))
 
+
+#
+alpha <- 0.5
+lambda <- 0.01
+
 # Fit the a single solution using (Augmented) ADMM of GSPLASH
-model_gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, gr, lambda1, lambda2, standard_ADMM = TRUE)
+model_gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, reg_gr, lambda, alpha, standard_ADMM = TRUE)
 
 # Fit a single solution of symmetric_GSPLASH
-model_sym_gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, sym_gr, lambda1, lambda2, standard_ADMM = TRUE)
+model_sym_gsplash <- fit_admm_gsplash(sigma_hat, Vhat_d, sym_gr, lambda, alpha, standard_ADMM = TRUE)
 
 # Fit the a single solution using SPLASH
-model_splash <- fit_regular_splash(y, banded_covs = c(TRUE, TRUE), B = 500, alphas = c(0.5), lambdas = c(lambda_splash))
+model_splash <- fit_regular_splash(y, lambda, alpha)
 
 # Fit a single solution using PVAR(1) with the BigVAR package
-model_pvar <- fit_pvar_bigvar(y, lambda_pvar)
+model_pvar <- fit_pvar_bigvar(y, lambda)
 
 # Compute and save the predictions
 yhat_gsplash <- predict_with_C(model_gsplash$C, y)
@@ -68,3 +73,10 @@ fwrite(data.table(yhat_gsplash), file = paste0(coef_dir, sim_design_id, "_gsplas
 fwrite(data.table(yhat_splash), file = paste0(coef_dir, sim_design_id, "_splash_estimate_yhat.csv"))
 fwrite(data.table(yhat_sym_gsplash), file = paste0(coef_dir, sim_design_id, "_sym_gsplash_estimate_yhat.csv"))
 fwrite(data.table(yhat_pvar), file = paste0(coef_dir, sim_design_id, "_pvar_estimate_yhat.csv"))
+
+
+spl <- splash::splash(t(y), banded_covs = c(TRUE, TRUE), B = 500)
+
+spl$bandwidth_covs
+
+dim(y)

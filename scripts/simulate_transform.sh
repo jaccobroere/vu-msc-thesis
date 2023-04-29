@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Progress bar
-total_steps=3
+total_steps=2
 current_step=0
 
 print_progress_bar() {
@@ -35,19 +35,16 @@ step_sim() {
 
 # Transform data
 step_transform () {
-    bash scripts/transform_data.sh -prefix ${prefix}_T${T}_p${p}
+    # Run Julia script for step 1
+    echo "Running transform_bootstrap_graph.jl ..."
+    julia --project=$JULIA_DIR src/compute/transform_bootstrap_graph.jl ${prefix}_T${T}_p${p}
+    echo "transform_bootstrap_graph.jl completed."
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
 }
 
-step_detlam () {
-    # rm -rf out/simulation/lambdas/${prefix}_T${T}_p${p}
-    Rscript src/compute/determine_lambda.R ${prefix}_T${T}_p${p}
-    current_step=$((current_step+1))
-    print_progress_bar $current_step $total_steps 50
-}
 
-# DESIGN A
+# # DESIGN A
 p=25
 T=500
 h_A=3
@@ -56,11 +53,11 @@ path=src/simulation/simulation_designA.jl
 prefix=designA
 
 # DESIGN B
-# p=100 # m^2 
-# T=500
-# path=src/simulation/simulation_designB.jl
-# prefix=designB
+p=25 # m^2 
+T=500
+h_A=3 # Placeholder
+h_B=3 # Placeholder
+path=src/simulation/simulation_designB.jl
+prefix=designB
 
-step_sim && step_transform && step_detlam
-
-
+step_sim && step_transform

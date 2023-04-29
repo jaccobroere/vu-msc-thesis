@@ -97,7 +97,7 @@ fit_regular_splash <- function(y, lambda, alpha, verbose = FALSE, ...) {
     return(output_list)
 }
 
-fit_pvar_bigvar <- function(y, lambda, verbose = FALSE, ...) {
+fit_pvar_bigvar <- function(y, verbose = FALSE, ...) {
     # Split y into training and testing sets
     y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
     y_test <- y[, (floor(dim(y)[2] / 5) * 4 + 1):dim(y)[2]]
@@ -106,20 +106,23 @@ fit_pvar_bigvar <- function(y, lambda, verbose = FALSE, ...) {
     # Retrieve the cross-sectional dimension of the problem
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
+    # Compute lambda grid
+    lambda_grid <- gen_lambda_grid(100)
+
     # Perform cross-validation for the selection of the penalty parameter
     t0 <- Sys.time()
     model <- constructModel(
         Y = t(y),
         p = 1,
         struct = "Basic",
-        gran = c(100, 10, 1, 0.1, 0.01),
-        loss = "L1",
+        gran = lambda_grid,
+        loss = "L2",
         T1 = floor(dim(y_train)[2] / 5) * 4 + 1,
         T2 = dim(y_train)[2] + 1,
         ownlambdas = TRUE,
         model.controls = list(
             intercept = FALSE,
-            loss = "L1"
+            loss = "L2"
         )
     )
     cvmodel <- cv.BigVAR(model)

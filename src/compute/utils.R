@@ -48,7 +48,19 @@ AB_to_C <- function(A, B) {
     return(C)
 }
 
-predict_with_C <- function(C, y, rmsfe = FALSE) {
+calc_rmsfe <- function(y, y_hat, y_true) {
+    # Calculate the relative mean squared forecast error
+    sum_hat <- sum((y - y_hat)^2)
+    sum_true <- sum((y - y_true)^2)
+    return(sum_hat / sum_true)
+}
+
+calc_msfe <- function(y, y_hat) {
+    # Calculate the mean squared forecast error
+    return(mean((y - y_hat)^2))
+}
+
+predict_with_C <- function(C, y) {
     train_idx <- (floor(dim(y)[2] / 5) * 4)
     y_train <- y[, 1:train_idx]
     y_test <- y[, train_idx:ncol(y)] # Notice leaving out + 1 here to have a predictions for the first element of y_test
@@ -60,16 +72,11 @@ predict_with_C <- function(C, y, rmsfe = FALSE) {
         predictions[, i] <- C %*% y_test[, i - 1]
     }
 
-    if (rmsfe) {
-        # Calculate the root mean squared forecast error
-        return(calc_rmsfe(y_test, predictions))
-    }
-
     return(predictions)
 }
 
 # Calcualte lambda_0 for the generalized lasso cases
-calc_lambda_0 <- function(sigma_hat, Vhat_d, graph, alpha, ...) {
+calc_lambda_0_gfsplash <- function(sigma_hat, Vhat_d, graph, alpha, ...) {
     # Check validity of alpha value
     if (alpha < 0 | alpha >= 1) stop("alpha must be between 0 and 1")
 
@@ -84,10 +91,11 @@ calc_lambda_0 <- function(sigma_hat, Vhat_d, graph, alpha, ...) {
     return(lambda_res)
 }
 
-# Generate grid of values for lambda
+# Generate grid of values for lambda, same approach as Reuvers and Wijler
 gen_lambda_grid <- function(lambda_0, length.out = 20) {
-    log_vals <- seq(from = -4, to = log10(lambda_0), length.out = length.out)
-    return(10^log_vals)
+    lambda_min <- lambda_0 * 1e-4
+    lambda_grid <- 10^(seq(log10(lambda_0), log10(lambda_min), length.out = length.out))
+    return(lambda_grid)
 }
 
 # Create dataframes with lambda values as column names
@@ -103,24 +111,47 @@ create_lambda_df <- function(lambda_grid, filename) {
     return(df)
 }
 
-calc_rmsfe <- function(y, y_hat) {
-    # Calculate the root mean squared forecast error
-    rmsfe <- sqrt(mean((y - y_hat)^2))
-    return(rmsfe)
-}
 
-run_lambda_finder <- function(sigma_hat, Vhat_d, graph, alpha, path) {
+run_lambda_finder_gfsplash <- function(y, sigma_hat, Vhat_d, C_true, graph, alpha, path) {
     # Calculate lambda_0 for the GSPLASH
-    lam0 <- calc_lambda_0(sigma_hat, Vhat_d, graph, alpha = alpha)
+    lam0 <- calc_lambda_0_gfsplash(sigma_hat, Vhat_d, graph, alpha = alpha)
     # Generate grid of values for lambda
-    grid_lam <- gen_lambda_grid(lam0, length.out = 5)
+    grid_lam <- gen_lambda_grid(lam0, length.out = 20)
     # Call the function for each specification and create file if it does not exist yet
     df_lam <- create_lambda_df(grid_lam, path)
     # Fit the models and save the prediction results in the data.frame
     for (i in 1:length(grid_lam)) {
         lam <- grid_lam[i]
         model <- fit_admm_gsplash(sigma_hat, Vhat_d, graph, lam, alpha = alpha)
-        error_metric <- predict_with_C(model$C, y, rmsfe = TRUE)
+        # Calculate predictions and error metric
+        y_hat <- predict_with_C(model$C, y)
+        y_true_pred <- predict_with_C(C_true, y)
+        error_metric <- calc_rmsfe(y, y_hat, y_true_pred)
+        df_lam[1, colnames(df_lam)[i]] <- error_metric
+    }
+
+    # Append the results to the table
+    write.table(df_lam, path, row.names = FALSE, col.names = FALSE, append = TRUE, sep = ",")
+    return(df_lam)
+}
+
+run_lambda_finder_splash <- function(y, alpha, C_true, path, lambda_min_mult = 1e-4) {
+    # Split the training set off
+    y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
+    # Run the SPLASH model with the given lambda_grid
+    model <- splash::splash(t(y_train), banded_covs = c(TRUE, TRUE), B = 500, n_lambdas = 20, alphas = c(alpha), lambda_min_mult = lambda_min_mult)
+    p <- dim(model$AB)[1]
+    # Create placeholder dataframe
+    df_lam <- create_lambda_df(c(model$lambdas), path)
+    # Generate and save predictions for each lambda value
+    for (i in 1:dim(model$AB)[3]) {
+        A <- model$AB[, 1:p, i]
+        B <- model$AB[, (p + 1):(2 * p), i]
+        C <- AB_to_C(A, B)
+        # Calculate predictions and error metric
+        y_hat <- predict_with_C(C, y)
+        y_true_pred <- predict_with_C(C_true, y)
+        error_metric <- calc_rmsfe(y, y_hat, y_true_pred)
         df_lam[1, colnames(df_lam)[i]] <- error_metric
     }
 

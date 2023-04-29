@@ -2,8 +2,6 @@
 This simulation design replicates the simulation design A from Reuvers and Wijler (2021)
 """
 
-using Distributions: Gaussian
-using BenchmarkTools
 using LinearAlgebra
 using Distributions
 using Random

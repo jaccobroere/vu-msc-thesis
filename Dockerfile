@@ -1,7 +1,7 @@
 # This Dockerfile is meant to build the image for working and running code related to my MSc thesis.
 # Run the following command to run the container and mount the correct folder.
 # ocker run -it --rm -v $(pwd):/app/vu-msc-thesis jaccusaurelius/vu-msc-thesis:bullseye
-FROM julia:1.8-bullseye
+FROM julia:1.9-rc-bullseye
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PROJ_DIR=/app/vu-msc-thesis
 ENV ZHU_DIR=/app/admm_src_zhu
@@ -45,6 +45,7 @@ COPY splash_1.0.tar.gz /app/splash_1.0.tar.gz
 RUN pip3 install -r /app/python-requirements.txt
 RUN cd /app && Rscript /app/r-requirements.R && cd ..
 RUN julia --project=$JULIA_DIR -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
+RUN julia --project=$JULIA_DIR -e 'using Distributed, LoopVectorization, Tables, LinearAlgebra, Random, CSV, StatsBase, DataFrames, Distributions, SparseArrays, Statistics, Graphs, GraphIO, EzXML'
 
 # Install C dependencies for R package from Zhu et al. (2015)
 RUN cd /app/admm_src_zhu && \

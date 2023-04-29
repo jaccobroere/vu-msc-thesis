@@ -113,7 +113,7 @@ run_lambda_finder_gfsplash <- function(sigma_hat, Vhat_d, graph, alpha, path) {
     # Calculate lambda_0 for the GSPLASH
     lam0 <- calc_lambda_0(sigma_hat, Vhat_d, graph, alpha = alpha)
     # Generate grid of values for lambda
-    grid_lam <- gen_lambda_grid(lam0, length.out = 5)
+    grid_lam <- gen_lambda_grid(lam0, length.out = 2)
     # Call the function for each specification and create file if it does not exist yet
     df_lam <- create_lambda_df(grid_lam, path)
     # Fit the models and save the prediction results in the data.frame
@@ -127,4 +127,9 @@ run_lambda_finder_gfsplash <- function(sigma_hat, Vhat_d, graph, alpha, path) {
     # Append the results to the table
     write.table(df_lam, path, row.names = FALSE, col.names = FALSE, append = TRUE, sep = ",")
     return(df_lam)
+}
+
+run_lambda_finder_splash <- function(y, alpha, path) {
+    # Calculate lambda_0 for the SPLASH
+    lam0 <- calc_lambda_0_splash(sigma_hat, Vhat_d, graph, alpha = alpha)
 }

@@ -113,6 +113,9 @@ create_lambda_df <- function(lambda_grid, filename) {
 
 
 run_lambda_finder_gfsplash <- function(y, sigma_hat, Vhat_d, C_true, graph, alpha, path) {
+    train_idx <- (floor(dim(y)[2] / 5) * 4)
+    y_train <- y[, 1:train_idx]
+    y_test <- y[, train_idx:ncol(y)]
     # Calculate lambda_0 for the GSPLASH
     lam0 <- calc_lambda_0_gfsplash(sigma_hat, Vhat_d, graph, alpha = alpha)
     # Generate grid of values for lambda
@@ -126,7 +129,7 @@ run_lambda_finder_gfsplash <- function(y, sigma_hat, Vhat_d, C_true, graph, alph
         # Calculate predictions and error metric
         y_hat <- predict_with_C(model$C, y)
         y_true_pred <- predict_with_C(C_true, y)
-        error_metric <- calc_rmsfe(y, y_hat, y_true_pred)
+        error_metric <- calc_msfe(y_test, y_hat, y_true_pred)
         df_lam[1, colnames(df_lam)[i]] <- error_metric
     }
 
@@ -136,6 +139,9 @@ run_lambda_finder_gfsplash <- function(y, sigma_hat, Vhat_d, C_true, graph, alph
 }
 
 run_lambda_finder_splash <- function(y, alpha, C_true, path, lambda_min_mult = 1e-4) {
+    train_idx <- (floor(dim(y)[2] / 5) * 4)
+    y_train <- y[, 1:train_idx]
+    y_test <- y[, train_idx:ncol(y)]
     # Split the training set off
     y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
     # Run the SPLASH model with the given lambda_grid
@@ -151,7 +157,7 @@ run_lambda_finder_splash <- function(y, alpha, C_true, path, lambda_min_mult = 1
         # Calculate predictions and error metric
         y_hat <- predict_with_C(C, y)
         y_true_pred <- predict_with_C(C_true, y)
-        error_metric <- calc_rmsfe(y, y_hat, y_true_pred)
+        error_metric <- calc_msfe(y_test, y_hat, y_true_pred)
         df_lam[1, colnames(df_lam)[i]] <- error_metric
     }
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Progress bar
-total_steps=4
+total_steps=3
 current_step=0
 
 print_progress_bar() {

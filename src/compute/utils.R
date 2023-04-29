@@ -48,21 +48,24 @@ AB_to_C <- function(A, B) {
     return(C)
 }
 
-predict_with_C <- function(C, y, rmsfe = FALSE) {
+predict_with_C <- function(C_hat, C_true, y, rmsfe = FALSE) {
     train_idx <- (floor(dim(y)[2] / 5) * 4)
     y_train <- y[, 1:train_idx]
     y_test <- y[, train_idx:ncol(y)] # Notice leaving out + 1 here to have a predictions for the first element of y_test
-    predictions <- matrix(0, nrow = nrow(y), ncol = ncol(y_test))
+    predictions_hat <- matrix(0, nrow = nrow(y), ncol = ncol(y_test))
+    predictions_true <- matrix(0, nrow = nrow(y), ncol = ncol(y_test))
 
     # Predictions
-    predictions[, 1] <- C %*% y_train[, ncol(y_train)] # First prediction is based on last element of y_train
+    predictions_hat[, 1] <- C_hat %*% y_train[, ncol(y_train)] # First prediction is based on last element of y_train
+    predictions_true[, 1] <- C_true %*% y_train[, ncol(y_train)] # First prediction is based on last element of y_train
     for (i in 2:ncol(y_test)) {
-        predictions[, i] <- C %*% y_test[, i - 1]
+        predictions_hat[, i] <- C_hat %*% y_test[, i - 1]
+        predictions_true[, i] <- C_true %*% y_test[, i - 1]
     }
 
     if (rmsfe) {
-        # Calculate the root mean squared forecast error
-        return(calc_rmsfe(y_test, predictions))
+        # Calculate the relative mean squared forecast error
+        return(calc_rmsfe(y_test, predictions_hat, predictions_true))
     }
 
     return(predictions)
@@ -104,13 +107,14 @@ create_lambda_df <- function(lambda_grid, filename) {
     return(df)
 }
 
-calc_rmsfe <- function(y, y_hat) {
-    # Calculate the root mean squared forecast error
-    rmsfe <- sqrt(mean((y - y_hat)^2))
-    return(rmsfe)
+calc_rmsfe <- function(y, y_hat, y_true) {
+    # Calculate the relative mean squared forecast error
+    sum_hat <- sum((y - y_hat)^2)
+    sum_true <- sum((y - y_true)^2)
+    return(sum_hat / sum_true)
 }
 
-run_lambda_finder_gfsplash <- function(y, sigma_hat, Vhat_d, graph, alpha, path) {
+run_lambda_finder_gfsplash <- function(y, sigma_hat, Vhat_d, C_true, graph, alpha, path) {
     # Calculate lambda_0 for the GSPLASH
     lam0 <- calc_lambda_0_gfsplash(sigma_hat, Vhat_d, graph, alpha = alpha)
     # Generate grid of values for lambda
@@ -121,7 +125,7 @@ run_lambda_finder_gfsplash <- function(y, sigma_hat, Vhat_d, graph, alpha, path)
     for (i in 1:length(grid_lam)) {
         lam <- grid_lam[i]
         model <- fit_admm_gsplash(sigma_hat, Vhat_d, graph, lam, alpha = alpha)
-        error_metric <- predict_with_C(model$C, y, rmsfe = TRUE)
+        error_metric <- predict_with_C(model$C, C_true, y, rmsfe = TRUE)
         df_lam[1, colnames(df_lam)[i]] <- error_metric
     }
 
@@ -130,7 +134,7 @@ run_lambda_finder_gfsplash <- function(y, sigma_hat, Vhat_d, graph, alpha, path)
     return(df_lam)
 }
 
-run_lambda_finder_splash <- function(y, alpha, path, lambda_min_mult = 1e-4) {
+run_lambda_finder_splash <- function(y, alpha, C_true, path, lambda_min_mult = 1e-4) {
     # Split the training set off
     y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
     # Run the SPLASH model with the given lambda_grid
@@ -143,7 +147,7 @@ run_lambda_finder_splash <- function(y, alpha, path, lambda_min_mult = 1e-4) {
         A <- model$AB[, 1:p, i]
         B <- model$AB[, (p + 1):(2 * p), i]
         C <- AB_to_C(A, B)
-        error_metric <- predict_with_C(C, y, rmsfe = TRUE) # This functions splits into train/test itself
+        error_metric <- predict_with_C(C, C_true, y, rmsfe = TRUE) # This functions splits into train/test itself
         df_lam[1, colnames(df_lam)[i]] <- error_metric
     }
 

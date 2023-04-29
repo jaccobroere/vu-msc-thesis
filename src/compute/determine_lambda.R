@@ -42,7 +42,7 @@ sym_gr <- read_graph(path_sym_graph, format = "graphml")
 y <- as.matrix(fread(path_y, header = T, skip = 0))
 
 # Calculate the RMSFE for each of the lambdas and add them to the .csv file to later aggregate
-res_reg_a0 <- run_lambda_finder(sigma_hat, Vhat_d, reg_gr, alpha = 0, path = file.path(sim_id_dir, "reg_a0.csv"))
-res_reg_a05 <- run_lambda_finder(sigma_hat, Vhat_d, reg_gr, alpha = 0.5, path = file.path(sim_id_dir, "reg_a05.csv"))
-res_sym_a0 <- run_lambda_finder(sigma_hat, Vhat_d, sym_gr, alpha = 0, path = file.path(sim_id_dir, "sym_a0.csv"))
-res_sym_a05 <- run_lambda_finder(sigma_hat, Vhat_d, sym_gr, alpha = 0.5, path = file.path(sim_id_dir, "sym_a05.csv"))
+res_reg_a0 <- run_lambda_finder_gfsplash(sigma_hat, Vhat_d, reg_gr, alpha = 0, path = file.path(sim_id_dir, "reg_a0.csv"))
+res_reg_a05 <- run_lambda_finder_gfsplash(sigma_hat, Vhat_d, reg_gr, alpha = 0.5, path = file.path(sim_id_dir, "reg_a05.csv"))
+res_sym_a0 <- run_lambda_finder_gfsplash(sigma_hat, Vhat_d, sym_gr, alpha = 0, path = file.path(sim_id_dir, "sym_a0.csv"))
+res_sym_a05 <- run_lambda_finder_gfsplash(sigma_hat, Vhat_d, sym_gr, alpha = 0.5, path = file.path(sim_id_dir, "sym_a05.csv"))

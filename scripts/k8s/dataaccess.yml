@@ -4,13 +4,14 @@ metadata:
   name: dataaccess
 spec:
   containers:
-  - name: debian
-    image: debian:latest
-    command: ['sh', '-c', 'rm -rf /app/vu-msc-thesis/out/simulation/lambdas && sleep infinity']
+  - name: dataaccess-cont
+    image: jaccusaurelius/vu-msc-thesis:kube
+    # command: ['sh', '-c', 'rm -rf /app/vu-msc-thesis/out/simulation/lambdas && sleep infinity']
+    command: ["sleep",  "infinity"]
     volumeMounts:
-    - name: shared-pv-out
+    - name: pv-out
       mountPath: /app/vu-msc-thesis/out
   volumes:
-    - name: shared-pv-out
+    - name: pv-out
       persistentVolumeClaim:
-        claimName: shared-pvc-out
+        claimName: pvc-out

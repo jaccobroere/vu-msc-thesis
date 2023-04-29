@@ -4,7 +4,7 @@ metadata:
   name: detlam
 spec:
   completions: 10
-  parallelism: 5
+  parallelism: 10
   template:
     spec:
       containers:
@@ -13,10 +13,10 @@ spec:
         command: ["bash"]
         args: ["scripts/simulation_detlam.sh"]
         volumeMounts:
-        - name: shared-pv-out
+        - name: pv-out
           mountPath: /app/vu-msc-thesis/out
       restartPolicy: Never
       volumes:
-      - name: shared-pv-out
+      - name: pv-out
         persistentVolumeClaim:
-          claimName: shared-pvc-out
+          claimName: pvc-out

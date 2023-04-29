@@ -109,7 +109,7 @@ calc_rmsfe <- function(y, y_hat) {
     return(rmsfe)
 }
 
-run_lambda_finder <- function(sigma_hat, Vhat_d, graph, alpha, path) {
+run_lambda_finder_gfsplash <- function(sigma_hat, Vhat_d, graph, alpha, path) {
     # Calculate lambda_0 for the GSPLASH
     lam0 <- calc_lambda_0(sigma_hat, Vhat_d, graph, alpha = alpha)
     # Generate grid of values for lambda

@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: dataaccess
+  name: data-access
 spec:
   containers:
-  - name: dataaccess-cont
+  - name: data-access-cont
     image: jaccusaurelius/vu-msc-thesis:kube
     # command: ['sh', '-c', 'rm -rf /app/vu-msc-thesis/out/simulation/lambdas && sleep infinity']
     command: ["sleep",  "infinity"]

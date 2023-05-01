@@ -233,9 +233,18 @@ function bootstrap_estimator_R(y::Matrix{Float64}, q::Int=500)::Tuple{Int,Int}
     return (argmin(vec(sum(R0, dims=1))), argmin(vec(sum(R1, dims=1))))
 end
 
-function main(prefix)
+function main(sim_design_id, uuidtag)
+    if uuidtag !== nothing
+        path = joinpath("data", "simulation", sim_design_id, uuidtag)
+        if !isdir(path)
+            mkpath(path)
+        end
+    else
+        path = joinpath("data", "simulation", sim_design_id)
+    end
+
     # Read data 
-    y = read_data(joinpath("data", "simulation", "$(prefix)_y.csv"))
+    y = read_data(joinpath(path, "y.csv"))
 
     # Subset the first 80% of the data
     y = y[:, 1:div(size(y, 2), 5)*4]
@@ -256,15 +265,15 @@ function main(prefix)
     symmetric_graph = create_gsplash_graph(size(y, 1), symmetric=true)
 
     # Write output
-    CSV.write(joinpath("data", "simulation", "$(prefix)_Vhat_d.csv"), Tables.table(Vhat_d))
-    CSV.write(joinpath("data", "simulation", "$(prefix)_sigma_hat.csv"), Tables.table(sigma_hat))
-    save_graph_as_gml(regular_graph, joinpath("data", "simulation", "$(prefix)_graph.graphml"))
-    save_graph_as_gml(symmetric_graph, joinpath("data", "simulation", "$(prefix)_sym_graph.graphml"))
+    CSV.write(joinpath(path, "Vhat_d.csv"), Tables.table(Vhat_d))
+    CSV.write(joinpath(path, "sigma_hat.csv"), Tables.table(sigma_hat))
+    save_graph_as_gml(regular_graph, joinpath(path, "reg_graph.graphml"))
+    save_graph_as_gml(symmetric_graph, joinpath(path, "sym_graph.graphml"))
 
     return nothing
 end
 
-main(ARGS[1])
+main(ARGS[1], ARGS[2])
 
 # ## TESTING
 # y = read_data(joinpath("data", "simulation", "designB_T500_p25_y.csv"))

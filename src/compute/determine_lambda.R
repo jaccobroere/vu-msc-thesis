@@ -20,9 +20,9 @@ sim_design_id <- args[1]
 # sim_design_id <- "designB_T500_p25"
 
 # Set up directories
-data_dir <- file.path(PROJ_DIR, "data/simulation/")
-out_dir <- file.path(PROJ_DIR, "out/")
-lambdas_dir <- file.path(PROJ_DIR, "out/simulation/lambdas/")
+data_dir <- file.path(PROJ_DIR, "data/gridsearch/", sim_design_id, uuidtag)
+out_dir <- file.path(PROJ_DIR, "out/", sim_design_id, uuidtag)
+lambdas_dir <- file.path(PROJ_DIR, "out/simulation/lambdas/", sim_design_id)
 sim_id_dir <- file.path(lambdas_dir, sim_design_id)
 
 # Calculate lambda_0 for the GSPLASH

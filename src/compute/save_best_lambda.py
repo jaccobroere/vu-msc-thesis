@@ -9,22 +9,33 @@ import pandas as pd
 from utils import parse_float
 
 
-def save_best_lam(subdir):
-    sim_id_dir = os.path.join(lambdas_dir, subdir)
+def collect_dataframes(lambdas_dir, model_name):
+    res = pd.DataFrame()
 
-    # read in the lambda dataframes
-    grid_lam_reg_a0 = pd.read_csv(os.path.join(sim_id_dir, "reg_a0.csv"), delimiter=",")
-    grid_lam_reg_a05 = pd.read_csv(
-        os.path.join(sim_id_dir, "reg_a05.csv"), delimiter=","
-    )
-    grid_lam_sym_a0 = pd.read_csv(os.path.join(sim_id_dir, "sym_a0.csv"), delimiter=",")
-    grid_lam_sym_a05 = pd.read_csv(
-        os.path.join(sim_id_dir, "sym_a05.csv"), delimiter=","
-    )
-    grid_lam_spl_a0 = pd.read_csv(os.path.join(sim_id_dir, "spl_a0.csv"), delimiter=",")
-    grid_lam_spl_a05 = pd.read_csv(
-        os.path.join(sim_id_dir, "spl_a05.csv"), delimiter=","
-    )
+    for uuid_dir in os.listdir(lambdas_dir):
+        path = os.path.join(lambdas_dir, uuid_dir)
+        if os.path.isdir(path):
+            df = pd.read_csv(
+                os.path.join(path, f"{model_name}.csv"),
+                delimiter=",",
+                index=False,
+                header=0,
+            )
+            res = pd.concat([res, df], axis=0, ignore_index=True)
+
+    res.columns = df.columns
+
+    return res
+
+
+def save_best_lam(lambdas_dir):
+    # Read in the dataframes
+    grid_lam_reg_a0 = collect_dataframes(lambdas_dir, "reg_a0")
+    grid_lam_reg_a05 = collect_dataframes(lambdas_dir, "reg_a05")
+    grid_lam_sym_a0 = collect_dataframes(lambdas_dir, "sym_a0")
+    grid_lam_sym_a05 = collect_dataframes(lambdas_dir, "sym_a05")
+    grid_lam_spl_a0 = collect_dataframes(lambdas_dir, "spl_a0")
+    grid_lam_spl_a05 = collect_dataframes(lambdas_dir, "spl_a05")
 
     # calculate the average for each column
     avg_lam_reg_a0 = np.mean(grid_lam_reg_a0, axis=0)
@@ -65,13 +76,14 @@ def save_best_lam(subdir):
     )
 
     best_lambdas.to_csv(
-        os.path.join(out_dir, sim_id_dir, f"{subdir}_best_lambdas.csv"),
+        os.path.join(lambdas_dir, "best_lambdas.csv"),
         index=False,
         header=True,
     )
 
 
 if __name__ == "__main__":
+    # Read CLI arguments
     sim_design_id = sys.argv[1]
 
     # get project directory path
@@ -79,9 +91,8 @@ if __name__ == "__main__":
     os.chdir(proj_dir)
 
     # set up directory paths
-    lambdas_dir = os.path.join("out", "simulation", "lambdas", sim_design_id)
+    lambdas_dir = os.path.join(
+        "out", "simulation", "lambdas", f"{sim_design_id}_detlam"
+    )
 
-    # Save the best lambda value for each simulation design
-    for subdir in os.listdir(lambdas_dir):
-        if os.path.isdir(os.path.join(lambdas_dir, subdir)):
-            save_best_lam(subdir)
+    save_best_lam(lambdas_dir)

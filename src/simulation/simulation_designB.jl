@@ -35,7 +35,7 @@ function design_B_generate_B(m::Int)::Matrix{Float64}
     return B
 end
 
-function run_simulation(p::Int, T::Int, file_prefix::String="sim", write::Bool=true, train_size::Float64=0.8, h_A::Int=3, h_B::Int=3)::Matrix{Float64}
+function run_simulation(p::Int, T::Int, file_prefix::String="sim", write::Bool=true, uuidtag::Union{String,Nothing}=nothing, train_size::Float64=0.8, h_A::Int=3, h_B::Int=3)::Matrix{Float64}
     T = Int(T / train_size)
     A = design_A_generate_A(p, h_A)
     B = design_A_generate_B(p, h_B)
@@ -43,7 +43,7 @@ function run_simulation(p::Int, T::Int, file_prefix::String="sim", write::Bool=t
     y = simulate_svar(A, B, errors)
 
     if write == true
-        write_simulation_output(A, B, y, file_prefix)
+        write_simulation_output(A, B, y, file_prefix, uuidtag)
     end
 
     return y
@@ -54,8 +54,8 @@ if abspath(PROGRAM_FILE) == @__FILE__
     p = parse(Int, ARGS[1])
     m = Int(sqrt(p))
     T = parse(Int, ARGS[2])
-    file_prefix = ARGS[5]
-    uuidtag = ARGS[6]
+    file_prefix = ARGS[3]
+    uuidtag = ARGS[4]
 
     print(uuidtag)
 

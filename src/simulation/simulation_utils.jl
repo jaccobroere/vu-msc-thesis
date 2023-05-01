@@ -2,6 +2,7 @@ using LinearAlgebra
 using Random
 using DataFrames
 using CSV
+using Regex
 
 """
 generate_random_vector(p)
@@ -94,3 +95,30 @@ function write_simulation_output(A::Matrix{Float64}, B::Matrix{Float64}, y::Matr
     return nothing
 end
 
+"""
+Extracts the integer values after "T" and "p" from a given string.
+
+# Arguments
+- `input_string::AbstractString`: The input string to extract values from.
+
+# Returns
+A tuple containing the extracted integer values after "T" and "p".
+
+# Example
+```julia
+values = extract_values("designB_T500_p25")
+println("T = $(values[1]), p = $(values[2])")
+```
+"""
+function extract_values(input_string::AbstractString)
+    # load the regular expression package
+    using Regex
+
+    # extract the integer values using regular expressions
+    T = parse(Int, match(r"T(\d+)", input_string)[1][2:end])
+    p = parse(Int, match(r"p(\d+)", input_string)[1][2:end])
+
+    # return the extracted values as a tuple
+    return (T, p)
+end
+```

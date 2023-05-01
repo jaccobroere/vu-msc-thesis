@@ -2,6 +2,7 @@
 # saves the best lambda value for each simulation design, which resides in a subfolder
 
 import os
+import sys
 
 import numpy as np
 import pandas as pd
@@ -71,14 +72,14 @@ def save_best_lam(subdir):
 
 
 if __name__ == "__main__":
+    sim_design_id = sys.argv[1]
+
     # get project directory path
     proj_dir = os.environ["PROJ_DIR"]
     os.chdir(proj_dir)
 
     # set up directory paths
-    data_dir = os.path.join(proj_dir, "data", "simulation")
-    out_dir = os.path.join(proj_dir, "out")
-    lambdas_dir = os.path.join(out_dir, "simulation", "lambdas")
+    lambdas_dir = os.path.join("out", "simulation", "lambdas", sim_design_id)
 
     # Save the best lambda value for each simulation design
     for subdir in os.listdir(lambdas_dir):

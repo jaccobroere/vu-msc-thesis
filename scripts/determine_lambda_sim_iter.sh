@@ -27,12 +27,12 @@ print_progress_bar() {
 
 step_create_directories () {
   # If folder structure is not present yet, create it
-  mkdir -p out/simulation/lambdas/${prefix}_T${T}_p${p}
+  mkdir -p out/simulation/lambdas/${sim_design_id}
 }
 
 step_sim() {
     echo "Running $path ..."
-    julia --project=$JULIA_DIR $path $p $T $h_A $h_B ${prefix}_T${T}_p${p}
+    julia --project=$JULIA_DIR $path $p $T $h_A $h_B ${sim_design_id}
     echo "$path completed."
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
@@ -42,7 +42,7 @@ step_sim() {
 step_transform () {
     # Run Julia script for step 1
     echo "Running transform_bootstrap_graph.jl ..."
-    julia --project=$JULIA_DIR src/compute/transform_bootstrap_graph.jl ${prefix}_T${T}_p${p}
+    julia --project=$JULIA_DIR src/compute/transform_bootstrap_graph.jl ${sim_design_id}
     echo "transform_bootstrap_graph.jl completed."
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
@@ -50,9 +50,9 @@ step_transform () {
 
 # Calculate performance for each lambda value once
 step_detlam () {
-    # rm -rf out/simulation/lambdas/${prefix}_T${T}_p${p}
+    # rm -rf out/simulation/lambdas/${sim_design_id}
     echo "Running determine_lambda.R ..."
-    Rscript src/compute/determine_lambda.R ${prefix}_T${T}_p${p} > /dev/null 2>&1
+    Rscript src/compute/determine_lambda.R ${sim_design_id} > /dev/null 2>&1
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
 }
@@ -72,5 +72,6 @@ h_A=3 # Placeholder
 h_B=3 # Placeholder
 path=src/simulation/simulation_designB.jl
 prefix=designB
+sim_design_id=${prefix}_T${T}_p${p}
 
 step_create_directories && step_sim && step_transform && step_detlam

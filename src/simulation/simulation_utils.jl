@@ -2,7 +2,6 @@ using LinearAlgebra
 using Random
 using DataFrames
 using CSV
-using Regex
 
 """
 generate_random_vector(p)

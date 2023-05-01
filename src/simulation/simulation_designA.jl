@@ -67,7 +67,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # Parse command line argument
     sim_design_id = ARGS[1]
     T, p = parse_sim_design_id(sim_design_id)
-    uuidtag = lengt(ARGS) >= 2 ? ARGS[2] : nothing
+    uuidtag = length(ARGS) >= 2 ? ARGS[2] : nothing
 
     # Run simulation
     run_simulation(p, T, sim_design_id, true, uuidtag)

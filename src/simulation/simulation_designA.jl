@@ -48,7 +48,7 @@ function design_A_generate_B(p::Int, h::Int)::Matrix{Float64}
     return eta * matrix / sqrt(spectral_norm)
 end
 
-function run_simulation(p::Int, T::Int, file_prefix::String="sim", write::Bool=true, uuidtag::Union{String,Nothing}=nothingtrain_size::Float64 = 0.8, h_A::Int=3, h_B::Int=3)::Matrix{Float64}
+function run_simulation(p::Int, T::Int, sim_design_id::String="sim", write::Bool=true, uuidtag::Union{String,Nothing}=nothingtrain_size::Float64 = 0.8, h_A::Int=3, h_B::Int=3)::Matrix{Float64}
     T = Int(T / train_size)
     A = design_A_generate_A(p, h_A)
     B = design_A_generate_B(p, h_B)
@@ -56,7 +56,7 @@ function run_simulation(p::Int, T::Int, file_prefix::String="sim", write::Bool=t
     y = simulate_svar(A, B, errors)
 
     if write == true
-        write_simulation_output(A, B, y, file_prefix, uuidtag)
+        write_simulation_output(A, B, y, sim_design_id, uuidtag)
     end
 
     return y
@@ -67,11 +67,11 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # Parse command line argument        
     p = parse(Int, ARGS[1])
     T = parse(Int, ARGS[2])
-    file_prefix = ARGS[3]
+    sim_design_id = ARGS[3]
     uuidtag = lengt(ARGS) >= 4 ? ARGS[4] : nothing
 
     # Run simulation
-    run_simulation(p, T, file_prefix, true, uuidtag)
+    run_simulation(p, T, sim_design_id, true, uuidtag)
 end
 
 

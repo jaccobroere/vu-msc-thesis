@@ -78,7 +78,7 @@ Write simulation outputs to CSV files.
 # Returns
 - None
 """
-function write_simulation_output(A::Matrix{Float64}, B::Matrix{Float64}, y::Matrix{Float64}, file_prefix::String, uuidtag::Union{String,Nothing}=nothing)::Nothing
+function write_simulation_output(A::Matrix{Float64}, B::Matrix{Float64}, y::Matrix{Float64}, sim_design_id::String, uuidtag::Union{String,Nothing}=nothing)::Nothing
     if uuidtag !== nothing
         uuid_dir = joinpath("data", "simulation", uuidtag)
         if !isdir(uuid_dir)
@@ -88,9 +88,9 @@ function write_simulation_output(A::Matrix{Float64}, B::Matrix{Float64}, y::Matr
         uuid_dir = joinpath("data", "simulation")
     end
 
-    CSV.write(joinpath(uuid_dir, file_prefix * "_" * "A.csv"), DataFrame(A, :auto))
-    CSV.write(joinpath(uuid_dir, file_prefix * "_" * "B.csv"), DataFrame(B, :auto))
-    CSV.write(joinpath(uuid_dir, file_prefix * "_" * "y.csv"), DataFrame(y, :auto))
+    CSV.write(joinpath(sim_design_id, uuid_dir, "A.csv"), DataFrame(A, :auto))
+    CSV.write(joinpath(sim_design_id, uuid_dir, "B.csv"), DataFrame(B, :auto))
+    CSV.write(joinpath(sim_design_id, uuid_dir, "y.csv"), DataFrame(y, :auto))
     return nothing
 end
 

@@ -91,10 +91,15 @@ calc_lambda_0_gfsplash <- function(sigma_hat, Vhat_d, graph, alpha, ...) {
     return(lambda_res)
 }
 
-# Generate grid of values for lambda, same approach as Reuvers and Wijler
+# Generate grid of values for lambda, same approach as Reuvers and Wijler # THIS VERSION IS PUT ON HOLD RIGHT NOW, MAYBE USEFUL LATER
+# gen_lambda_grid <- function(lambda_0, length.out = 20) {
+#     lambda_min <- lambda_0 * 1e-4
+#     lambda_grid <- 10^(seq(log10(lambda_0), log10(lambda_min), length.out = length.out))
+#     return(lambda_grid)
+# }
+
 gen_lambda_grid <- function(lambda_0, length.out = 20) {
-    lambda_min <- lambda_0 * 1e-4
-    lambda_grid <- 10^(seq(log10(lambda_0), log10(lambda_min), length.out = length.out))
+    lambda_grid <- 10^(seq(2, -4, length.out = length.out))
     return(lambda_grid)
 }
 
@@ -102,6 +107,7 @@ gen_lambda_grid <- function(lambda_0, length.out = 20) {
 create_lambda_df <- function(lambda_grid, filename) {
     df <- data.frame(matrix(ncol = length(lambda_grid), nrow = 0))
     colnames(df) <- paste0("lambda_", lambda_grid)
+    print(colnames(df))
 
     # If the file does not exist, create it
     if (!file.exists(filename)) {
@@ -145,7 +151,9 @@ run_lambda_finder_splash <- function(y, alpha, C_true, path, lambda_min_mult = 1
     # Split the training set off
     y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
     # Run the SPLASH model with the given lambda_grid
-    model <- splash::splash(t(y_train), banded_covs = c(TRUE, TRUE), B = 500, n_lambdas = 20, alphas = c(alpha), lambda_min_mult = lambda_min_mult)
+    # model <- splash::splash(t(y_train), banded_covs = c(TRUE, TRUE), B = 500, n_lambdas = 20, alphas = c(alpha), lambda_min_mult = lambda_min_mult)
+    lambda_grid <- gen_lambda_grid(lambda_min_mult, length.out = 20)
+    model <- splash::splash(t(y_train), banded_covs = c(TRUE, TRUE), B = 500, lambdas = lambda_grid, alphas = c(alpha))
     p <- dim(model$AB)[1]
     # Create placeholder dataframe
     df_lam <- create_lambda_df(c(model$lambdas), path)

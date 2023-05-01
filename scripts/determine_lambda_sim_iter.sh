@@ -27,7 +27,11 @@ print_progress_bar() {
 
 step_create_directories () {
   # If folder structure is not present yet, create it
-  mkdir -p out/simulation/lambdas/${sim_design_id}
+  echo "Creating directories ..."
+  mkdir -p out/simulation/lambdas/${sim_design_id}/${uuidtag}
+  mkdir -p data/simulation/${sim_design_id}/${uuidtag}
+  current_step=$((current_step+1))
+  print_progress_bar $current_step $total_steps 50
 }
 
 step_sim() {
@@ -51,7 +55,7 @@ step_transform () {
 # Calculate performance for each lambda value once
 step_detlam () {
     echo "Running determine_lambda.R ..."
-    Rscript src/compute/determine_lambda.R ${sim_design_id} $uuidtag > /dev/null 2>&1
+    Rscript src/compute/determine_lambda.R ${sim_design_id} $uuidtag # > /dev/null 2>&1
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
 }

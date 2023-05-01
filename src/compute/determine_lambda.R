@@ -17,21 +17,20 @@ setwd(PROJ_DIR)
 # Read arguments from CLI
 args <- commandArgs(trailingOnly = TRUE)
 sim_design_id <- args[1]
-# sim_design_id <- "designB_T500_p25"
+uuidtag <- args[2]
 
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation/", sim_design_id, uuidtag)
-out_dir <- file.path(PROJ_DIR, "out/", sim_design_id, uuidtag)
 lambdas_dir <- file.path(PROJ_DIR, "out/simulation/lambdas/", sim_design_id, uuidtag)
 
 # Calculate lambda_0 for the GSPLASH
-path_sigma_hat <- paste0(data_dir, "sigma_hat.csv")
-path_Vhat_d <- paste0(data_dir, "Vhat_d.csv")
-path_reg_graph <- paste0(data_dir, "graph.graphml")
-path_sym_graph <- paste0(data_dir, "sym_graph.graphml")
-path_y <- paste0(data_dir, "y.csv")
-path_A <- paste0(data_dir, "A.csv")
-path_B <- paste0(data_dir, "B.csv")
+path_sigma_hat <- file.path(data_dir, "sigma_hat.csv")
+path_Vhat_d <- file.path(data_dir, "Vhat_d.csv")
+path_reg_graph <- file.path(data_dir, "reg_graph.graphml")
+path_sym_graph <- file.path(data_dir, "sym_graph.graphml")
+path_y <- file.path(data_dir, "y.csv")
+path_A <- file.path(data_dir, "A.csv")
+path_B <- file.path(data_dir, "B.csv")
 
 # Load the data
 sigma_hat <- t(fread(path_sigma_hat, header = T, skip = 0))

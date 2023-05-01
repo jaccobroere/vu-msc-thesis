@@ -35,10 +35,10 @@ function design_B_generate_B(m::Int)::Matrix{Float64}
     return B
 end
 
-function run_simulation(p::Int, T::Int, sim_design_id::String="sim", write::Bool=true, uuidtag::Union{String,Nothing}=nothing, train_size::Float64=0.8, h_A::Int=3, h_B::Int=3)::Matrix{Float64}
+function run_simulation(p::Int, m::Int, T::Int, sim_design_id::String="sim", write::Bool=true, uuidtag::Union{String,Nothing}=nothing, train_size::Float64=0.8, h_A::Int=3, h_B::Int=3)::Matrix{Float64}
     T = Int(T / train_size)
-    A = design_A_generate_A(p, h_A)
-    B = design_A_generate_B(p, h_B)
+    A = design_B_generate_A(m)
+    B = design_B_generate_B(m)
     errors = generate_errors_over_time(T, p)
     y = simulate_svar(A, B, errors)
 
@@ -53,10 +53,11 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # Parse command line argument
     sim_design_id = ARGS[1]
     T, p = parse_sim_design_id(sim_design_id)
+    m = Int(sqrt(p))
     uuidtag = length(ARGS) >= 2 ? ARGS[2] : nothing
 
     # Run simulation
-    run_simulation(m, T, sim_design_id, true, uuidtag)
+    run_simulation(p, m, T, sim_design_id, true, uuidtag)
 end
 
 

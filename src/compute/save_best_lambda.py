@@ -18,7 +18,6 @@ def collect_dataframes(lambdas_dir, model_name):
             df = pd.read_csv(
                 os.path.join(path, f"{model_name}.csv"),
                 delimiter=",",
-                index=False,
                 header=0,
             )
             res = pd.concat([res, df], axis=0, ignore_index=True)

@@ -10,8 +10,7 @@ spec:
       containers:
       - name: determine-lambda-cont
         image: jaccusaurelius/vu-msc-thesis:kube
-        command: ["bash"]
-        args: ["scripts/determine_lambda_sim_iter.sh"]
+        command: ["bash", "-c", "scripts/determine_lambda_sim_iter.sh designB_T500_p25"]
         volumeMounts:
         - name: pv-out
           mountPath: /app/vu-msc-thesis/out

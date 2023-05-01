@@ -1,6 +1,7 @@
 # This Dockerfile is meant to build the image for working and running code related to my MSc thesis.
 # Run the following command to run the container and mount the correct folder.
-# ocker run -it --rm -v $(pwd):/app/vu-msc-thesis jaccusaurelius/vu-msc-thesis:bullseye
+# docker run -it --rm -v $(pwd):/app/vu-msc-thesis jaccusaurelius/vu-msc-thesis:latest
+# jaccusaurelius/vu-msc-thesis:kube can be used for docker with k8s
 FROM julia:1.9-rc-bullseye
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PROJ_DIR=/app/vu-msc-thesis

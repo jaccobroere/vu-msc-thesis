@@ -20,19 +20,18 @@ sim_design_id <- args[1]
 # sim_design_id <- "designB_T500_p25"
 
 # Set up directories
-data_dir <- file.path(PROJ_DIR, "data/gridsearch/", sim_design_id, uuidtag)
+data_dir <- file.path(PROJ_DIR, "data/simulation/", sim_design_id, uuidtag)
 out_dir <- file.path(PROJ_DIR, "out/", sim_design_id, uuidtag)
-lambdas_dir <- file.path(PROJ_DIR, "out/simulation/lambdas/", sim_design_id)
-sim_id_dir <- file.path(lambdas_dir, sim_design_id)
+lambdas_dir <- file.path(PROJ_DIR, "out/simulation/lambdas/", sim_design_id, uuidtag)
 
 # Calculate lambda_0 for the GSPLASH
-path_sigma_hat <- paste0(data_dir, sim_design_id, "_sigma_hat.csv")
-path_Vhat_d <- paste0(data_dir, sim_design_id, "_Vhat_d.csv")
-path_reg_graph <- paste0(data_dir, sim_design_id, "_graph.graphml")
-path_sym_graph <- paste0(data_dir, sim_design_id, "_sym_graph.graphml")
-path_y <- paste0(data_dir, sim_design_id, "_y.csv")
-path_A <- paste0(data_dir, sim_design_id, "_A.csv")
-path_B <- paste0(data_dir, sim_design_id, "_B.csv")
+path_sigma_hat <- paste0(data_dir, "sigma_hat.csv")
+path_Vhat_d <- paste0(data_dir, "Vhat_d.csv")
+path_reg_graph <- paste0(data_dir, "graph.graphml")
+path_sym_graph <- paste0(data_dir, "sym_graph.graphml")
+path_y <- paste0(data_dir, "y.csv")
+path_A <- paste0(data_dir, "A.csv")
+path_B <- paste0(data_dir, "B.csv")
 
 # Load the data
 sigma_hat <- t(fread(path_sigma_hat, header = T, skip = 0))
@@ -47,9 +46,9 @@ B <- as.matrix(fread(path_B, header = T, skip = 0))
 C_true <- AB_to_C(A, B)
 
 # Calculate the RMSFE for each of the lambdas and add them to the .csv file to later aggregate
-res_reg_a0 <- run_lambda_finder_gfsplash(y, sigma_hat, Vhat_d, C_true, reg_gr, alpha = 0, path = file.path(sim_id_dir, "reg_a0.csv"))
-res_reg_a05 <- run_lambda_finder_gfsplash(y, sigma_hat, Vhat_d, C_true, reg_gr, alpha = 0.5, path = file.path(sim_id_dir, "reg_a05.csv"))
-res_sym_a0 <- run_lambda_finder_gfsplash(y, sigma_hat, Vhat_d, C_true, sym_gr, alpha = 0, path = file.path(sim_id_dir, "sym_a0.csv"))
-res_sym_a05 <- run_lambda_finder_gfsplash(y, sigma_hat, Vhat_d, C_true, sym_gr, alpha = 0.5, path = file.path(sim_id_dir, "sym_a05.csv"))
-res_spl_a0 <- run_lambda_finder_splash(y, alpha = 0, C_true, path = file.path(sim_id_dir, "spl_a0.csv"))
-res_spl_a05 <- run_lambda_finder_splash(y, alpha = 0.5, C_true, path = file.path(sim_id_dir, "spl_a05.csv"))
+res_reg_a0 <- run_lambda_finder_gfsplash(y, sigma_hat, Vhat_d, C_true, reg_gr, alpha = 0, path = file.path(lambdas_dir, "reg_a0.csv"))
+res_reg_a05 <- run_lambda_finder_gfsplash(y, sigma_hat, Vhat_d, C_true, reg_gr, alpha = 0.5, path = file.path(lambdas_dir, "reg_a05.csv"))
+res_sym_a0 <- run_lambda_finder_gfsplash(y, sigma_hat, Vhat_d, C_true, sym_gr, alpha = 0, path = file.path(lambdas_dir, "sym_a0.csv"))
+res_sym_a05 <- run_lambda_finder_gfsplash(y, sigma_hat, Vhat_d, C_true, sym_gr, alpha = 0.5, path = file.path(lambdas_dir, "sym_a05.csv"))
+res_spl_a0 <- run_lambda_finder_splash(y, alpha = 0, C_true, path = file.path(lambdas_dir, "spl_a0.csv"))
+res_spl_a05 <- run_lambda_finder_splash(y, alpha = 0.5, C_true, path = file.path(lambdas_dir, "spl_a05.csv"))

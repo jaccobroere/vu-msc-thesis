@@ -73,7 +73,7 @@ h_A=3 # Placeholder
 h_B=3 # Placeholder
 path=src/simulation/simulation_designB.jl
 prefix=designB
-sim_design_id=${prefix}_T${T}_p${p}
+sim_design_id=${prefix}_T${T}_p${p}_mc
 
 uuidtag=$(uuidgen)
 step_create_directories && step_sim && step_transform && step_detlam

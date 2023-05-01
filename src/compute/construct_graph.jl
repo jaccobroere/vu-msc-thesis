@@ -175,8 +175,8 @@ end
 
 if abspath(PROGRAM_FILE) == @__FILE__
     p = parse(Int, ARGS[1])
-    path_prefix = ARGS[2]
+    file_prefix = ARGS[2]
     h = div(p, 4)
     graph = create_gsplash_graph(p, h)
-    save_graph_as_gml(graph, path_prefix)
+    save_graph_as_gml(graph, file_prefix)
 end

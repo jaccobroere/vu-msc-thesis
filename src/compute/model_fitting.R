@@ -6,14 +6,17 @@ library(data.table)
 library(tictoc)
 library(matrixStats)
 
-# Set up directories
-data_dir <- paste0(PROJ_DIR, "/data/simulation/")
-coef_dir <- paste0(PROJ_DIR, "/out/simulation/coef/")
-
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
-sim_design_id <- "designB_T500_p25"
-# sim_design_id <- args[1]
+# sim_design_id <- "designB_T500_p25"
+sim_design_id <- args[1]
+uuidtag <- args[2]
+
+# Set up directories
+data_dir <- file.path(PROJ_DIR, "data/simulation/")
+coef_dir <- file.path(PROJ_DIR, "out/simulation/fit/")
+sim_id_dir <- file.path(coef_dir, sim_design_id)
+iter_dir <- file.path(sim_id_dir, uuidtag)
 
 # Parse paths
 path_sigma_hat <- paste0(data_dir, sim_design_id, "_sigma_hat.csv")

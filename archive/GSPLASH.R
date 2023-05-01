@@ -13,13 +13,13 @@ library(igraph)
 
 # Read command line arguments
 args <- commandArgs(trailingOnly = TRUE)
-path_prefix <- args[1]
+file_prefix <- args[1]
 gamma <- as.numeric(args[2])
 
 # Parse paths
-path1 <- paste0("out/", path_prefix, "_sigma_hat.csv")
-path2 <- paste0("out/", path_prefix, "_Vhat_d.csv")
-path3 <- paste0("out/", path_prefix, "_graph.graphml")
+path1 <- paste0("out/", file_prefix, "_sigma_hat.csv")
+path2 <- paste0("out/", file_prefix, "_Vhat_d.csv")
+path3 <- paste0("out/", file_prefix, "_graph.graphml")
 
 # Read data
 sigma_hat <- t(fread(path1, header = T, skip = 0))
@@ -32,4 +32,4 @@ model <- genlasso::fusedlasso(y = sigma_hat, X = Vhat_d, graph = gr, gamma = gam
 toc()
 
 # Save R environment
-# save.image(file = paste0("out/", path_prefix, "_gsplash_env.RData"))
+# save.image(file = paste0("out/", file_prefix, "_gsplash_env.RData"))

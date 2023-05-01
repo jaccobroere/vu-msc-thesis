@@ -35,17 +35,18 @@ function design_B_generate_B(m::Int)::Matrix{Float64}
     return B
 end
 
-function run_simulation(m::Int, T::Int, path_prefix::String="sim", write::Bool=true, train_size::Float64=0.8)::Nothing
+function run_simulation(p::Int, T::Int, file_prefix::String="sim", write::Bool=true, train_size::Float64=0.8, h_A::Int=3, h_B::Int=3)::Matrix{Float64}
     T = Int(T / train_size)
-    A = design_B_generate_A(m)
-    B = design_B_generate_B(m)
+    A = design_A_generate_A(p, h_A)
+    B = design_A_generate_B(p, h_B)
     errors = generate_errors_over_time(T, p)
     y = simulate_svar(A, B, errors)
 
     if write == true
-        write_simulation_output(A, B, y, path_prefix)
+        write_simulation_output(A, B, y, file_prefix)
     end
-    return nothing
+
+    return y
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
@@ -53,10 +54,13 @@ if abspath(PROGRAM_FILE) == @__FILE__
     p = parse(Int, ARGS[1])
     m = Int(sqrt(p))
     T = parse(Int, ARGS[2])
-    path_prefix = ARGS[5]
+    file_prefix = ARGS[5]
+    uuidtag = ARGS[6]
+
+    print(uuidtag)
 
     # Run simulation
-    run_simulation(m, T, path_prefix, true)
+    run_simulation(m, T, file_prefix, true)
 end
 
 

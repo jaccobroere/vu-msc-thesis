@@ -9,15 +9,15 @@ library(tictoc)
 data_dir <- "/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/"
 out_dir <- "/Users/jacco/Documents/repos/vu-msc-thesis/out/simulation/coef/"
 
-path_prefix <- "designB_T1000_p100"
+file_prefix <- "designB_T1000_p100"
 
 # Parse paths
-path1 <- paste0(data_dir, path_prefix, "_sigma_hat.csv")
-path2 <- paste0(data_dir, path_prefix, "_Vhat_d.csv")
-path3 <- paste0(data_dir, path_prefix, "_graph.graphml")
-path4 <- paste0(data_dir, path_prefix, "_A.csv")
-path5 <- paste0(data_dir, path_prefix, "_B.csv")
-path6 <- paste0(data_dir, path_prefix, "_y.csv")
+path1 <- paste0(data_dir, file_prefix, "_sigma_hat.csv")
+path2 <- paste0(data_dir, file_prefix, "_Vhat_d.csv")
+path3 <- paste0(data_dir, file_prefix, "_graph.graphml")
+path4 <- paste0(data_dir, file_prefix, "_A.csv")
+path5 <- paste0(data_dir, file_prefix, "_B.csv")
+path6 <- paste0(data_dir, file_prefix, "_y.csv")
 
 # Load the data
 sigma_hat <- t(fread(path1, header = T, skip = 0))
@@ -41,7 +41,7 @@ gsplash <- admm_gsplash(sigma_hat, Vhat_d, gr, lambda, 1, standard_ADMM = TRUE)
 splash <- regular_splash(y, banded_covs = c(FALSE, FALSE), B = 500, alphas = c(0.5), lambdas = c(lambda))
 
 # Save the results
-fwrite(data.table(gsplash$A), file = paste0(out_dir, path_prefix, "_admm_gsplash_estimate_A.csv"))
-fwrite(data.table(gsplash$B), file = paste0(out_dir, path_prefix, "_admm_gsplash_estimate_B.csv"))
-fwrite(data.table(splash$A), file = paste0(out_dir, path_prefix, "_splash_estimate_A.csv"))
-fwrite(data.table(splash$B), file = paste0(out_dir, path_prefix, "_splash_estimate_B.csv"))
+fwrite(data.table(gsplash$A), file = paste0(out_dir, file_prefix, "_admm_gsplash_estimate_A.csv"))
+fwrite(data.table(gsplash$B), file = paste0(out_dir, file_prefix, "_admm_gsplash_estimate_B.csv"))
+fwrite(data.table(splash$A), file = paste0(out_dir, file_prefix, "_splash_estimate_A.csv"))
+fwrite(data.table(splash$B), file = paste0(out_dir, file_prefix, "_splash_estimate_B.csv"))

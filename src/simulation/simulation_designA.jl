@@ -48,7 +48,7 @@ function design_A_generate_B(p::Int, h::Int)::Matrix{Float64}
     return eta * matrix / sqrt(spectral_norm)
 end
 
-function run_simulation(p::Int, T::Int, h_A::Int, h_B::Int, path_prefix::String="sim", write::Bool=true, train_size::Float64=0.8)::Matrix{Float64}
+function run_simulation(p::Int, T::Int, file_prefix::String="sim", write::Bool=true, train_size::Float64=0.8, h_A::Int=3, h_B::Int=3)::Matrix{Float64}
     T = Int(T / train_size)
     A = design_A_generate_A(p, h_A)
     B = design_A_generate_B(p, h_B)
@@ -56,22 +56,22 @@ function run_simulation(p::Int, T::Int, h_A::Int, h_B::Int, path_prefix::String=
     y = simulate_svar(A, B, errors)
 
     if write == true
-        write_simulation_output(A, B, y, path_prefix)
+        write_simulation_output(A, B, y, file_prefix)
     end
 
     return y
 end
 
+
 if abspath(PROGRAM_FILE) == @__FILE__
     # Parse command line argument        
     p = parse(Int, ARGS[1])
     T = parse(Int, ARGS[2])
-    h_A = parse(Int, ARGS[3])
-    h_B = parse(Int, ARGS[4])
-    path_prefix = ARGS[5]
+    file_prefix = ARGS[5]
+    uuidtag = ARGS[6]
 
     # Run simulation
-    run_simulation(p, T, h_A, h_B, path_prefix, true)
+    run_simulation(p, T, file_prefix, true)
 end
 
 

@@ -72,17 +72,25 @@ Write simulation outputs to CSV files.
 - `A::Matrix{Float64}`: Matrix A from the SVAR model.
 - `B::Matrix{Float64}`: Matrix B from the SVAR model.
 - `y::Matrix{Float64}`: Matrix of simulated data from the SVAR model.
+- `file_prefix::String`: Prefix to use for the file names.
+- `uuidtag::Union{String, Nothing}`: UUID tag to use in the directory name (optional).
 
 # Returns
 - None
 """
-function write_simulation_output(A::Matrix{Float64}, B::Matrix{Float64}, y::Matrix{Float64}, path_prefix)::Nothing
-    if !isdir(joinpath("data", "simulation"))
-        mkpath(joinpath("data", "simulation"))
+function write_simulation_output(A::Matrix{Float64}, B::Matrix{Float64}, y::Matrix{Float64}, file_prefix::String, uuidtag::Union{String,Nothing}=nothing)::Nothing
+    if uuidtag !== nothing
+        uuid_dir = joinpath("data", "simulation", uuidtag)
+        if !isdir(uuid_dir)
+            mkpath(uuid_dir)
+        end
+    else
+        uuid_dir = joinpath("data", "simulation")
     end
 
-    CSV.write(joinpath("data", "simulation", path_prefix * "_" * "A.csv"), DataFrame(A, :auto))
-    CSV.write(joinpath("data", "simulation", path_prefix * "_" * "B.csv"), DataFrame(B, :auto))
-    CSV.write(joinpath("data", "simulation", path_prefix * "_" * "y.csv"), DataFrame(y, :auto))
+    CSV.write(joinpath(uuid_dir, file_prefix * "_" * "A.csv"), DataFrame(A, :auto))
+    CSV.write(joinpath(uuid_dir, file_prefix * "_" * "B.csv"), DataFrame(B, :auto))
+    CSV.write(joinpath(uuid_dir, file_prefix * "_" * "y.csv"), DataFrame(y, :auto))
     return nothing
 end
+

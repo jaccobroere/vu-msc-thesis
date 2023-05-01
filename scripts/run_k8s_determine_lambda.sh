@@ -19,6 +19,6 @@ kubectl wait --for=condition=complete --timeout=30m job/detlam
 
 kubectl exec -it data_access -- bash -c "python3 src/compute/save_best_lambda.py"
 
-kubectl wait --timeout=10s
+# kubectl wait --timeout=10s # Probably not needed anymore
 
-kubectl cp dataaccess:/app/vu-msc-thesis/out/simulation k8s_export
+# kubectl cp dataaccess:/app/vu-msc-thesis/out/simulation k8s_export # Probably not needed anymore because of host mount of PV

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Progress bar
-total_steps=3
+total_steps=4
 current_step=0
 
 print_progress_bar() {
@@ -23,6 +23,11 @@ print_progress_bar() {
 
   printf "\r[%s] %d%%" "$progress_bar" "$percentage"
   echo ""
+} 
+
+step_create_directories () {
+  # If folder structure is not present yet, create it
+  mkdir -p out/simulation/lambdas/${prefix}_T${T}_p${p}
 }
 
 step_sim() {
@@ -68,4 +73,4 @@ h_B=3 # Placeholder
 path=src/simulation/simulation_designB.jl
 prefix=designB
 
-step_sim && step_transform && step_detlam
+step_create_directories && step_sim && step_transform && step_detlam

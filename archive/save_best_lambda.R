@@ -5,7 +5,7 @@ library(data.table)
 
 # Read arguments from CLI
 args <- commandArgs(trailingOnly = TRUE)
-path_prefix <- "designA_T500_p25" # path_prefix <- args[1]
+file_prefix <- "designA_T500_p25" # file_prefix <- args[1]
 sim_id <- "1343" # sim_id_dir <- args[2]
 
 # Set up directories
@@ -37,4 +37,4 @@ best_lambdas <- data.frame(
     variable = c("best_lam_reg_a0", "best_lam_reg_a05", "best_lam_sym_a0", "best_lam_sym_a05"),
     lambda = c(best_lam_reg_a0, best_lam_reg_a05, best_lam_sym_a0, best_lam_sym_a05)
 )
-write.table(best_lambdas, paste0(out_dir, sim_id_dir, path_prefix, "_best_lambdas.csv"), row.names = FALSE, append = TRUE, col.names = FALSE)
+write.table(best_lambdas, paste0(out_dir, sim_id_dir, file_prefix, "_best_lambdas.csv"), row.names = FALSE, append = TRUE, col.names = FALSE)

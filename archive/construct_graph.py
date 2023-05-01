@@ -81,7 +81,7 @@ def create_gsplash_graph(p, h):
     return graph
 
 
-def save_graph_as_gml(graph, path_prefix="out/"):
+def save_graph_as_gml(graph, file_prefix="out/"):
     """
     Save a G-SPLASH graph to a file in GraphML format.
 
@@ -94,12 +94,12 @@ def save_graph_as_gml(graph, path_prefix="out/"):
     h : int
         The bandwidth of the matrix.
     """
-    graph.write(f"out/{path_prefix}_graph.graphml")
+    graph.write(f"out/{file_prefix}_graph.graphml")
 
 
 if __name__ == "__main__":
     p = int(sys.argv[1])
-    path_prefix = sys.argv[2]
+    file_prefix = sys.argv[2]
     h = p // 4
     graph = create_gsplash_graph(p, h)
-    save_graph_as_gml(graph, path_prefix=path_prefix)
+    save_graph_as_gml(graph, file_prefix=file_prefix)

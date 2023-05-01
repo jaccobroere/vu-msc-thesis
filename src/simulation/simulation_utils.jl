@@ -72,17 +72,42 @@ Write simulation outputs to CSV files.
 - `A::Matrix{Float64}`: Matrix A from the SVAR model.
 - `B::Matrix{Float64}`: Matrix B from the SVAR model.
 - `y::Matrix{Float64}`: Matrix of simulated data from the SVAR model.
+- `file_prefix::String`: Prefix to use for the file names.
+- `uuidtag::Union{String, Nothing}`: UUID tag to use in the directory name (optional).
 
 # Returns
 - None
 """
-function write_simulation_output(A::Matrix{Float64}, B::Matrix{Float64}, y::Matrix{Float64}, path_prefix)::Nothing
-    if !isdir(joinpath("data", "simulation"))
-        mkpath(joinpath("data", "simulation"))
+function write_simulation_output(A::Matrix{Float64}, B::Matrix{Float64}, y::Matrix{Float64}, sim_design_id::String, uuidtag::Union{String,Nothing}=nothing)::Nothing
+    if uuidtag !== nothing
+        path = joinpath("data", "simulation", sim_design_id, uuidtag)
+        if !isdir(path)
+            mkpath(path)
+        end
+    else
+        path = joinpath("data", "simulation", sim_design_id)
     end
 
-    CSV.write(joinpath("data", "simulation", path_prefix * "_" * "A.csv"), DataFrame(A, :auto))
-    CSV.write(joinpath("data", "simulation", path_prefix * "_" * "B.csv"), DataFrame(B, :auto))
-    CSV.write(joinpath("data", "simulation", path_prefix * "_" * "y.csv"), DataFrame(y, :auto))
+    CSV.write(joinpath(path, "A.csv"), DataFrame(A, :auto))
+    CSV.write(joinpath(path, "B.csv"), DataFrame(B, :auto))
+    CSV.write(joinpath(path, "y.csv"), DataFrame(y, :auto))
     return nothing
+end
+
+"""
+Extracts the integer values after "T" and "p" from a given string.
+
+# Arguments
+- `input_string::AbstractString`: The input string to extract values from.
+
+# Returns
+A tuple containing the extracted integer values after "T" and "p".
+"""
+function parse_sim_design_id(input_string::AbstractString)
+    # extract the integer values using regular expressions
+    T = parse(Int, match(r"T(\d+)", input_string)[1])
+    p = parse(Int, match(r"p(\d+)", input_string)[1])
+
+    # return the extracted values as a tuple
+    return (T, p)
 end

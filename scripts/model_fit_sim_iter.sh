@@ -27,14 +27,11 @@ print_progress_bar() {
 
 step_create_directories () {
   # If folder structure is not present yet, create it
-  echo "Creating directories ..."
-  mkdir -p out/simulation/lambdas/${sim_design_id}/${uuidtag}
-  mkdir -p data/simulation/${sim_design_id}/${uuidtag}
-  current_step=$((current_step+1))
-  print_progress_bar $current_step $total_steps 50
+  mkdir -p out/simulation/fit/${sim_design_id}/${uuidtag}
 }
 
 step_sim() {
+    # Simulation step
     echo "Running $path ..."
     julia --project=$JULIA_DIR $path ${sim_design_id} $uuidtag
     echo "$path completed."
@@ -53,9 +50,9 @@ step_transform () {
 }
 
 # Calculate performance for each lambda value once
-step_detlam () {
+step_modelfit () {
     echo "Running determine_lambda.R ..."
-    Rscript src/compute/determine_lambda.R ${sim_design_id} $uuidtag # > /dev/null 2>&1
+    Rscript src/compute/model_fitting.R ${sim_design_id} $uuidtag > /dev/null 2>&1
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
 }
@@ -67,7 +64,7 @@ T=$(echo $inputarg | sed -E 's/^[a-zA-Z]+_T([0-9]+)_p[0-9]+$/\1/')
 p=$(echo $inputarg| sed -E 's/^[a-zA-Z]+_T[0-9]+_p([0-9]+)$/\
 1/')
 path=src/simulation/simulation_${design}.jl
-sim_design_id=${inputarg}_detlam
+sim_design_id=${inputarg}_mc
 
 uuidtag=$(uuidgen)
-step_create_directories && step_sim && step_transform && step_detlam
+step_create_directories && step_sim && step_transform && step_modelfit

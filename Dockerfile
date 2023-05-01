@@ -1,6 +1,7 @@
 # This Dockerfile is meant to build the image for working and running code related to my MSc thesis.
 # Run the following command to run the container and mount the correct folder.
-# ocker run -it --rm -v $(pwd):/app/vu-msc-thesis jaccusaurelius/vu-msc-thesis:bullseye
+# docker run -it --rm -v $(pwd):/app/vu-msc-thesis jaccusaurelius/vu-msc-thesis:latest
+# jaccusaurelius/vu-msc-thesis:kube can be used for docker with k8s
 FROM julia:1.9-rc-bullseye
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PROJ_DIR=/app/vu-msc-thesis
@@ -10,6 +11,7 @@ ENV JULIA_DIR=/app/juliaenv
 # Install necessary packages
 RUN apt-get update && \
     apt-get install -y wget && \
+    apt-get install -y uuid-runtime && \
     apt-get install -y locales && \
     sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     locale-gen

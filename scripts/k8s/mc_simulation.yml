@@ -1,16 +1,16 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: detlam
+  name: modelfit
 spec:
-  completions: 20
-  parallelism: 5
+  completions: 500 
+  parallelism: 10
   template:
     spec:
       containers:
-      - name: determine-lambda-cont
+      - name: modelfit-cont
         image: jaccusaurelius/vu-msc-thesis:kube
-        command: ["bash", "-c", "scripts/determine_lambda_sim_iter.sh designB_T100_p9"]
+        command: ["bash", "-c", "scripts/model_fit_sim_iter.sh designB_T500_p25"]
         volumeMounts:
         - name: pv-out
           mountPath: /app/vu-msc-thesis/out

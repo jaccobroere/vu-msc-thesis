@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 from utils import parse_float
 
+os.chdir(os.environ["PROJ_DIR"])
+
 
 def collect_dataframes(lambdas_dir, model_name):
     res = pd.DataFrame()

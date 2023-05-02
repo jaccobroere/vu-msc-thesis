@@ -107,7 +107,6 @@ gen_lambda_grid <- function(lambda_0, length.out = 20) {
 create_lambda_df <- function(lambda_grid, filename) {
     df <- data.frame(matrix(ncol = length(lambda_grid), nrow = 0))
     colnames(df) <- paste0("lambda_", lambda_grid)
-    print(colnames(df))
 
     # If the file does not exist, create it
     if (!file.exists(filename)) {
@@ -172,4 +171,8 @@ run_lambda_finder_splash <- function(y, alpha, C_true, path, lambda_min_mult = 1
     # Append the results to the table
     write.table(df_lam, path, row.names = FALSE, col.names = FALSE, append = TRUE, sep = ",")
     return(df_lam)
+}
+
+get_lam_best <- function(df, model) {
+    return(df[df$model == model, "lambda"])
 }

@@ -12,7 +12,7 @@ using CSV
 using StatsBase
 using Statistics
 using Distributions
-using SparseArrays, JLD2
+using SparseArrays, MatrixMarket
 using DataFrames
 
 # Set random seed
@@ -265,9 +265,9 @@ function main(sim_design_id, uuidtag)
     symmetric_graph = create_gsplash_graph(size(y, 1), symmetric=true)
 
     # Write output
-    CSV.write(joinpath(path, "Vhat_d.csv"), Tables.table(Vhat_d))
+    mmwrite(joinpath(path, "Vhat_d.mtx"), Vhat_d)
     CSV.write(joinpath(path, "sigma_hat.csv"), Tables.table(sigma_hat))
-    @save joinpath(path, "Vhat_d.jld2") Vhat_d
+
     save_graph_as_gml(regular_graph, joinpath(path, "reg_graph.graphml"))
     save_graph_as_gml(symmetric_graph, joinpath(path, "sym_graph.graphml"))
 
@@ -296,9 +296,3 @@ end
 # # Random 5x5 matrix
 # A = rand(5, 5)
 # band_matrix(A, 2)
-path = joinpath("data", "simulation", "designB_T500_p100", "Vhat_d.jld2")
-Vhat_d = load(path, "Vhat_d")
-
-using MatrixMarket
-
-mmwrite("Vhat_d.mtx", Vhat_d)

@@ -20,21 +20,22 @@ sim_design_id <- args[1]
 uuidtag <- args[2]
 
 # Set up directories
-data_dir <- file.path(PROJ_DIR, "data/simulation/", sim_design_id, uuidtag)
-lambdas_dir <- file.path(PROJ_DIR, "out/simulation/lambdas/", sim_design_id, uuidtag)
+data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "detlam", uuidtag)
+lambdas_dir <- file.path(PROJ_DIR, "out/simulation/lambdas", sim_design_id, uuidtag)
 
 # Calculate lambda_0 for the GSPLASH
 path_sigma_hat <- file.path(data_dir, "sigma_hat.csv")
-path_Vhat_d <- file.path(data_dir, "Vhat_d.csv")
+path_Vhat_d <- file.path(data_dir, "Vhat_d.mtx")
 path_reg_graph <- file.path(data_dir, "reg_graph.graphml")
 path_sym_graph <- file.path(data_dir, "sym_graph.graphml")
 path_y <- file.path(data_dir, "y.csv")
 path_A <- file.path(data_dir, "A.csv")
 path_B <- file.path(data_dir, "B.csv")
 
+
 # Load the data
 sigma_hat <- t(fread(path_sigma_hat, header = T, skip = 0))
-Vhat_d <- as.matrix(fread(path_Vhat_d, header = T, skip = 0))
+Vhat_d <- as.matrix(readMM(path_Vhat_d))
 reg_gr <- read_graph(path_reg_graph, format = "graphml")
 sym_gr <- read_graph(path_sym_graph, format = "graphml")
 y <- as.matrix(fread(path_y, header = T, skip = 0))

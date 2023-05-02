@@ -25,3 +25,5 @@ kubectl apply -f scripts/k8s/determine_lambda_replaced.yml
 kubectl wait --for=condition=complete --timeout=30m job/detlam
 
 kubectl exec -it data-access -- bash -c "python3 /app/vu-msc-thesis/src/compute/save_best_lambda.py $sim_design_id" 
+
+kubectl delete -f scripts/k8s/determine_lambda_replaced.yml

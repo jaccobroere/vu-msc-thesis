@@ -5,16 +5,17 @@ source("src/compute/model_wrappers.R")
 library(data.table)
 library(tictoc)
 library(matrixStats)
+library(rhdf5)
 
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
-# sim_design_id <- "designB_T500_p25"
-sim_design_id <- args[1]
-uuidtag <- args[2]
+sim_design_id <- ifelse(length(args) < 1, "designB_T500_p100", args[1])
+uuidtag <- ifelse(length(args) < 2, "", args[2])
+
 
 # Set up directories
-data_dir <- file.path(PROJ_DIR, "data/simulation/", sim_design_id, uuidtag)
-fit_dir <- file.path(PROJ_DIR, "out/simulation/fit/", sim_design_id, uuidtag)
+data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, uuidtag)
+fit_dir <- file.path(PROJ_DIR, "out/simulation/fit", sim_design_id, uuidtag)
 
 # Parse paths
 path_sigma_hat <- paste0(data_dir, sim_design_id, "_sigma_hat.csv")
@@ -81,3 +82,6 @@ fwrite(data.table(yhat_pvar), file = paste0(coef_dir, sim_design_id, "_pvar_esti
 # calc_msfe(y_test, yhat_splash)
 # calc_msfe(y_test, yhat_sym_gsplash)
 # calc_msfe(y_test, yhat_pvar)
+
+path_Vhat_d_sparse <- paste0(data_dir, "Vhat_d.jld2")
+h5read(path_Vhat_d_sparse, "Vhat_d")

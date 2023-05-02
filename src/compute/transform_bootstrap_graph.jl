@@ -12,7 +12,7 @@ using CSV
 using StatsBase
 using Statistics
 using Distributions
-using SparseArrays
+using SparseArrays, JLD2
 using DataFrames
 
 # Set random seed
@@ -267,13 +267,18 @@ function main(sim_design_id, uuidtag)
     # Write output
     CSV.write(joinpath(path, "Vhat_d.csv"), Tables.table(Vhat_d))
     CSV.write(joinpath(path, "sigma_hat.csv"), Tables.table(sigma_hat))
+    @save joinpath(path, "Vhat_d.jld2") Vhat_d
     save_graph_as_gml(regular_graph, joinpath(path, "reg_graph.graphml"))
     save_graph_as_gml(symmetric_graph, joinpath(path, "sym_graph.graphml"))
 
     return nothing
 end
 
-main(ARGS[1], ARGS[2])
+if abspath(PROGRAM_FILE) == @__FILE__
+    sim_design_id = ARGS[1]
+    uuidtag = length(ARGS) >= 2 ? ARGS[2] : nothing
+    main(sim_design_id, uuidtag)
+end
 
 # ## TESTING
 # y = read_data(joinpath("data", "simulation", "designB_T500_p25_y.csv"))
@@ -291,3 +296,9 @@ main(ARGS[1], ARGS[2])
 # # Random 5x5 matrix
 # A = rand(5, 5)
 # band_matrix(A, 2)
+path = joinpath("data", "simulation", "designB_T500_p100", "Vhat_d.jld2")
+Vhat_d = load(path, "Vhat_d")
+
+using MatrixMarket
+
+mmwrite("Vhat_d.mtx", Vhat_d)

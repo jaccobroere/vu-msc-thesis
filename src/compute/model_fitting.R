@@ -71,4 +71,8 @@ save_fitting_results(model_splash_a05, "spl_a05", fit_dir)
 save_fitting_results(model_sym_gsplash_a0, "sym_a0", fit_dir)
 save_fitting_results(model_sym_gsplash_a05, "sym_a05", fit_dir)
 save_fitting_results(model_pvar, "pvar", fit_dir)
+
+# Save true values as well ,y_hat_true are the next time step predictions based on the true C matrix
 fwrite(data.table(y_hat_true), file = file.path(fit_dir, "y_hat_true.csv"))
+fwrite(data.table(A_true), file = file.path(fit_dir, "A_true.csv"))
+fwrite(data.table(B_true), file = file.path(fit_dir, "B_true.csv"))

@@ -63,7 +63,7 @@ calc_msfe <- function(y, y_hat) {
 predict_with_C <- function(C, y) {
     train_idx <- (floor(dim(y)[2] / 5) * 4)
     y_train <- y[, 1:train_idx]
-    y_test <- y[, train_idx:ncol(y)] # Notice leaving out + 1 here to have a predictions for the first element of y_test
+    y_test <- y[, (train_idx + 1):ncol(y)] # Notice leaving out + 1 here to have a predictions for the first element of y_test
     predictions <- matrix(0, nrow = nrow(y), ncol = ncol(y_test))
 
     # Predictions
@@ -120,7 +120,7 @@ create_lambda_df <- function(lambda_grid, filename) {
 run_lambda_finder_gfsplash <- function(y, sigma_hat, Vhat_d, C_true, graph, alpha, path) {
     train_idx <- (floor(dim(y)[2] / 5) * 4)
     y_train <- y[, 1:train_idx]
-    y_test <- y[, train_idx:ncol(y)]
+    y_test <- y[, (train_idx + 1):ncol(y)]
     # Calculate lambda_0 for the GSPLASH
     lam0 <- calc_lambda_0_gfsplash(sigma_hat, Vhat_d, graph, alpha = alpha)
     # Generate grid of values for lambda
@@ -146,7 +146,7 @@ run_lambda_finder_gfsplash <- function(y, sigma_hat, Vhat_d, C_true, graph, alph
 run_lambda_finder_splash <- function(y, alpha, C_true, path, lambda_min_mult = 1e-4) {
     train_idx <- (floor(dim(y)[2] / 5) * 4)
     y_train <- y[, 1:train_idx]
-    y_test <- y[, train_idx:ncol(y)]
+    y_test <- y[, (train_idx + 1):ncol(y)]
     # Split the training set off
     y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
     # Run the SPLASH model with the given lambda_grid
@@ -175,4 +175,11 @@ run_lambda_finder_splash <- function(y, alpha, C_true, path, lambda_min_mult = 1
 
 get_lam_best <- function(df, model) {
     return(df[df$model == model, "lambda"])
+}
+
+save_fitting_results <- function(model, prefix, fit_dir) {
+    fwrite(data.table(model$A), file = file.path(fit_dir, paste0(prefix, "_estimate_A.csv")))
+    fwrite(data.table(model$B), file = file.path(fit_dir, paste0(prefix, "_estimate_B.csv")))
+    fwrite(data.table(model$C), file = file.path(fit_dir, paste0(prefix, "_estimate_C.csv")))
+    fwrite(data.table(model$yhat), file = file.path(fit_dir, paste0(prefix, "_yhat.csv")))
 }

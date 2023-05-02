@@ -5,83 +5,70 @@ source("src/compute/model_wrappers.R")
 library(data.table)
 library(tictoc)
 library(matrixStats)
-library(rhdf5)
+library(Matrix)
+setwd(PROJ_DIR)
 
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
-sim_design_id <- ifelse(length(args) < 1, "designB_T500_p100", args[1])
-uuidtag <- ifelse(length(args) < 2, "", args[2])
-
+sim_design_id <- ifelse(length(args) < 1, "designB_T500_p9", args[1])
+uuidtag <- ifelse(length(args) < 2, "5c9c2f78-3338-4b4a-8121-2adc01e8990d", args[2])
 
 # Set up directories
-data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, uuidtag)
+data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
 fit_dir <- file.path(PROJ_DIR, "out/simulation/fit", sim_design_id, uuidtag)
+lambdas_dir <- file.path(PROJ_DIR, "out/simulation/lambdas", sim_design_id)
 
 # Parse paths
-path_sigma_hat <- paste0(data_dir, sim_design_id, "_sigma_hat.csv")
-path_Vhat_d <- paste0(data_dir, sim_design_id, "_Vhat_d.csv")
-path_reg_graph <- paste0(data_dir, sim_design_id, "_graph.graphml")
-path_sym_graph <- paste0(data_dir, sim_design_id, "_sym_graph.graphml")
-path_y <- paste0(data_dir, sim_design_id, "_y.csv")
-path_A <- paste0(data_dir, sim_design_id, "_A.csv")
-path_B <- paste0(data_dir, sim_design_id, "_B.csv")
+path_sigma_hat <- file.path(data_dir, "sigma_hat.csv")
+path_Vhat_d <- file.path(data_dir, "Vhat_d.mtx")
+path_reg_graph <- file.path(data_dir, "reg_graph.graphml")
+path_sym_graph <- file.path(data_dir, "sym_graph.graphml")
+path_y <- file.path(data_dir, "y.csv")
+path_A <- file.path(data_dir, "A.csv")
+path_B <- file.path(data_dir, "B.csv")
 
 # Load the data
 sigma_hat <- t(fread(path_sigma_hat, header = T, skip = 0))
-Vhat_d <- as.matrix(fread(path_Vhat_d, header = T, skip = 0))
+Vhat_d <- as.matrix(readMM(path_Vhat_d))
 reg_gr <- read_graph(path_reg_graph, format = "graphml")
 sym_gr <- read_graph(path_sym_graph, format = "graphml")
 # Load the true values
-A <- as.matrix(fread(path_A, header = T, skip = 0))
-B <- as.matrix(fread(path_B, header = T, skip = 0))
+A_true <- as.matrix(fread(path_A, header = T, skip = 0))
+B_true <- as.matrix(fread(path_B, header = T, skip = 0))
 y <- as.matrix(fread(path_y, header = T, skip = 0))
 
+# Read best_lambdas
+best_lam_df <- as.data.frame(fread(file.path(lambdas_dir, "best_lambdas.csv"), header = T, skip = 0))
+
 # Fit the a single solution using (Augmented) ADMM of GSPLASH
-model_gsplash_a0 <- fit_admm_gsplash(sigma_hat, Vhat_d, reg_gr, lambda, alpha = 0, standard_ADMM = TRUE)
-model_gsplash_a05 <- fit_admm_gsplash(sigma_hat, Vhat_d, reg_gr, lambda, alpha = 0.5, standard_ADMM = TRUE)
+model_gsplash_a0 <- fit_admm_gsplash(sigma_hat, Vhat_d, reg_gr, get_lam_best(best_lam_df, "best_lam_reg_a0"), alpha = 0, standard_ADMM = TRUE)
+model_gsplash_a05 <- fit_admm_gsplash(sigma_hat, Vhat_d, reg_gr, get_lam_best(best_lam_df, "best_lam_reg_a05"), alpha = 0.5, standard_ADMM = TRUE)
 # Fit a single solution of symmetric_GSPLASH
-model_sym_gsplash_a0 <- fit_admm_gsplash(sigma_hat, Vhat_d, sym_gr, lambda, alpha = 0, standard_ADMM = TRUE)
-model_sym_gsplash_a05 <- fit_admm_gsplash(sigma_hat, Vhat_d, sym_gr, lambda, alpha = 0.5, standard_ADMM = TRUE)
+model_sym_gsplash_a0 <- fit_admm_gsplash(sigma_hat, Vhat_d, sym_gr, get_lam_best(best_lam_df, "best_lam_sym_a0"), alpha = 0, standard_ADMM = TRUE)
+model_sym_gsplash_a05 <- fit_admm_gsplash(sigma_hat, Vhat_d, sym_gr, get_lam_best(best_lam_df, "best_lam_sym_a05"), alpha = 0.5, standard_ADMM = TRUE)
 # Fit the a single solution using SPLASH
-model_splash_a0 <- fit_regular_splash(y, lambda, alpha = 0)
-model_splash_a05 <- fit_regular_splash(y, lambda, alpha = 0.5)
+model_splash_a0 <- fit_regular_splash(y, get_lam_best(best_lam_df, "best_lam_spl_a0"), alpha = 0)
+model_splash_a05 <- fit_regular_splash(y, get_lam_best(best_lam_df, "best_lam_spl_a05"), alpha = 0.5)
 # Fit a single solution using PVAR(1) with the BigVAR package, also runs a grid search
 model_pvar <- fit_pvar_bigvar(y)
 
 # Compute and save the predictions
-C <- AB_to_C(A, B)
-yhat_gsplash <- predict_with_C(model_gsplash$C, y)
-yhat_splash <- predict_with_C(model_splash$C, y)
-yhat_sym_gsplash <- predict_with_C(model_sym_gsplash$C, y)
-yhat_pvar <- predict_with_C(model_pvar$C, y)
-y_hat_true <- predict_with_C(C, y)
+C_true <- AB_to_C(A_true, B_true)
+model_gsplash_a0$yhat <- predict_with_C(model_gsplash_a0$C, y)
+model_gsplash_a05$yhat <- predict_with_C(model_gsplash_a05$C, y)
+model_splash_a0$yhat <- predict_with_C(model_splash_a0$C, y)
+model_splash_a05$yhat <- predict_with_C(model_splash_a05$C, y)
+model_sym_gsplash_a0$yhat <- predict_with_C(model_sym_gsplash_a0$C, y)
+model_sym_gsplash_a05$yhat <- predict_with_C(model_sym_gsplash_a05$C, y)
+model_pvar$yhat <- predict_with_C(model_pvar$C, y)
+y_hat_true <- predict_with_C(C_true, y)
 
 # Save the results
-fwrite(data.table(model_gsplash$A), file = paste0(coef_dir, sim_design_id, "_gsplash_estimate_A.csv"))
-fwrite(data.table(model_gsplash$B), file = paste0(coef_dir, sim_design_id, "_gsplash_estimate_B.csv"))
-fwrite(data.table(model_splash$A), file = paste0(coef_dir, sim_design_id, "_splash_estimate_A.csv"))
-fwrite(data.table(model_splash$B), file = paste0(coef_dir, sim_design_id, "_splash_estimate_B.csv"))
-fwrite(data.table(model_sym_gsplash$A), file = paste0(coef_dir, sim_design_id, "_sym_gsplash_estimate_A.csv"))
-fwrite(data.table(model_sym_gsplash$B), file = paste0(coef_dir, sim_design_id, "_sym_gsplash_estimate_B.csv"))
-fwrite(data.table(model_pvar$A), file = paste0(coef_dir, sim_design_id, "_pvar_estimate_C.csv"))
-fwrite(data.table(yhat_gsplash), file = paste0(coef_dir, sim_design_id, "_gsplash_estimate_yhat.csv"))
-fwrite(data.table(yhat_splash), file = paste0(coef_dir, sim_design_id, "_splash_estimate_yhat.csv"))
-fwrite(data.table(yhat_sym_gsplash), file = paste0(coef_dir, sim_design_id, "_sym_gsplash_estimate_yhat.csv"))
-fwrite(data.table(yhat_pvar), file = paste0(coef_dir, sim_design_id, "_pvar_estimate_yhat.csv"))
-
-# train_idx <- (floor(dim(y)[2] / 5) * 4)
-# y_train <- y[, 1:train_idx]
-# y_test <- y[, train_idx:ncol(y)]
-
-# calc_rmsfe(y_test, yhat_gsplash, y_hat_true)
-# calc_rmsfe(y_test, yhat_splash, y_hat_true)
-# calc_rmsfe(y_test, yhat_sym_gsplash, y_hat_true)
-# calc_rmsfe(y_test, yhat_pvar, y_hat_true)
-
-# calc_msfe(y_test, yhat_gsplash)
-# calc_msfe(y_test, yhat_splash)
-# calc_msfe(y_test, yhat_sym_gsplash)
-# calc_msfe(y_test, yhat_pvar)
-
-path_Vhat_d_sparse <- paste0(data_dir, "Vhat_d.jld2")
-h5read(path_Vhat_d_sparse, "Vhat_d")
+save_fitting_results(model_gsplash_a0, "reg_a0", fit_dir)
+save_fitting_results(model_gsplash_a05, "reg_a05", fit_dir)
+save_fitting_results(model_splash_a0, "spl_a0", fit_dir)
+save_fitting_results(model_splash_a05, "spl_a05", fit_dir)
+save_fitting_results(model_sym_gsplash_a0, "sym_a0", fit_dir)
+save_fitting_results(model_sym_gsplash_a05, "sym_a05", fit_dir)
+save_fitting_results(model_pvar, "pvar", fit_dir)
+fwrite(data.table(y_hat_true), file = file.path(fit_dir, "y_hat_true.csv"))

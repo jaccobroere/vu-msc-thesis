@@ -267,7 +267,6 @@ function main(sim_design_id, uuidtag)
     # Write output
     mmwrite(joinpath(path, "Vhat_d.mtx"), Vhat_d)
     CSV.write(joinpath(path, "sigma_hat.csv"), Tables.table(sigma_hat))
-
     save_graph_as_gml(regular_graph, joinpath(path, "reg_graph.graphml"))
     save_graph_as_gml(symmetric_graph, joinpath(path, "sym_graph.graphml"))
 

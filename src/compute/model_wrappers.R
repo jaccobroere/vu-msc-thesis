@@ -76,7 +76,7 @@ fit_regular_splash <- function(y, lambda, alpha, verbose = FALSE, ...) {
 
     # Fit SPLASH from Reuvers and Wijler (2021)
     t0 <- Sys.time()
-    model <- splash::splash(t(y_train), alphas = c(alpha), lambdas = c(lambda), ...) # Take transpose because splash() accepts T x p matrix
+    model <- splash(t(y_train), alphas = c(alpha), lambdas = c(lambda), ...) # Take transpose because splash() accepts T x p matrix
     runtime <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     # Print how long it took to run formatted with a message

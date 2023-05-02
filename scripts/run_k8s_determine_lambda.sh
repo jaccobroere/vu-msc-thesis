@@ -3,7 +3,7 @@
 cd $PROJ_DIR
 
 # Update docker image scripts
-docker build --quiet -t jaccusaurelius/vu-msc-thesis:kube .
+docker build -t jaccusaurelius/vu-msc-thesis:kube .
 
 bash scripts/clear_k8s.sh
 
@@ -17,7 +17,7 @@ kubectl apply -f scripts/k8s/determine_lambda.yml
 
 kubectl wait --for=condition=complete --timeout=30m job/detlam
 
-kubectl exec -it data-access -- bash -c "python3 src/compute/save_best_lambda.py"
+kubectl exec -it data-access -- bash -c "python3 src/compute/save_best_lambda.py designB_T500_p16" 
 
 # kubectl wait --timeout=10s # Probably not needed anymore
 

@@ -14,4 +14,4 @@ kubectl wait --for=condition=ready --timeout=30s pod/data_access
 # Run the simulation job
 kubectl apply -f scripts/k8s/mc_simulation.yml
 
-kubectl wait --for=condition=complete job/modelfit
+kubectl wait --for=condition=complete --timeout=3h job/modelfit

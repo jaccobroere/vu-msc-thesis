@@ -7,7 +7,7 @@ spec:
     storage: 10Gi
   accessModes:
     - ReadWriteMany
-  persistentVolumeReclaimPolicy: Delete
+  persistentVolumeReclaimPolicy: Retain 
   storageClassName: manual
   hostPath:
     path: /Users/jacco/Documents/repos/vu-msc-thesis/out

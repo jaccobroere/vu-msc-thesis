@@ -3,14 +3,14 @@ kind: Job
 metadata:
   name: detlam
 spec:
-  completions: 20
+  completions: 10
   parallelism: 5
   template:
     spec:
       containers:
-      - name: determine-lambda-cont
+      - name: detlam-cont
         image: jaccusaurelius/vu-msc-thesis:kube
-        command: ["bash", "-c", "scripts/determine_lambda_sim_iter.sh designB_T500_p16"]
+        command: ["bash", "scripts/determine_lambda_sim_iter.sh", "designB_T500_p16"]
         volumeMounts:
         - name: pv-out
           mountPath: /app/vu-msc-thesis/out

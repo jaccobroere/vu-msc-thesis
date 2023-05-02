@@ -6,7 +6,6 @@ spec:
   containers:
   - name: data-access-cont
     image: jaccusaurelius/vu-msc-thesis:kube
-    # command: ['sh', '-c', 'rm -rf /app/vu-msc-thesis/out/simulation/lambdas && sleep infinity']
     command: ["sleep", "infinity"]
     volumeMounts:
     - name: pv-out

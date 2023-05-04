@@ -55,7 +55,7 @@ step_transform () {
 
 # Calculate performance for each lambda value once
 step_modelfit () {
-    echo "Running determine_lambda.R ..."
+    echo "Running modelfit_lambda.R ..."
     Rscript src/compute/model_fitting.R ${sim_design_id} $uuidtag # > /dev/null 2>&1
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50

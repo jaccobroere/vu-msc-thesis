@@ -9,6 +9,7 @@ library(splash)
 library(FGSG)
 library(BigVAR)
 library(glmnet)
+library(pracma)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
 
 fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALSE, ...) {
@@ -221,10 +222,12 @@ fit_fast_fusion <- function(sigma_hat, Vhat_d, graph, lambda) {
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
     t0 <- Sys.time()
-    XD1 <- Vhat_d %*% solve(Dtilde)
+    Dtilde_inv <- solve(Dtilde)
+    XD1 <- Vhat_d %*% Dtilde_inv
     X1 <- XD1[, 1:m]
     X2 <- XD1[, (m + 1):dim(XD1)[2]]
-    P <- X2 %*% solve(t(X2) %*% X2) %*% t(X2)
+    X2_T_X2_inv_X2 <- solve(t(X2) %*% X2) %*% t(X2)
+    P <- X2 %*% X2_T_X2_inv_X2
     ytilde <- (diag(nrow(P)) - P) %*% t(sigma_hat)
     Xtilde <- (diag(nrow(P)) - P) %*% X1
     runtimeXtilde <- difftime(Sys.time(), t0, units = "secs")[[1]]
@@ -232,8 +235,8 @@ fit_fast_fusion <- function(sigma_hat, Vhat_d, graph, lambda) {
     t0 <- Sys.time()
     model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
     theta1 <- as.vector(model$beta)
-    theta2 <- as.vector(solve(t(X2) %*% X2) %*% t(X2) %*% (t(sigma_hat) - X1 %*% theta1))
-    coef <- solve(Dtilde) %*% c(theta1, theta2)
+    theta2 <- as.vector(X2_T_X2_inv_X2 %*% (t(sigma_hat) - X1 %*% theta1))
+    coef <- Dtilde_inv %*% c(theta1, theta2)
     runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     AB <- coef_to_AB(coef, p)
@@ -252,7 +255,3 @@ fit_fast_fusion <- function(sigma_hat, Vhat_d, graph, lambda) {
         runtimeXtilde = runtimeXtilde
     )
 }
-
-
-dim(X1)
-dim(X2)

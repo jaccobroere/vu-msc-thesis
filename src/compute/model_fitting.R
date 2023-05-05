@@ -39,6 +39,7 @@ y <- as.matrix(fread(path_y, header = T, skip = 0))
 
 # Read best_lambdas
 best_lam_df <- as.data.frame(fread(file.path(lambdas_dir, "best_lambdas.csv"), header = T, skip = 0))
+best_lam_df <- as.data.frame(fread(file.path(PROJ_DIR, "out/simulation/lambdas/designB_T500_p9", "best_lambdas.csv"), header = T, skip = 0))
 
 # Fit the a single solution using (Augmented) ADMM of GSPLASH
 model_gsplash_a0 <- fit_admm_gsplash(sigma_hat, Vhat_d, reg_gr, get_lam_best(best_lam_df, "best_lam_reg_a0"), alpha = 0, standard_ADMM = TRUE)
@@ -82,6 +83,8 @@ fwrite(data.table(A_true), file = file.path(fit_dir, "A_true.csv"))
 fwrite(data.table(B_true), file = file.path(fit_dir, "B_true.csv"))
 
 
+model_fast_fusion$runtimeM
+model_fast_fusion$runtimeXtilde
 
 train_idx <- (floor(dim(y)[2] / 5) * 4)
 y_train <- y[, 1:train_idx]
@@ -96,3 +99,7 @@ calc_msfe(y_test, model_sym_gsplash_a05$yhat)
 calc_msfe(y_test, model_pvar$yhat)
 calc_msfe(y_test, y_hat_true)
 calc_msfe(y_test, model_fast_fusion$yhat)
+
+
+model_gsplash_a0$model$beta[1:10]
+model_fast_fusion$coef[1:10]

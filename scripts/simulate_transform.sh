@@ -59,7 +59,7 @@ step_transform () {
 # prefix=designA
 
 # DESIGN B
-p=100 # m^2 
+p=9 # m^2 
 T=500
 path=src/simulation/simulation_designB.jl
 prefix=designB

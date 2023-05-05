@@ -8,6 +8,7 @@ library(igraph)
 library(splash)
 library(FGSG)
 library(BigVAR)
+library(glmnet)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
 
 fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALSE, ...) {
@@ -171,7 +172,7 @@ fit_fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = 
 
     # Fit FGSG GFLASSO implementation
     t0 <- Sys.time()
-    model <- FGSG::gflasso(y = sigma_hat, A = Vhat_d, tp = edge_vector, s1 = lambda2, s2 = lambda1, ...) # Notice that \lambda1 and \lambda2 are swapped here
+    model <- FGSG::gflasso(y = sigma_hat, A = Vhat_d, tp = edge_vector, s1 = lambda1, s2 = lambda2, ...) # Notice that \lambda1 and \lambda2 are swapped here
     runtime <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     # Print how long it took to run formatted with a message
@@ -194,3 +195,64 @@ fit_fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = 
         runtime = runtime
     )
 }
+
+null_space_graph <- function(graph) {
+    null_vecs <- zeros(vcount(graph), (vcount(graph) - ecount(graph)))
+    conn <- components(graph)
+    mem <- conn$membership
+    for (i in 1:length(mem)) {
+        null_vecs[i, mem[i]] <- 1
+    }
+    return(null_vecs)
+}
+
+calc_Dtilde <- function(graph) {
+    null_vecs <- null_space_graph(graph)
+    Dtilde <- rbind(as.matrix(getDg(graph)), t(null_vecs))
+    return(Dtilde)
+}
+
+fit_fast_fusion <- function(sigma_hat, Vhat_d, graph, lambda) {
+    t0 <- Sys.time()
+    Dtilde <- calc_Dtilde(graph)
+    runtimeDprime <- difftime(Sys.time(), t0, units = "secs")[[1]]
+
+    m <- ecount(graph)
+    p <- as.integer(sqrt(dim(Vhat_d)[1]))
+
+    t0 <- Sys.time()
+    XD1 <- Vhat_d %*% solve(Dtilde)
+    X1 <- XD1[, 1:m]
+    X2 <- XD1[, (m + 1):dim(XD1)[2]]
+    P <- X2 %*% solve(t(X2) %*% X2) %*% t(X2)
+    ytilde <- (diag(nrow(P)) - P) %*% t(sigma_hat)
+    Xtilde <- (diag(nrow(P)) - P) %*% X1
+    runtimeXtilde <- difftime(Sys.time(), t0, units = "secs")[[1]]
+
+    t0 <- Sys.time()
+    model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
+    theta1 <- as.vector(model$beta)
+    theta2 <- as.vector(solve(t(X2) %*% X2) %*% t(X2) %*% (t(sigma_hat) - X1 %*% theta1))
+    coef <- solve(Dtilde) %*% c(theta1, theta2)
+    runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
+
+    AB <- coef_to_AB(coef, p)
+    A <- AB$A
+    B <- AB$B
+
+    # Return the fitted model
+    output_list <- list(
+        model = model,
+        coef = coef,
+        A = A,
+        B = B,
+        C = AB_to_C(A, B),
+        runtimeM = runtimeM,
+        runtimeDprime = runtimeDprime,
+        runtimeXtilde = runtimeXtilde
+    )
+}
+
+
+dim(X1)
+dim(X2)

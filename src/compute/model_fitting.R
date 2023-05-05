@@ -11,7 +11,7 @@ setwd(PROJ_DIR)
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
 sim_design_id <- ifelse(length(args) < 1, "designB_T500_p9", args[1])
-uuidtag <- ifelse(length(args) < 2, "5c9c2f78-3338-4b4a-8121-2adc01e8990d", args[2])
+uuidtag <- ifelse(length(args) < 2, "6A446516-84EF-49C9-9435-23E00DB22756", args[2])
 
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
@@ -52,6 +52,9 @@ model_splash_a05 <- fit_regular_splash(y, get_lam_best(best_lam_df, "best_lam_sp
 # Fit a single solution using PVAR(1) with the BigVAR package, also runs a grid search
 model_pvar <- fit_pvar_bigvar(y)
 
+# Model fast fusion
+model_fast_fusion <- fit_fast_fusion(sigma_hat, Vhat_d, reg_gr, lambda = get_lam_best(best_lam_df, "best_lam_reg_a0"))
+
 # Compute and save the predictions
 C_true <- AB_to_C(A_true, B_true)
 model_gsplash_a0$yhat <- predict_with_C(model_gsplash_a0$C, y)
@@ -62,6 +65,7 @@ model_sym_gsplash_a0$yhat <- predict_with_C(model_sym_gsplash_a0$C, y)
 model_sym_gsplash_a05$yhat <- predict_with_C(model_sym_gsplash_a05$C, y)
 model_pvar$yhat <- predict_with_C(model_pvar$C, y)
 y_hat_true <- predict_with_C(C_true, y)
+model_fast_fusion$yhat <- predict_with_C(model_fast_fusion$C, y)
 
 # Save the results
 save_fitting_results(model_gsplash_a0, "reg_a0", fit_dir)
@@ -76,3 +80,19 @@ save_fitting_results(model_pvar, "pvar", fit_dir)
 fwrite(data.table(y_hat_true), file = file.path(fit_dir, "y_hat_true.csv"))
 fwrite(data.table(A_true), file = file.path(fit_dir, "A_true.csv"))
 fwrite(data.table(B_true), file = file.path(fit_dir, "B_true.csv"))
+
+
+
+train_idx <- (floor(dim(y)[2] / 5) * 4)
+y_train <- y[, 1:train_idx]
+y_test <- y[, (train_idx + 1):ncol(y)]
+
+calc_msfe(y_test, model_gsplash_a0$yhat)
+calc_msfe(y_test, model_gsplash_a05$yhat)
+calc_msfe(y_test, model_splash_a0$yhat)
+calc_msfe(y_test, model_splash_a05$yhat)
+calc_msfe(y_test, model_sym_gsplash_a0$yhat)
+calc_msfe(y_test, model_sym_gsplash_a05$yhat)
+calc_msfe(y_test, model_pvar$yhat)
+calc_msfe(y_test, y_hat_true)
+calc_msfe(y_test, model_fast_fusion$yhat)

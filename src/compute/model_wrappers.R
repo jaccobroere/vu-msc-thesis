@@ -201,49 +201,6 @@ fit_fsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
     )
 }
 
-fit_fast_fusion <- function(sigma_hat, Vhat_d, graph, lambda) {
-    t0 <- Sys.time()
-    Dtilde <- calc_Dtilde(graph)
-    runtimeDprime <- difftime(Sys.time(), t0, units = "secs")[[1]]
-
-    m <- ecount(graph)
-    p <- as.integer(sqrt(dim(Vhat_d)[1]))
-
-    t0 <- Sys.time()
-    Dtilde_inv <- solve(Dtilde)
-    XD1 <- Vhat_d %*% Dtilde_inv
-    X1 <- XD1[, 1:m]
-    X2 <- XD1[, (m + 1):dim(XD1)[2]]
-    X2_T_X2_inv_X2 <- solve(t(X2) %*% X2) %*% t(X2)
-    P <- X2 %*% X2_T_X2_inv_X2
-    ytilde <- (diag(nrow(P)) - P) %*% t(sigma_hat)
-    Xtilde <- (diag(nrow(P)) - P) %*% X1
-    runtimeXtilde <- difftime(Sys.time(), t0, units = "secs")[[1]]
-
-    t0 <- Sys.time()
-    model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
-    theta1 <- as.vector(model$beta)
-    theta2 <- as.vector(X2_T_X2_inv_X2 %*% (t(sigma_hat) - X1 %*% theta1))
-    coef <- Dtilde_inv %*% c(theta1, theta2)
-    runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
-
-    AB <- coef_to_AB(coef, p)
-    A <- AB$A
-    B <- AB$B
-
-    # Return the fitted model
-    output_list <- list(
-        model = model,
-        coef = coef,
-        A = A,
-        B = B,
-        C = AB_to_C(A, B),
-        runtimeM = runtimeM,
-        runtimeDprime = runtimeDprime,
-        runtimeXtilde = runtimeXtilde
-    )
-}
-
 fit_fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALSE, ...) {
     # Retrieve the cross-sectional dimension of the problem
     p <- as.integer(sqrt(dim(Vhat_d)[1]))

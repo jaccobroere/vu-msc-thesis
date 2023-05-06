@@ -226,8 +226,7 @@ fit_ssfsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
         A = A,
         B = B,
         C = C,
-        runtimeM = runtimeM,
-        runtimeXtilde = runtimeXtilde
+        runtimeM = runtimeM
     )
 }
 

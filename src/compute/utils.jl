@@ -142,22 +142,23 @@ function inv_Dtilde_sparse(graph::SimpleGraph)::SparseMatrixCSC{Float64}
     return sparse(inv(lu(Dtilde)))
 end
 
-function calc_Dtilde_SSF_sparse(graph::SimpleGraph)::SparseMatrixCSC{Float64}
+function calc_Dtilde_SSF_sparse(graph::SimpleGraph, alpha::Float64=0.5)::SparseMatrixCSC{Float64}
     D = incidence_matrix(graph, oriented=true)' # Incidence matrix needs to be transposed before obtaining D^(G)
     k, m = nv(graph), ne(graph)
-
+    # Reparametrize to gamma
+    gamma = alpha / (1 - alpha)
     # Create the extra penalty rows in D for one of the elements in each of the diagonals
     extension = spzeros(Float64, k - m, m)
     i = 1
     for j in 1:k
         if j > 3h^2 && j < 3h^2 + 4h
-            extension[i, j] = 1.0
+            extension[i, j] = gamma
         end
     end
     return vcat(D, extension) # Combine D and the extension
 end
 
-function inv_Dtilde_SSF_sparse(graph::SimpleGraph)::SparseMatrixCSC{Float64}
-    Dtilde = calc_Dtilde_SSF_sparse(graph)
+function inv_Dtilde_SSF_sparse(graph::SimpleGraph, alpha::Float64=0.5)::SparseMatrixCSC{Float64}
+    Dtilde = calc_Dtilde_SSF_sparse(graph, alpha)
     return sparse(inv(lu(Dtilde)))
 end

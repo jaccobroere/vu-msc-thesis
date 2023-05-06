@@ -271,13 +271,21 @@ function main(sim_design_id, uuidtag)
         # Calculate the Dtilde matrix and its inverse, for F-SPLASH and SSF-SPLASH, respectively
         Dtilde = calc_Dtilde_sparse(regular_graph)
         Dtilde_inv = inv_Dtilde_sparse(regular_graph)
-        Dtilde_SSF = calc_Dtilde_SSF_sparse(regular_graph)
-        Dtilde_SSF_inv = inv_Dtilde_SSF_sparse(regular_graph)
+        Dtilde_SSF_a05 = calc_Dtilde_SSF_sparse(regular_graph, 0.5)
+        Dtilde_SSF_a05_inv = inv_Dtilde_SSF_sparse(regular_graph, 0.5)
+        Dtilde_SSF_a067 = calc_Dtilde_SSF_sparse(regular_graph, 2 / 3)
+        Dtilde_SSF_a067_inv = inv_Dtilde_SSF_sparse(regular_graph, 2 / 3)
+        Dtilde_SSF_a08 = calc_Dtilde_SSF_sparse(regular_graph, 0.8)
+        Dtilde_SSF_a08_inv = inv_Dtilde_SSF_sparse(regular_graph, 0.8)
         # Save the matrices in sparse matrix format
         mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde.mtx"), Dtilde)
         mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_inv.mtx"), Dtilde_inv)
-        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF.mtx"), Dtilde_SSF)
-        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_inv.mtx"), Dtilde_SSF_inv)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a05.mtx"), Dtilde_SSF_a05)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a05_inv.mtx"), Dtilde_SSF_a05_inv)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a067.mtx"), Dtilde_SSF_a067)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a067_inv.mtx"), Dtilde_SSF_a067_inv)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a08.mtx"), Dtilde_SSF_a08)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a08_inv.mtx"), Dtilde_SSF_a08_inv)
     end
 
     # Write output

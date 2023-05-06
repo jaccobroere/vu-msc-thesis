@@ -120,13 +120,44 @@ function n_elements_to_first_skip(p::Int, h::Int)::Int
     return (-5h^2 - 2h + 4h * p + p) - (2h + 1)
 end
 
+function null_space_graph_sparse(graph::SimpleGraph{Int64})::SparseMatrixCSC{Float64}
+    null_vecs = spzeros(Float64, nv(graph), nv(graph) - ne(graph))
+    conn = connected_components(graph)
+    for (j, vec) in enumerate(conn)
+        for i in vec
+            null_vecs[i, j] = 1.0
+        end
+    end
+    return null_vecs
+end
+
 function calc_Dtilde_sparse(graph::SimpleGraph)::SparseMatrixCSC{Float64}
     D_prime = incidence_matrix(graph, oriented=true) # Incidence matrix needs to be transposed before obtaining D^(G)
-    null = null_space_graph(graph)
+    null = null_space_graph_sparse(graph)
     return vcat(D_prime', null') # Thus transpose here
 end
 
 function inv_Dtilde_sparse(graph::SimpleGraph)::SparseMatrixCSC{Float64}
     Dtilde = calc_Dtilde_sparse(graph)
+    return sparse(inv(lu(Dtilde)))
+end
+
+function calc_Dtilde_SSF_sparse(graph::SimpleGraph)::SparseMatrixCSC{Float64}
+    D = incidence_matrix(graph, oriented=true)' # Incidence matrix needs to be transposed before obtaining D^(G)
+    k, m = nv(graph), ne(graph)
+
+    # Create the extra penalty rows in D for one of the elements in each of the diagonals
+    extension = spzeros(Float64, k - m, m)
+    i = 1
+    for j in 1:k
+        if j > 3h^2 && j < 3h^2 + 4h
+            extension[i, j] = 1.0
+        end
+    end
+    return vcat(D, extension) # Combine D and the extension
+end
+
+function inv_Dtilde_SSF_sparse(graph::SimpleGraph)::SparseMatrixCSC{Float64}
+    Dtilde = calc_Dtilde_SSF_sparse(graph)
     return sparse(inv(lu(Dtilde)))
 end

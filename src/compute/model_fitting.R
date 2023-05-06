@@ -42,23 +42,21 @@ y <- as.matrix(fread(path_y, header = T, skip = 0))
 
 # Read best_lambdas
 best_lam_df <- as.data.frame(fread(file.path(lambdas_dir, "best_lambdas.csv"), header = T, skip = 0))
-best_lam_df <- as.data.frame(fread(file.path(PROJ_DIR, "out/simulation/lambdas/designB_T500_p9", "best_lambdas.csv"), header = T, skip = 0))
 
 # Fit the a single solution using (Augmented) ADMM of GSPLASH
-model_gsplash_a0 <- fit_admm_gsplash(sigma_hat, Vhat_d, reg_gr, get_lam_best(best_lam_df, "best_lam_reg_a0"), alpha = 0, standard_ADMM = TRUE)
-model_gsplash_a05 <- fit_admm_gsplash(sigma_hat, Vhat_d, reg_gr, get_lam_best(best_lam_df, "best_lam_reg_a05"), alpha = 0.5, standard_ADMM = TRUE)
+model_gsplash_a0 <- fit_gfsplash(sigma_hat, Vhat_d, reg_gr, get_lam_best(best_lam_df, "best_lam_reg_a0"), alpha = 0, standard_ADMM = TRUE)
+model_gsplash_a05 <- fit_gfsplash(sigma_hat, Vhat_d, reg_gr, get_lam_best(best_lam_df, "best_lam_reg_a05"), alpha = 0.5, standard_ADMM = TRUE)
 # Fit a single solution of symmetric_GSPLASH
-model_sym_gsplash_a0 <- fit_admm_gsplash(sigma_hat, Vhat_d, sym_gr, get_lam_best(best_lam_df, "best_lam_sym_a0"), alpha = 0, standard_ADMM = TRUE)
-model_sym_gsplash_a05 <- fit_admm_gsplash(sigma_hat, Vhat_d, sym_gr, get_lam_best(best_lam_df, "best_lam_sym_a05"), alpha = 0.5, standard_ADMM = TRUE)
+model_sym_gsplash_a0 <- fit_gfsplash(sigma_hat, Vhat_d, sym_gr, get_lam_best(best_lam_df, "best_lam_sym_a0"), alpha = 0, standard_ADMM = TRUE)
+model_sym_gsplash_a05 <- fit_gfsplash(sigma_hat, Vhat_d, sym_gr, get_lam_best(best_lam_df, "best_lam_sym_a05"), alpha = 0.5, standard_ADMM = TRUE)
 # Fit the a single solution using SPLASH
-model_splash_a0 <- fit_regular_splash(y, get_lam_best(best_lam_df, "best_lam_spl_a0"), alpha = 0)
-model_splash_a05 <- fit_regular_splash(y, get_lam_best(best_lam_df, "best_lam_spl_a05"), alpha = 0.5)
+model_splash_a0 <- fit_splash(y, get_lam_best(best_lam_df, "best_lam_spl_a0"), alpha = 0)
+model_splash_a05 <- fit_splash(y, get_lam_best(best_lam_df, "best_lam_spl_a05"), alpha = 0.5)
 # Fit a single solution using PVAR(1) with the BigVAR package, also runs a grid search
-model_pvar <- fit_pvar_bigvar(y)
+model_pvar <- fit_pvar(y)
 
 # Model fast fusion
-model_fast_fusion <- fit_fast_fusion(sigma_hat, Vhat_d, reg_gr, lambda = get_lam_best(best_lam_df, "best_lam_reg_a0"))
-model_faster_fusion <- fit_faster_fusion(sigma_hat, Vhat_d, reg_gr, lambda = get_lam_best(best_lam_df, "best_lam_reg_a0"))
+model_fast_fusion <- fit_fsplash(sigma_hat, Vhat_d, reg_gr, lambda = get_lam_best(best_lam_df, "best_lam_reg_a0"))
 
 # Compute and save the predictions
 C_true <- AB_to_C(A_true, B_true)

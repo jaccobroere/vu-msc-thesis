@@ -8,20 +8,10 @@ using MatrixMarket
 using CSV, Tables
 using IterativeSolvers
 
-include(joinpath("construct_graph.jl"))
-include(joinpath("transform_bootstrap_graph.jl"))
-include(joinpath("utils.jl"))
-
-function null_space_graph_sparse(graph::SimpleGraph{Int64})::SparseMatrixCSC{Float64}
-    null_vecs = spzeros(Float64, nv(graph), nv(graph) - ne(graph))
-    conn = connected_components(graph)
-    for (j, vec) in enumerate(conn)
-        for i in vec
-            null_vecs[i, j] = 1.0
-        end
-    end
-    return null_vecs
-end
+PROJ_DIR = ENV["PROJ_DIR"]
+include(joinpath(PROJ_DIR, "src", "compute", "construct_graph.jl"))
+include(joinpath(PROJ_DIR, "src", "compute", "utils.jl"))
+include(joinpath(PROJ_DIR, "src", "compute", "transform_bootstrap_graph.jl"))
 
 function null_space_graph(graph::SimpleGraph{Int64})::Matrix{Int64}
     null_vecs = zeros(Float64, nv(graph), nv(graph) - ne(graph))
@@ -63,3 +53,27 @@ y = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/simulati
 Vhat_d = mmread(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/designB_T500_p9/mc/6A446516-84EF-49C9-9435-23E00DB22756", "Vhat_d.mtx"))
 sigma_hat = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/designB_T500_p9/mc/6A446516-84EF-49C9-9435-23E00DB22756", "sigma_hat.csv"))
 
+
+p = 5
+G = create_gsplash_graph(p)
+D = Matrix(incidence_matrix(G, oriented=true))'
+pD, mD = nv(G), ne(G)
+
+h = div(p, 4)
+
+ext = zeros(pD - mD, pD)
+i = 1
+for j in 1:pD
+    if j >= (3h^2 + 1) && j <= (3h^2 + 4h + 1)
+        print(j)
+        ext[i, j] = 1
+        i += 1
+    end
+end
+ext
+
+
+D_SSF = vcat(D, ext)
+inv(lu(sparse(D_SSF)))
+
+5 >= (3h^2 + 1) && 5 <= (3h^2 + 4h + 1)

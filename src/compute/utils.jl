@@ -104,3 +104,39 @@ function is_edge_case(i::Int, p::Int, h::Int)::Bool
     end
 end
 
+"""
+This function calculates the number of the first element that has 
+no fusion partner in the Fused Lasso penalty associated with it. That is, it is
+the number of elements in the first (p - h) rows that are put into c, minus 2h + 1,
+which are the number of elements that come after this element in the (p -h)th row.
+"""
+function n_elements_to_first_skip(p::Int, h::Int)::Int
+    return (-5h^2 - 2h + 4h * p + p) - (2h + 1)
+end
+
+
+
+p = 5
+h = 2
+
+
+
+tot = 0
+for i in 1:p
+    tot += nonzero_elements_per_equation(i, p, h)
+    # Print i along with the tot
+    println("$i: $tot")
+    # println(nonzero_elements_per_equation(i, p, h))
+end
+
+
+
+function sum_elements_row(p::Int, h::Int)::Int
+    tot = 0
+    for i in 1:(p-h)
+        tot += nonzero_elements_per_equation(i, p, h)
+    end
+    return tot
+end
+
+sum_elements_row(p, h)

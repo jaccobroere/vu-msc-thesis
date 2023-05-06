@@ -65,11 +65,11 @@ sigma_hat = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/
 
 # Vhat_d, sigma_hat = calc_Vhat_d_sigma_hat(y)
 
-G = create_gsplash_graph(9)
+G = create_gsplash_graph(5, 1)
 # D = Matrix(incidence_matrix(G, oriented=true))'
 D = Matrix(incidence_matrix(G, oriented=true))'
 Dtilde = calc_Dtilde(G)
-
+display("text/plain", Dtilde)
 null_vecs_sparse = null_space_graph_sparse(G)
 D_sparse = incidence_matrix(G, oriented=true)'
 Dtilde_sparse = calc_Dtilde_sparse(G)
@@ -82,10 +82,17 @@ F = lu(Dtilde_sparse)
 inv(Matrix(F.U)) * inv(Matrix(F.L)) * F.P
 Dtilde_sparse
 
+for i in 1:size(Dtilde, 1)
+    if Dtilde[i, i] == 0
+        println(i)
+    end
+end
+
 
 # @btime (Dtilde' \ Vhat_d')'
 # @btime Vhat_d * inv(Dtilde)
 
+# TODO: Implement this using fast sparse solvers 
 function model_fast_fusion(sigma_hat::Matrix{Float64}, Vhat_d::SparseMatrixCSC{Float64}, graph::SimpleGraph{Int64})
     # Calculate D_tilde by extending it with orthogonal rows to a square matrix
     Dtilde = calc_Dtilde(graph)
@@ -120,3 +127,13 @@ using IterativeSolvers
 
 @time gmres(Dtilde', Vhat_d', verbose=false, log=false)
 @time Dtilde' \ Vhat_d'
+
+eigen(Dtilde)
+
+
+function n_elements_to_first_skip(p::Int, h::Int)::Int
+    return (-5h^2 - 2h + 4h * p + p) - (2h + 1)
+end
+
+n_elements_to_first_skip(8, 2)
+

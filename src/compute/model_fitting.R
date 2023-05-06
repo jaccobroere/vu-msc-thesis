@@ -10,8 +10,8 @@ setwd(PROJ_DIR)
 
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
-sim_design_id <- ifelse(length(args) < 1, "designB_T500_p9", args[1])
-uuidtag <- ifelse(length(args) < 2, "6A446516-84EF-49C9-9435-23E00DB22756", args[2])
+sim_design_id <- ifelse(length(args) < 1, "designB_T500_p49", args[1])
+uuidtag <- ifelse(length(args) < 2, "ED04541C-0149-45C6-8F59-6D5A21BFB0C2", args[2])
 
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
@@ -55,6 +55,7 @@ model_pvar <- fit_pvar_bigvar(y)
 
 # Model fast fusion
 model_fast_fusion <- fit_fast_fusion(sigma_hat, Vhat_d, reg_gr, lambda = get_lam_best(best_lam_df, "best_lam_reg_a0"))
+model_faster_fusion <- fit_faster_fusion(sigma_hat, Vhat_d, reg_gr, lambda = get_lam_best(best_lam_df, "best_lam_reg_a0"))
 
 # Compute and save the predictions
 C_true <- AB_to_C(A_true, B_true)
@@ -103,3 +104,74 @@ calc_msfe(y_test, model_fast_fusion$yhat)
 
 model_gsplash_a0$model$beta[1:10]
 model_fast_fusion$coef[1:10]
+
+
+
+### DEVELOPING THE FAST FUSION METHOD
+
+class(Vhat_d)
+
+Vhat_d_sparse <- Matrix(Vhat_d, sparse = TRUE)
+class(Vhat_d_sparse)
+
+library(Rlinsolve)
+library(Matrix)
+
+t(Vhat_d_sparse)
+Dtilde_sparse <- calc_Dtilde_sparse(reg_gr)
+
+# Trying solvers
+res1 <- lsolve.bicg(t(Dtilde_sparse), t(Vhat_d_sparse))
+
+res2 <- lsolve.bicgstab(t(Dtilde_sparse), t(Vhat_d_sparse))
+
+
+
+fit_faster_fusion <- function(sigma_hat, Vhat_d, graph, lambda) {
+    Vhat_d <- Matrix(Vhat_d, sparse = TRUE)
+    t0 <- Sys.time()
+    Dtilde <- calc_Dtilde_sparse(graph)
+    runtimeDprime <- difftime(Sys.time(), t0, units = "secs")[[1]]
+
+    m <- ecount(graph)
+    p <- as.integer(sqrt(dim(Vhat_d)[1]))
+
+    t0 <- Sys.time()
+    # Use linear system solvers for faster computation of the change of variables (see Tibshirani and Taylor, 2011)
+    XD1 <- t(lsolve.sor(t(Dtilde), t(Vhat_d))$x) # Same as Vhat_d * inv(Dtilde)
+    X1 <- XD1[, 1:m]
+    X2 <- XD1[, (m + 1):dim(XD1)[2]]
+    X2_plus <- lsolve.sor((t(X2) %*% X2), t(X2))$x # Same as inv(t(X2) %*% X2) %*% t(X2)
+
+    # Transform the input to LASSO objective
+    P <- X2 %*% X2_plus
+    ytilde <- as.vector((diag(nrow(P)) - P) %*% t(sigma_hat))
+    Xtilde <- (diag(nrow(P)) - P) %*% X1
+    runtimeXtilde_fast <- difftime(Sys.time(), t0, units = "secs")[[1]]
+
+
+    t0 <- Sys.time()
+    # Fit the LASSO model and back-transform the coefficients
+    model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
+    theta1 <- as.vector(model$beta)
+    theta2 <- as.vector(X2_plus %*% (t(sigma_hat) - X1 %*% theta1))
+    coef <- lsolve.sor(Dtilde, c(theta1, theta2))$x
+    runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
+
+    AB <- coef_to_AB(coef, p)
+    A <- AB$A
+    B <- AB$B
+
+    # Return the fitted model
+    output_list <- list(
+        model = model,
+        coef = coef,
+        A = A,
+        B = B,
+        C = AB_to_C(A, B),
+        runtimeM = runtimeM,
+        runtimeDprime = runtimeDprime,
+        runtimeXtilde = runtimeXtilde,
+        runtimeXtilde_fast = runtimeXtilde_fast
+    )
+}

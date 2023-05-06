@@ -160,38 +160,34 @@ fit_pvar <- function(y, verbose = FALSE, ...) {
     return(output_list)
 }
 
-fit_faster_fusion <- function(sigma_hat, Vhat_d, graph, lambda) {
-    t0 <- Sys.time()
-    Dtilde <- calc_Dtilde(graph)
-    runtimeDprime <- difftime(Sys.time(), t0, units = "secs")[[1]]
-
+fit_fsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
     m <- ecount(graph)
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
     t0 <- Sys.time()
     # Use linear system solvers for faster computation of the change of variables (see Tibshirani and Taylor, 2011)
-    XD1 <- t(lsolve.sor(t(Dtilde), t(Vhat_d))$x) # Same as Vhat_d * inv(Dtilde)
+    XD1 <- Vhat_d * Dtilde_inv # Same as Vhat_d * inv(Dtilde)
     X1 <- XD1[, 1:m]
     X2 <- XD1[, (m + 1):dim(XD1)[2]]
-    X2_plus <- lsolve.sor((t(X2) %*% X2), t(X2))$x # Same as inv(t(X2) %*% X2) %*% t(X2)
+    X2_plus <- solve((t(X2) %*% X2), t(X2)) # Same as inv(t(X2) %*% X2) %*% t(X2)
 
     # Transform the input to LASSO objective
     P <- X2 %*% X2_plus
     ytilde <- as.vector((diag(nrow(P)) - P) %*% t(sigma_hat))
     Xtilde <- (diag(nrow(P)) - P) %*% X1
-    runtimeXtilde_fast <- difftime(Sys.time(), t0, units = "secs")[[1]]
-
+    runtimeXtilde <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     t0 <- Sys.time()
     model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
     theta1 <- as.vector(model$beta)
     theta2 <- as.vector(X2_plus %*% (t(sigma_hat) - X1 %*% theta1))
-    coef <- lsolve.sor(Dtilde, c(theta1, theta2))$x
+    coef <- Dtilde_inv %*% c(theta1, theta2)
     runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     AB <- coef_to_AB(coef, p)
     A <- AB$A
     B <- AB$B
+    C <- AB_to_C(A, B)
 
     # Return the fitted model
     output_list <- list(
@@ -199,11 +195,9 @@ fit_faster_fusion <- function(sigma_hat, Vhat_d, graph, lambda) {
         coef = coef,
         A = A,
         B = B,
-        C = AB_to_C(A, B),
+        C = C,
         runtimeM = runtimeM,
-        runtimeDprime = runtimeDprime,
-        runtimeXtilde = runtimeXtilde,
-        runtimeXtilde_fast = runtimeXtilde_fast
+        runtimeXtilde = runtimeXtilde
     )
 }
 

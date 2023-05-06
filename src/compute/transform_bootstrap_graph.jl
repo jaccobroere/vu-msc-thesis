@@ -268,10 +268,16 @@ function main(sim_design_id, uuidtag)
     # Create and invert Dtilde if it does not exist for this dimension (only need to be calculated once)
     path_sim = joinpath("data", "simulation", sim_design_id)
     if !isfile(joinpath(path_sim, "Dtilde.mtx"))
+        # Calculate the Dtilde matrix and its inverse, for F-SPLASH and SSF-SPLASH, respectively
         Dtilde = calc_Dtilde_sparse(regular_graph)
         Dtilde_inv = inv_Dtilde_sparse(regular_graph)
+        Dtilde_SSF = calc_Dtilde_SSF_sparse(regular_graph)
+        Dtilde_SSF_inv = inv_Dtilde_SSF_sparse(regular_graph)
+        # Save the matrices in sparse matrix format
         mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde.mtx"), Dtilde)
         mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_inv.mtx"), Dtilde_inv)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF.mtx"), Dtilde_SSF)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_inv.mtx"), Dtilde_SSF_inv)
     end
 
     # Write output

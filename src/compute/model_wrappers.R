@@ -13,7 +13,7 @@ library(pracma)
 library(Rlinsolve)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
 
-fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALSE, ...) {
+fit_gfsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALSE, ...) {
     # Retrieve the cross-sectional dimension of the problem
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
@@ -69,7 +69,7 @@ fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = 
     return(output_list)
 }
 
-fit_regular_splash <- function(y, lambda, alpha, verbose = FALSE, ...) {
+fit_splash <- function(y, lambda, alpha, verbose = FALSE, ...) {
     # Split y into training and testing sets
     y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
     y_test <- y[, ((floor(dim(y)[2] / 5) * 4) + 1):dim(y)[2]]
@@ -100,7 +100,7 @@ fit_regular_splash <- function(y, lambda, alpha, verbose = FALSE, ...) {
     return(output_list)
 }
 
-fit_pvar_bigvar <- function(y, verbose = FALSE, ...) {
+fit_pvar <- function(y, verbose = FALSE, ...) {
     # Split y into training and testing sets
     y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
     y_test <- y[, (floor(dim(y)[2] / 5) * 4 + 1):dim(y)[2]]
@@ -160,30 +160,35 @@ fit_pvar_bigvar <- function(y, verbose = FALSE, ...) {
     return(output_list)
 }
 
+fit_faster_fusion <- function(sigma_hat, Vhat_d, graph, lambda) {
+    t0 <- Sys.time()
+    Dtilde <- calc_Dtilde(graph)
+    runtimeDprime <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
-fit_fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALSE, ...) {
-    # Retrieve the cross-sectional dimension of the problem
+    m <- ecount(graph)
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
-    # Reparamaterize lambda
-    lambda2 <- lambda * alpha # l1 penalty
-    lambda1 <- lambda * (1 - alpha) # Fusion penalty
-
-    # Create edge vector
-    edge_vector <- as.vector(t(as_edgelist(graph)))
-
-    # Fit FGSG GFLASSO implementation
     t0 <- Sys.time()
-    model <- FGSG::gflasso(y = sigma_hat, A = Vhat_d, tp = edge_vector, s1 = lambda1, s2 = lambda2, ...) # Notice that \lambda1 and \lambda2 are swapped here
-    runtime <- difftime(Sys.time(), t0, units = "secs")[[1]]
+    # Use linear system solvers for faster computation of the change of variables (see Tibshirani and Taylor, 2011)
+    XD1 <- t(lsolve.sor(t(Dtilde), t(Vhat_d))$x) # Same as Vhat_d * inv(Dtilde)
+    X1 <- XD1[, 1:m]
+    X2 <- XD1[, (m + 1):dim(XD1)[2]]
+    X2_plus <- lsolve.sor((t(X2) %*% X2), t(X2))$x # Same as inv(t(X2) %*% X2) %*% t(X2)
 
-    # Print how long it took to run formatted with a message
-    if (verbose) {
-        message(paste0("FGSG took ", round(runtime, 2), " seconds to run."))
-    }
+    # Transform the input to LASSO objective
+    P <- X2 %*% X2_plus
+    ytilde <- as.vector((diag(nrow(P)) - P) %*% t(sigma_hat))
+    Xtilde <- (diag(nrow(P)) - P) %*% X1
+    runtimeXtilde_fast <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
-    # Transform back to A, B
-    coef <- model$weight
+
+    t0 <- Sys.time()
+    model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
+    theta1 <- as.vector(model$beta)
+    theta2 <- as.vector(X2_plus %*% (t(sigma_hat) - X1 %*% theta1))
+    coef <- lsolve.sor(Dtilde, c(theta1, theta2))$x
+    runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
+
     AB <- coef_to_AB(coef, p)
     A <- AB$A
     B <- AB$B
@@ -191,34 +196,15 @@ fit_fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = 
     # Return the fitted model
     output_list <- list(
         model = model,
+        coef = coef,
         A = A,
         B = B,
         C = AB_to_C(A, B),
-        runtime = runtime
+        runtimeM = runtimeM,
+        runtimeDprime = runtimeDprime,
+        runtimeXtilde = runtimeXtilde,
+        runtimeXtilde_fast = runtimeXtilde_fast
     )
-}
-
-null_space_graph <- function(graph) {
-    null_vecs <- zeros(vcount(graph), (vcount(graph) - ecount(graph)))
-    conn <- components(graph)
-    mem <- conn$membership
-    for (i in 1:length(mem)) {
-        null_vecs[i, mem[i]] <- 1
-    }
-    return(null_vecs)
-}
-
-calc_Dtilde <- function(graph) {
-    null_vecs <- null_space_graph(graph)
-    Dtilde <- rbind(as.matrix(getDg(graph)), t(null_vecs))
-    return(Dtilde)
-}
-
-calc_Dtilde_sparse <- function(graph) {
-    null_vecs <- null_space_graph(graph)
-    Dtilde <- rbind(as.matrix(getDg(graph)), t(null_vecs))
-    Dtilde <- Matrix(Dtilde, sparse = TRUE)
-    return(Dtilde)
 }
 
 fit_fast_fusion <- function(sigma_hat, Vhat_d, graph, lambda) {
@@ -264,35 +250,29 @@ fit_fast_fusion <- function(sigma_hat, Vhat_d, graph, lambda) {
     )
 }
 
-fit_faster_fusion <- function(sigma_hat, Vhat_d, graph, lambda) {
-    t0 <- Sys.time()
-    Dtilde <- calc_Dtilde(graph)
-    runtimeDprime <- difftime(Sys.time(), t0, units = "secs")[[1]]
-
-    m <- ecount(graph)
+fit_fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALSE, ...) {
+    # Retrieve the cross-sectional dimension of the problem
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
+    # Reparamaterize lambda
+    lambda2 <- lambda * alpha # l1 penalty
+    lambda1 <- lambda * (1 - alpha) # Fusion penalty
+
+    # Create edge vector
+    edge_vector <- as.vector(t(as_edgelist(graph)))
+
+    # Fit FGSG GFLASSO implementation
     t0 <- Sys.time()
-    # Use linear system solvers for faster computation of the change of variables (see Tibshirani and Taylor, 2011)
-    XD1 <- t(lsolve.sor(t(Dtilde), t(Vhat_d))$x) # Same as Vhat_d * inv(Dtilde)
-    X1 <- XD1[, 1:m]
-    X2 <- XD1[, (m + 1):dim(XD1)[2]]
-    X2_plus <- lsolve.sor((t(X2) %*% X2), t(X2))$x # Same as inv(t(X2) %*% X2) %*% t(X2)
+    model <- FGSG::gflasso(y = sigma_hat, A = Vhat_d, tp = edge_vector, s1 = lambda1, s2 = lambda2, ...) # Notice that \lambda1 and \lambda2 are swapped here
+    runtime <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
-    # Transform the input to LASSO objective
-    P <- X2 %*% X2_plus
-    ytilde <- as.vector((diag(nrow(P)) - P) %*% t(sigma_hat))
-    Xtilde <- (diag(nrow(P)) - P) %*% X1
-    runtimeXtilde_fast <- difftime(Sys.time(), t0, units = "secs")[[1]]
+    # Print how long it took to run formatted with a message
+    if (verbose) {
+        message(paste0("FGSG took ", round(runtime, 2), " seconds to run."))
+    }
 
-
-    t0 <- Sys.time()
-    model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
-    theta1 <- as.vector(model$beta)
-    theta2 <- as.vector(X2_plus %*% (t(sigma_hat) - X1 %*% theta1))
-    coef <- lsolve.sor(Dtilde, c(theta1, theta2))$x
-    runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
-
+    # Transform back to A, B
+    coef <- model$weight
     AB <- coef_to_AB(coef, p)
     A <- AB$A
     B <- AB$B
@@ -300,13 +280,9 @@ fit_faster_fusion <- function(sigma_hat, Vhat_d, graph, lambda) {
     # Return the fitted model
     output_list <- list(
         model = model,
-        coef = coef,
         A = A,
         B = B,
         C = AB_to_C(A, B),
-        runtimeM = runtimeM,
-        runtimeDprime = runtimeDprime,
-        runtimeXtilde = runtimeXtilde,
-        runtimeXtilde_fast = runtimeXtilde_fast
+        runtime = runtime
     )
 }

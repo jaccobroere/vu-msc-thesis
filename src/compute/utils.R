@@ -183,3 +183,26 @@ save_fitting_results <- function(model, prefix, fit_dir) {
     fwrite(data.table(model$C), file = file.path(fit_dir, paste0(prefix, "_estimate_C.csv")))
     fwrite(data.table(model$yhat), file = file.path(fit_dir, paste0(prefix, "_yhat.csv")))
 }
+
+calc_Dtilde <- function(graph) {
+    null_vecs <- null_space_graph(graph)
+    Dtilde <- rbind(as.matrix(getDg(graph)), t(null_vecs))
+    return(Dtilde)
+}
+
+calc_Dtilde_sparse <- function(graph) {
+    null_vecs <- null_space_graph(graph)
+    Dtilde <- rbind(as.matrix(getDg(graph)), t(null_vecs))
+    Dtilde <- Matrix(Dtilde, sparse = TRUE)
+    return(Dtilde)
+}
+
+null_space_graph <- function(graph) {
+    null_vecs <- zeros(vcount(graph), (vcount(graph) - ecount(graph)))
+    conn <- components(graph)
+    mem <- conn$membership
+    for (i in 1:length(mem)) {
+        null_vecs[i, mem[i]] <- 1
+    }
+    return(null_vecs)
+}

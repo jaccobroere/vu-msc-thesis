@@ -290,11 +290,11 @@ if abspath(PROGRAM_FILE) == @__FILE__
 end
 
 # ## TESTING
-y = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/designB_T500_p49/mc/ED04541C-0149-45C6-8F59-6D5A21BFB0C2", "y.csv"))
+# y = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/designB_T500_p49/mc/ED04541C-0149-45C6-8F59-6D5A21BFB0C2", "y.csv"))
 
 
-y_train = y[:, 1:div(size(y, 2), 5)*4]
-bootstrap_estimator_R(y_train, 999)
+# y_train = y[:, 1:div(size(y, 2), 5)*4]
+# bootstrap_estimator_R(y_train, 999)
 
 # Σ = calc_Σj(y_train, 1)
 

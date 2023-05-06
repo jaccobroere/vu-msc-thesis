@@ -1,3 +1,6 @@
+# This script fits the models using the best lambdas for the GF-SPLASH, SGF-SPLASH, and SPLASH
+
+
 PROJ_DIR <- system("echo $PROJ_DIR", intern = TRUE)
 setwd(PROJ_DIR)
 source("src/compute/utils.R")

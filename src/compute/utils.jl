@@ -1,3 +1,6 @@
+using Base: SimpleLogger
+using SparseArrays
+using LinearAlgebra
 """
 Calculates the amount of active elemements, i.e. the number of columns of Vhat_d, or the number of elements in vec(C')
 """
@@ -111,32 +114,19 @@ the number of elements in the first (p - h) rows that are put into c, minus 2h +
 which are the number of elements that come after this element in the (p -h)th row.
 """
 function n_elements_to_first_skip(p::Int, h::Int)::Int
+    if h == 0
+        h = div(p, 4)
+    end
     return (-5h^2 - 2h + 4h * p + p) - (2h + 1)
 end
 
-
-
-p = 5
-h = 2
-
-
-
-tot = 0
-for i in 1:p
-    tot += nonzero_elements_per_equation(i, p, h)
-    # Print i along with the tot
-    println("$i: $tot")
-    # println(nonzero_elements_per_equation(i, p, h))
+function calc_Dtilde_sparse(graph::SimpleGraph)::SparseMatrixCSC{Float64}
+    D_prime = incidence_matrix(graph, oriented=true) # Incidence matrix needs to be transposed before obtaining D^(G)
+    null = null_space_graph(graph)
+    return vcat(D_prime', null') # Thus transpose here
 end
 
-
-
-function sum_elements_row(p::Int, h::Int)::Int
-    tot = 0
-    for i in 1:(p-h)
-        tot += nonzero_elements_per_equation(i, p, h)
-    end
-    return tot
+function inv_Dtilde_sparse(graph::SimpleGraph)::SparseMatrixCSC{Float64}
+    Dtilde = calc_Dtilde_sparse(graph)
+    return sparse(inv(lu(Dtilde)))
 end
-
-sum_elements_row(p, h)

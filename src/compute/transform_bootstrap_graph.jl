@@ -20,6 +20,7 @@ using DataFrames
 
 path = dirname(abspath(@__FILE__))
 include(joinpath(path, "construct_graph.jl"))
+include(joinpath(path, "utils.jl"))
 
 """
 Read data from a csv file and return a matrix.
@@ -263,6 +264,15 @@ function main(sim_design_id, uuidtag)
     # Construct underlying graph 
     regular_graph = create_gsplash_graph(size(y, 1), symmetric=false) # Bandwitdh is set to floor(p/4) by default
     symmetric_graph = create_gsplash_graph(size(y, 1), symmetric=true)
+
+    # Create and invert Dtilde if it does not exist for this dimension (only need to be calculated once)
+    path_sim = joinpath("data", "simulation", sim_design_id)
+    if !isfile(joinpath(path_sim, "Dtilde.mtx"))
+        Dtilde = calc_Dtilde_sparse(regular_graph)
+        Dtilde_inv = inv_Dtilde_sparse(regular_graph)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde.mtx"), Dtilde)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_inv.mtx"), Dtilde_inv)
+    end
 
     # Write output
     mmwrite(joinpath(path, "Vhat_d.mtx"), Vhat_d)

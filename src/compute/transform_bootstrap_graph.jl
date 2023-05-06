@@ -12,7 +12,7 @@ using CSV
 using StatsBase
 using Statistics
 using Distributions
-using SparseArrays
+using SparseArrays, MatrixMarket
 using DataFrames
 
 # Set random seed
@@ -20,6 +20,7 @@ using DataFrames
 
 path = dirname(abspath(@__FILE__))
 include(joinpath(path, "construct_graph.jl"))
+include(joinpath(path, "utils.jl"))
 
 """
 Read data from a csv file and return a matrix.
@@ -264,8 +265,31 @@ function main(sim_design_id, uuidtag)
     regular_graph = create_gsplash_graph(size(y, 1), symmetric=false) # Bandwitdh is set to floor(p/4) by default
     symmetric_graph = create_gsplash_graph(size(y, 1), symmetric=true)
 
+    # Create and invert Dtilde if it does not exist for this dimension (only need to be calculated once)
+    path_sim = joinpath("data", "simulation", sim_design_id)
+    if !isfile(joinpath(path_sim, "Dtilde.mtx"))
+        # Calculate the Dtilde matrix and its inverse, for F-SPLASH and SSF-SPLASH, respectively
+        Dtilde = calc_Dtilde_sparse(regular_graph)
+        Dtilde_inv = inv_Dtilde_sparse(regular_graph)
+        Dtilde_SSF_a05 = calc_Dtilde_SSF_sparse(regular_graph, 0.5)
+        Dtilde_SSF_a05_inv = inv_Dtilde_SSF_sparse(regular_graph, 0.5)
+        Dtilde_SSF_a067 = calc_Dtilde_SSF_sparse(regular_graph, 2 / 3)
+        Dtilde_SSF_a067_inv = inv_Dtilde_SSF_sparse(regular_graph, 2 / 3)
+        Dtilde_SSF_a08 = calc_Dtilde_SSF_sparse(regular_graph, 0.8)
+        Dtilde_SSF_a08_inv = inv_Dtilde_SSF_sparse(regular_graph, 0.8)
+        # Save the matrices in sparse matrix format
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde.mtx"), Dtilde)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_inv.mtx"), Dtilde_inv)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a05.mtx"), Dtilde_SSF_a05)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a05_inv.mtx"), Dtilde_SSF_a05_inv)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a067.mtx"), Dtilde_SSF_a067)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a067_inv.mtx"), Dtilde_SSF_a067_inv)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a08.mtx"), Dtilde_SSF_a08)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a08_inv.mtx"), Dtilde_SSF_a08_inv)
+    end
+
     # Write output
-    CSV.write(joinpath(path, "Vhat_d.csv"), Tables.table(Vhat_d))
+    mmwrite(joinpath(path, "Vhat_d.mtx"), Vhat_d)
     CSV.write(joinpath(path, "sigma_hat.csv"), Tables.table(sigma_hat))
     save_graph_as_gml(regular_graph, joinpath(path, "reg_graph.graphml"))
     save_graph_as_gml(symmetric_graph, joinpath(path, "sym_graph.graphml"))
@@ -273,14 +297,18 @@ function main(sim_design_id, uuidtag)
     return nothing
 end
 
-main(ARGS[1], ARGS[2])
+if abspath(PROGRAM_FILE) == @__FILE__
+    sim_design_id = ARGS[1]
+    uuidtag = length(ARGS) >= 2 ? ARGS[2] : nothing
+    main(sim_design_id, uuidtag)
+end
 
 # ## TESTING
-# y = read_data(joinpath("data", "simulation", "designB_T500_p25_y.csv"))
+# y = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/designB_T500_p49/mc/ED04541C-0149-45C6-8F59-6D5A21BFB0C2", "y.csv"))
 
 
 # y_train = y[:, 1:div(size(y, 2), 5)*4]
-# bootstrap_estimator_R(y, 500)
+# bootstrap_estimator_R(y_train, 999)
 
 # Σ = calc_Σj(y_train, 1)
 

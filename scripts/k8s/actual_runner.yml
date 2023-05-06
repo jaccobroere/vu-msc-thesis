@@ -10,7 +10,7 @@ spec:
       containers:
       - name: detlam-cont
         image: jaccusaurelius/vu-msc-thesis:kube
-        command: ["bash", "scripts/determine_lambda_sim_iter.sh", "REPLACEME"]
+        command: ["bash", "scripts/determine_lambda_sim_iter.sh", "designB_T500_p9"]
         volumeMounts:
         - name: pv-out
           mountPath: /app/vu-msc-thesis/out

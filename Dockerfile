@@ -37,17 +37,18 @@ RUN apt-get update && \
     apt-get install -y git
 #     git clone https://github.com/jaccobroere/vu-msc-thesis.git /app
 
-COPY python-requirements.txt /app/python-requirements.txt
-COPY r-requirements.R /app/r-requirements.R
-COPY juliaenv /app/juliaenv
+# Do this step first because it takes the longest
 COPY admm_src_zhu /app/admm_src_zhu
 COPY splash_1.0.tar.gz /app/splash_1.0.tar.gz
-
+COPY r-requirements.R /app/r-requirements.R
+RUN cd /app && Rscript /app/r-requirements.R && cd ..
+# Then fix other dependencies
+COPY python-requirements.txt /app/python-requirements.txt
+COPY juliaenv /app/juliaenv
 # Install Python, R and Julia packages
 RUN pip3 install -r /app/python-requirements.txt
-RUN cd /app && Rscript /app/r-requirements.R && cd ..
 RUN julia --project=$JULIA_DIR -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
-RUN julia --project=$JULIA_DIR -e 'using Distributed, LoopVectorization, Tables, LinearAlgebra, Random, CSV, StatsBase, DataFrames, Distributions, SparseArrays, Statistics, Graphs, GraphIO, EzXML'
+RUN julia --project=$JULIA_DIR -e 'using Distributed, LoopVectorization, Tables, LinearAlgebra, Random, CSV, StatsBase, DataFrames, Distributions, SparseArrays, Statistics, Graphs, GraphIO, EzXML, MatrixMarket'
 
 # Install C dependencies for R package from Zhu et al. (2015)
 RUN cd /app/admm_src_zhu && \
@@ -61,6 +62,8 @@ COPY scripts /app/vu-msc-thesis/scripts
 
 # Set working directory
 WORKDIR /app/vu-msc-thesis
+
+# RUN bash scripts/determine_lambda_sim_iter.sh designB_T100_p9
 
 # Specify command to run when container starts
 CMD ["bash"]

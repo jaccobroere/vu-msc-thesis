@@ -3,14 +3,14 @@ kind: Job
 metadata:
   name: modelfit
 spec:
-  completions: 500 
+  completions: 100 
   parallelism: 10
   template:
     spec:
       containers:
       - name: modelfit-cont
         image: jaccusaurelius/vu-msc-thesis:kube
-        command: ["bash", "-c", "scripts/model_fit_sim_iter.sh designB_T500_p25"]
+        command: ["bash", "-c", "scripts/model_fit_sim_iter.sh designB_T500_p16"]
         volumeMounts:
         - name: pv-out
           mountPath: /app/vu-msc-thesis/out

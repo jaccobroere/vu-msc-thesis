@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Progress bar
-total_steps=2
+total_steps=3
 current_step=0
 
 print_progress_bar() {
@@ -25,9 +25,17 @@ print_progress_bar() {
   echo ""
 }
 
+step_create_directories () {
+    # If folder structure is not present yet, create it
+    echo "Creating directories ..."
+    mkdir -p data/simulation/${sim_design_id}/
+    current_step=$((current_step+1))
+    print_progress_bar $current_step $total_steps 50
+}
+
 step_sim() {
     echo "Running $path ..."
-    julia --project=$JULIA_DIR $path $p $T $h_A $h_B ${prefix}_T${T}_p${p}
+    julia --project=$JULIA_DIR $path ${prefix}_T${T}_p${p}
     echo "$path completed."
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
@@ -45,19 +53,16 @@ step_transform () {
 
 
 # # DESIGN A
-p=25
-T=500
-h_A=3
-h_B=3
-path=src/simulation/simulation_designA.jl
-prefix=designA
+# p=25
+# T=500
+# path=src/simulation/simulation_designA.jl
+# prefix=designA
 
 # DESIGN B
-p=25 # m^2 
+p=9 # m^2 
 T=500
-h_A=3 # Placeholder
-h_B=3 # Placeholder
 path=src/simulation/simulation_designB.jl
 prefix=designB
+sim_design_id=${prefix}_T${T}_p${p}
 
-step_sim && step_transform
+step_create_directories && step_sim && step_transform

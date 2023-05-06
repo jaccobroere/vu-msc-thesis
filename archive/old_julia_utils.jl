@@ -87,3 +87,58 @@ function create_gsplash_graph(p::Int, h::Int=0)::SimpleGraph{Int}
 
     return graph
 end
+
+function fast_inv_Dtilde(p::Int, h::Int, graph::SimpleGraph)::SparseMatrixCSC
+    # h == 0 ? h = div(p, 4) : h = h # Set h if not provided
+    # Calculate the Dtilde matrix
+    Dtilde = calc_Dtilde_sparse(graph)
+    # Calculate the index of the first element before first skip
+    iF = n_elements_to_first_skip(p, h) - 1
+
+    # Index the blocks of Dtilde
+    F = UpperTriangular(Dtilde[1:iF, 1:iF])
+    G = Dtilde[1:iF, (iF+1):end]
+    H = Dtilde[(iF+1):end, 1:iF]
+    J = Dtilde[(iF+1):end, (iF+1):end]
+
+    # Calculate the inverse of the blocks F and J
+    F_inv = inv(lu(F))
+    J_inv = inv(lu(J))
+
+    # Calculate the inverse of Dtilde based on block inverses
+    M_11 = inv(lu((F - G * J_inv * H)))
+    M_22 = inv(lu((J - H * F_inv * G)))
+
+    D_inv = [M_11 (M_11*-G*J_inv)
+        (M_22*-H*F_inv) M_22]
+
+    return D_inv
+end
+
+# TODO: Implement this using fast sparse solvers 
+function model_fast_fusion(sigma_hat::Matrix{Float64}, Vhat_d::SparseMatrixCSC{Float64}, graph::SimpleGraph{Int64})
+    # Calculate D_tilde by extending it with orthogonal rows to a square matrix
+    Dtilde = calc_Dtilde(graph)
+    m, p = ne(graph), nv(graph)
+
+    # Use linear system solvers for faster computation of the change of variables (see Tibshirani and Taylor, 2011)
+    XD1 = (Dtilde' \ Vhat_d')' # Same as Vhat_d * inv(Dtilde)
+    X1, X2 = XD1[:, 1:m], XD1[:, (m+1):end]
+    X2_plus = (X2' * X2) \ X2' # Same as inv(X2' * X2) * X2'
+
+    # Transform the input to LASSO objective
+    P = X2 * X2_plus
+    ytilde = vec((I - P) * sigma_hat)
+    Xtilde = (I - P) * X1
+
+    # Solve LASSO
+    path = glmnet(Xtilde, ytilde, intercept=false, lambda=[0.615848211066027], alpha=1, standardize=false)
+
+    # Transform back to original variables
+    theta1 = vec(path.betas)
+    theta2 = X2_plus * (sigma_hat - X1 * theta1)
+    theta = vcat(theta1, theta2)
+    coef = Dtilde \ theta # Same as inv(Dtilde) * theta
+
+    return coef
+end

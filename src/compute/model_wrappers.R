@@ -8,9 +8,12 @@ library(igraph)
 library(splash)
 library(FGSG)
 library(BigVAR)
+library(glmnet)
+library(pracma)
+library(Rlinsolve)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
 
-fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALSE, ...) {
+fit_gfsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALSE, ...) {
     # Retrieve the cross-sectional dimension of the problem
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
@@ -66,7 +69,7 @@ fit_admm_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = 
     return(output_list)
 }
 
-fit_regular_splash <- function(y, lambda, alpha, verbose = FALSE, ...) {
+fit_splash <- function(y, lambda, alpha, verbose = FALSE, ...) {
     # Split y into training and testing sets
     y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
     y_test <- y[, ((floor(dim(y)[2] / 5) * 4) + 1):dim(y)[2]]
@@ -76,7 +79,7 @@ fit_regular_splash <- function(y, lambda, alpha, verbose = FALSE, ...) {
 
     # Fit SPLASH from Reuvers and Wijler (2021)
     t0 <- Sys.time()
-    model <- splash::splash(t(y_train), alphas = c(alpha), lambdas = c(lambda), ...) # Take transpose because splash() accepts T x p matrix
+    model <- splash(t(y_train), alphas = c(alpha), lambdas = c(lambda), ...) # Take transpose because splash() accepts T x p matrix
     runtime <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     # Print how long it took to run formatted with a message
@@ -97,7 +100,7 @@ fit_regular_splash <- function(y, lambda, alpha, verbose = FALSE, ...) {
     return(output_list)
 }
 
-fit_pvar_bigvar <- function(y, verbose = FALSE, ...) {
+fit_pvar <- function(y, verbose = FALSE, ...) {
     # Split y into training and testing sets
     y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
     y_test <- y[, (floor(dim(y)[2] / 5) * 4 + 1):dim(y)[2]]
@@ -157,6 +160,75 @@ fit_pvar_bigvar <- function(y, verbose = FALSE, ...) {
     return(output_list)
 }
 
+fit_fsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
+    m <- ecount(graph)
+    p <- as.integer(sqrt(dim(Vhat_d)[1]))
+
+    t0 <- Sys.time()
+    # Use linear system solvers for faster computation of the change of variables (see Tibshirani and Taylor, 2011)
+    XD1 <- Vhat_d %*% Dtilde_inv # Same as Vhat_d * inv(Dtilde)
+    X1 <- XD1[, 1:m]
+    X2 <- XD1[, (m + 1):dim(XD1)[2]]
+    X2_plus <- solve((t(X2) %*% X2), t(X2)) # Same as inv(t(X2) %*% X2) %*% t(X2)
+
+    # Transform the input to LASSO objective
+    P <- X2 %*% X2_plus
+    ytilde <- as.vector((diag(nrow(P)) - P) %*% t(sigma_hat))
+    Xtilde <- (diag(nrow(P)) - P) %*% X1
+    runtimeXtilde <- difftime(Sys.time(), t0, units = "secs")[[1]]
+
+    t0 <- Sys.time()
+    model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
+    theta1 <- as.vector(model$beta)
+    theta2 <- as.vector(X2_plus %*% (t(sigma_hat) - X1 %*% theta1))
+    coef <- Dtilde_inv %*% c(theta1, theta2)
+    runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
+
+    AB <- coef_to_AB(coef, p)
+    A <- AB$A
+    B <- AB$B
+    C <- AB_to_C(A, B)
+
+    # Return the fitted model
+    output_list <- list(
+        model = model,
+        coef = coef,
+        A = A,
+        B = B,
+        C = C,
+        runtimeM = runtimeM,
+        runtimeXtilde = runtimeXtilde
+    )
+}
+
+fit_ssfsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
+    m <- ecount(graph)
+    p <- as.integer(sqrt(dim(Vhat_d)[1]))
+
+    # Transform the input to LASSO objective (see Tibshirani and Taylor, 2011)
+    XD1 <- Vhat_d %*% Dtilde_inv # Same as Vhat_d * inv(Dtilde)
+
+    t0 <- Sys.time()
+    model <- glmnet(XD1, sigma_hat, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
+    theta <- as.vector(model$beta)
+    coef <- Dtilde_inv %*% theta # Back-transform the coefficients
+    runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
+
+    AB <- coef_to_AB(coef, p)
+    A <- AB$A
+    B <- AB$B
+    C <- AB_to_C(A, B)
+
+    # Return the fitted model
+    output_list <- list(
+        model = model,
+        coef = coef,
+        A = A,
+        B = B,
+        C = C,
+        runtimeM = runtimeM
+    )
+}
 
 fit_fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALSE, ...) {
     # Retrieve the cross-sectional dimension of the problem
@@ -171,7 +243,7 @@ fit_fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = 
 
     # Fit FGSG GFLASSO implementation
     t0 <- Sys.time()
-    model <- FGSG::gflasso(y = sigma_hat, A = Vhat_d, tp = edge_vector, s1 = lambda2, s2 = lambda1, ...) # Notice that \lambda1 and \lambda2 are swapped here
+    model <- FGSG::gflasso(y = sigma_hat, A = Vhat_d, tp = edge_vector, s1 = lambda1, s2 = lambda2, ...) # Notice that \lambda1 and \lambda2 are swapped here
     runtime <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     # Print how long it took to run formatted with a message

@@ -8,15 +8,18 @@ import numpy as np
 import pandas as pd
 from utils import parse_float
 
+os.chdir(os.environ["PROJ_DIR"])
+
 
 def collect_dataframes(lambdas_dir, model_name):
     res = pd.DataFrame()
 
     for uuid_dir in os.listdir(lambdas_dir):
-        path = os.path.join(lambdas_dir, uuid_dir)
-        if os.path.isdir(path):
+        dir_path = os.path.join(lambdas_dir, uuid_dir)
+        full_path = os.path.join(dir_path, f"{model_name}.csv")
+        if os.path.isfile(full_path):
             df = pd.read_csv(
-                os.path.join(path, f"{model_name}.csv"),
+                full_path,
                 delimiter=",",
                 header=0,
             )
@@ -91,7 +94,10 @@ if __name__ == "__main__":
 
     # set up directory paths
     lambdas_dir = os.path.join(
-        "out", "simulation", "lambdas", f"{sim_design_id}_detlam"
+        "out",
+        "simulation",
+        "lambdas",
+        f"{sim_design_id}",
     )
 
     save_best_lam(lambdas_dir)

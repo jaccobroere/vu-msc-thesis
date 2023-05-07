@@ -10,13 +10,6 @@ library(matrixStats)
 library(Matrix)
 setwd(PROJ_DIR)
 
-library(JuliaCall)
-julia <- julia_setup(installJulia = TRUE)
-setwd(system("echo $PROJ_DIR", intern = TRUE))
-julia_source("src/compute/transform_bootstrap_graph.jl")
-
-Vhat_d_CV <- Matrix(julia_eval("calc_Vhat_d_nb")(y), sparse = TRUE)
-
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
 sim_design_id <- ifelse(length(args) < 1, "designB_T500_p49", args[1])

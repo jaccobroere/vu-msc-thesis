@@ -1,6 +1,5 @@
 # This script fits the models using the best lambdas for the GF-SPLASH, SGF-SPLASH, and SPLASH
 
-
 PROJ_DIR <- system("echo $PROJ_DIR", intern = TRUE)
 setwd(PROJ_DIR)
 source("src/compute/utils.R")
@@ -11,6 +10,13 @@ library(matrixStats)
 library(Matrix)
 setwd(PROJ_DIR)
 
+library(JuliaCall)
+julia <- julia_setup(installJulia = TRUE)
+setwd(system("echo $PROJ_DIR", intern = TRUE))
+julia_source("src/compute/transform_bootstrap_graph.jl")
+
+Vhat_d_CV <- Matrix(julia_eval("calc_Vhat_d_nb")(y), sparse = TRUE)
+
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
 sim_design_id <- ifelse(length(args) < 1, "designB_T500_p49", args[1])
@@ -20,6 +26,7 @@ uuidtag <- ifelse(length(args) < 2, "ED04541C-0149-45C6-8F59-6D5A21BFB0C2", args
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
 fit_dir <- file.path(PROJ_DIR, "out/simulation/fit", sim_design_id, uuidtag)
 lambdas_dir <- file.path(PROJ_DIR, "out/simulation/lambdas", sim_design_id)
+sim_id_dir <- file.path(PROJ_DIR, "out/simulation", sim_design_id)
 
 # Parse paths
 path_sigma_hat <- file.path(data_dir, "sigma_hat.csv")
@@ -29,12 +36,15 @@ path_sym_graph <- file.path(data_dir, "sym_graph.graphml")
 path_y <- file.path(data_dir, "y.csv")
 path_A <- file.path(data_dir, "A.csv")
 path_B <- file.path(data_dir, "B.csv")
+path_Dtilde_inv <- file.path(sim_id_dir, "Dtilde_inv.mtx")
+path_Dtilde <- file.path(sim_id_dir, "Dtilde.mtx")
 
 # Load the data
 sigma_hat <- t(fread(path_sigma_hat, header = T, skip = 0))
 Vhat_d <- as.matrix(readMM(path_Vhat_d))
 reg_gr <- read_graph(path_reg_graph, format = "graphml")
 sym_gr <- read_graph(path_sym_graph, format = "graphml")
+# Dtilde_inv <- readMM(path_Dtilde_inv)
 # Load the true values
 A_true <- as.matrix(fread(path_A, header = T, skip = 0))
 B_true <- as.matrix(fread(path_B, header = T, skip = 0))

@@ -11,7 +11,13 @@ library(BigVAR)
 library(glmnet)
 library(pracma)
 library(Rlinsolve)
+library(Matrix)
+library(JuliaCall)
+julia <- julia_setup(installJulia = TRUE, install = FALSE)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
+
+julia_source("src/compute/transform_bootstrap_graph.jl")
+
 
 fit_gfsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALSE, ...) {
     # Retrieve the cross-sectional dimension of the problem
@@ -201,17 +207,28 @@ fit_fsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
     )
 }
 
-fit_ssfsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
+fit_ssfsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda, alpha) {
+    # Get dimensions of the problem
     m <- ecount(graph)
+    k <- vcount(graph)
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
+    # Reparametrize to gamma
+    gamma <- alpha / (1 - alpha)
+    lambda_star <- lambda / gamma
+
+    # Calculate the scaled version of Dtilde_inv, the multiplier matrix M, has to be inverted
+    # but is a diagonal matrix, so we now the explicit form of the inverse and calculate it directly
+    M_inv <- .sparseDiagonal(x = c(rep(1, m), rep((1 / gamma), k - m)))
+    Dtilde_inv_gamma <- Dtilde_inv %*% M_inv
+
     # Transform the input to LASSO objective (see Tibshirani and Taylor, 2011)
-    XD1 <- Vhat_d %*% Dtilde_inv # Same as Vhat_d * inv(Dtilde)
+    XD1 <- Vhat_d %*% Dtilde_inv_gamma # Same as Vhat_d * inv(Dtilde)
 
     t0 <- Sys.time()
-    model <- glmnet(XD1, sigma_hat, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
+    model <- glmnet(XD1, sigma_hat, lambda.min.ratio = 1e-4, intercept = FALSE, standardize = FALSE, nlambda = 20)
     theta <- as.vector(model$beta)
-    coef <- Dtilde_inv %*% theta # Back-transform the coefficients
+    coef <- Dtilde_inv_gamma %*% theta # Back-transform the coefficients
     runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     AB <- coef_to_AB(coef, p)

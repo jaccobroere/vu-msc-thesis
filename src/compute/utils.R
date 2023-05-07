@@ -92,11 +92,11 @@ calc_lambda_0_gfsplash <- function(sigma_hat, Vhat_d, graph, alpha, ...) {
 }
 
 # Generate grid of values for lambda, same approach as Reuvers and Wijler # THIS VERSION IS PUT ON HOLD RIGHT NOW, MAYBE USEFUL LATER
-# gen_lambda_grid <- function(lambda_0, length.out = 20) {
-#     lambda_min <- lambda_0 * 1e-4
-#     lambda_grid <- 10^(seq(log10(lambda_0), log10(lambda_min), length.out = length.out))
-#     return(lambda_grid)
-# }
+gen_lambda_grid <- function(lambda_0, length.out = 20) {
+    lambda_min <- lambda_0 * 1e-4
+    lambda_grid <- 10^(seq(log10(lambda_0), log10(lambda_min), length.out = length.out))
+    return(lambda_grid)
+}
 
 gen_lambda_grid <- function(lambda_0, length.out = 20) {
     lambda_grid <- 10^(seq(2, -4, length.out = length.out))

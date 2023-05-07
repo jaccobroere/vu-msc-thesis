@@ -1,0 +1,5 @@
+install.packages(JuliaCall, dependencies = TRUE, repos = "http://cran.rstudio.com/")
+library(JuliaCall)
+julia <- julia_setup(installJulia = TRUE)
+setwd(system("echo $PROJ_DIR", intern = TRUE))
+julia_source("src/compute/transform_bootstrap_graph.jl")

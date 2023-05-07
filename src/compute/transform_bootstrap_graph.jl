@@ -1,5 +1,7 @@
 # isage example: julia construct_V_sigma.jl "data\y.csv" "version1"
 # Output: version1_Vhat_d.csv, version1_sigma_hat.csv, version1_Vhat_d.feather, version1_sigma_hat.feather
+using Pkg
+Pkg.activate(joinpath(ENV["PROJ_DIR"], "juliaenv"))
 using Distributed
 Threads.nthreads()
 
@@ -32,7 +34,7 @@ Read data from a csv file and return a matrix.
 - `Matrix{Float64}`: matrix of shape (N, T) where N is the number of variables and T is the number of time periods.
 """
 function read_data(path::String)::Matrix{Float64}
-    return Matrix(CSV.read(path, DataFrame; types=Float64))
+    return CSV.read(path, DataFrame; types=Float64) |> Matrix
 end
 
 
@@ -86,7 +88,7 @@ Construct the V matrix containing the columns of C' = [A B]', that are nonzero.
 ## Arguments
 - `Σ0::Matrix{Float64}`: The covariance matrix of y.
 - `Σ1::Matrix{Float64}`: The covariance matrix of lag 1.
-- `h::int=0`: The half-bandwidth to use. Default is size(Σ1, 1)/4.
+- `h::int=0`: The bandwidth to use, if 0, then no bandwidth is used.
 - `prebanded::bool=false`: Whether Σ0 and Σ1 are already banded. Default is false.
 
 ## Returns
@@ -234,6 +236,17 @@ function bootstrap_estimator_R(y::Matrix{Float64}, q::Int=500)::Tuple{Int,Int}
     return (argmin(vec(sum(R0, dims=1))), argmin(vec(sum(R1, dims=1))))
 end
 
+# """
+# Constuct Vhat_d without bootstrapping, meant for use in the cross-validation steps
+# """
+# function calc_Vhat_d_nb(y::Matrix{Float64})::SparseMatrixCSC{Float64}
+#     N, T = size(y)
+#     Σ0 = calc_Σj(y, 0)
+#     Σ1 = calc_Σj(y, 1)
+#     Vhat = constr_Vhat(Σ0, Σ1)
+#     return constr_Vhat_d(Vhat)
+# end
+
 function main(sim_design_id, uuidtag)
     if uuidtag !== nothing
         path = joinpath("data", "simulation", sim_design_id, uuidtag)
@@ -246,6 +259,8 @@ function main(sim_design_id, uuidtag)
 
     # Read data 
     y = read_data(joinpath(path, "y.csv"))
+    p = size(y, 1)
+    h = div(p, 4)
 
     # Subset the first 80% of the data
     y = y[:, 1:div(size(y, 2), 5)*4]
@@ -271,21 +286,13 @@ function main(sim_design_id, uuidtag)
         # Calculate the Dtilde matrix and its inverse, for F-SPLASH and SSF-SPLASH, respectively
         Dtilde = calc_Dtilde_sparse(regular_graph)
         Dtilde_inv = inv_Dtilde_sparse(regular_graph)
-        Dtilde_SSF_a05 = calc_Dtilde_SSF_sparse(regular_graph, 0.5)
-        Dtilde_SSF_a05_inv = inv_Dtilde_SSF_sparse(regular_graph, 0.5)
-        Dtilde_SSF_a067 = calc_Dtilde_SSF_sparse(regular_graph, 2 / 3)
-        Dtilde_SSF_a067_inv = inv_Dtilde_SSF_sparse(regular_graph, 2 / 3)
-        Dtilde_SSF_a08 = calc_Dtilde_SSF_sparse(regular_graph, 0.8)
-        Dtilde_SSF_a08_inv = inv_Dtilde_SSF_sparse(regular_graph, 0.8)
+        Dtilde_SSF = calc_Dtilde_SSF_sparse(regular_graph, h)
+        Dtilde_SSF_inv = inv_Dtilde_SSF_sparse(regular_graph, h)
         # Save the matrices in sparse matrix format
         mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde.mtx"), Dtilde)
         mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_inv.mtx"), Dtilde_inv)
-        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a05.mtx"), Dtilde_SSF_a05)
-        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a05_inv.mtx"), Dtilde_SSF_a05_inv)
-        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a067.mtx"), Dtilde_SSF_a067)
-        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a067_inv.mtx"), Dtilde_SSF_a067_inv)
-        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a08.mtx"), Dtilde_SSF_a08)
-        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_a08_inv.mtx"), Dtilde_SSF_a08_inv)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF.mtx"), Dtilde_SSF)
+        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_inv.mtx"), Dtilde_SSF_inv)
     end
 
     # Write output

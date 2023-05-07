@@ -57,23 +57,5 @@ sigma_hat = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/
 p = 5
 G = create_gsplash_graph(p)
 D = Matrix(incidence_matrix(G, oriented=true))'
-pD, mD = nv(G), ne(G)
+k, m = nv(G), ne(G)
 
-h = div(p, 4)
-
-ext = zeros(pD - mD, pD)
-i = 1
-for j in 1:pD
-    if j >= (3h^2 + 1) && j <= (3h^2 + 4h + 1)
-        print(j)
-        ext[i, j] = 1
-        i += 1
-    end
-end
-ext
-
-
-D_SSF = vcat(D, ext)
-inv(lu(sparse(D_SSF)))
-
-5 >= (3h^2 + 1) && 5 <= (3h^2 + 4h + 1)

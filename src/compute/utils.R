@@ -60,8 +60,10 @@ calc_msfe <- function(y, y_hat) {
     return(mean((y - y_hat)^2))
 }
 
-predict_with_C <- function(C, y) {
-    train_idx <- (floor(dim(y)[2] / 5) * 4)
+predict_with_C <- function(C, y, train_idx = NULL) {
+    if (is.null(train_idx)) {
+        train_idx <- (floor(dim(y)[2] / 5) * 4)
+    }
     y_train <- y[, 1:train_idx]
     y_test <- y[, (train_idx + 1):ncol(y)] # Notice leaving out + 1 here to have a predictions for the first element of y_test
     predictions <- matrix(0, nrow = nrow(y), ncol = ncol(y_test))

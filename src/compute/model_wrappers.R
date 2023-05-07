@@ -12,12 +12,7 @@ library(glmnet)
 library(pracma)
 library(Rlinsolve)
 library(Matrix)
-library(JuliaCall)
-julia <- julia_setup(installJulia = TRUE, install = FALSE)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
-
-julia_source("src/compute/transform_bootstrap_graph.jl")
-
 
 fit_gfsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALSE, ...) {
     # Retrieve the cross-sectional dimension of the problem
@@ -127,7 +122,7 @@ fit_pvar <- function(y, verbose = FALSE, ...) {
         gran = lambda_grid,
         loss = "L2",
         T1 = floor(dim(y_train)[2] / 5) * 4 + 1,
-        T2 = dim(y_train)[2] + 1,
+        T2 = dim(y_train)[2],
         ownlambdas = TRUE,
         model.controls = list(
             intercept = FALSE,

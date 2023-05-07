@@ -197,17 +197,16 @@ function bootstrap_estimator_Σj_exp(y::Matrix{Float64}, j::Int)::Matrix{Float64
     return Σj / T
 end
 
-function bootstrap_estimator_Σj_norm(y::Matrix{Float64}, j::Int)::Matrix{Float64}
-    N, T = size(y)
-    Σj = zeros(N, N)
-    y_mean = mean(y, dims=2)
-    for t in 1:(T-j)
-        u_t = diagm(rand(Normal(0, 1) + 1, N))
-        @inbounds Σj += u_t * (y[:, t] - y_mean) * (y[:, t+j] - y_mean)'
-    end
-    return Σj / T
-end
-
+# function bootstrap_estimator_Σj_norm(y::Matrix{Float64}, j::Int)::Matrix{Float64}
+#     N, T = size(y)
+#     Σj = zeros(N, N)
+#     y_mean = mean(y, dims=2)
+#     for t in 1:(T-j)
+#         u_t = diagm(rand(Normal(0, 1) + 1, N))
+#         @inbounds Σj += u_t * (y[:, t] - y_mean) * (y[:, t+j] - y_mean)'
+#     end
+#     return Σj / T
+# end
 
 """
 Estimate the bandwidth for banded autocovariance estimation using a bootstrap method (Guo et al. 2016).
@@ -226,8 +225,8 @@ function bootstrap_estimator_R(y::Matrix{Float64}, q::Int=500)::Tuple{Int,Int}
     R0 = zeros(Float64, q, N - 1)
     R1 = zeros(Float64, q, N - 1)
     Threads.@threads for i in 1:q
-        bootstrap_Σ0 = bootstrap_estimator_Σj_norm(y, 0)
-        bootstrap_Σ1 = bootstrap_estimator_Σj_norm(y, 1)
+        bootstrap_Σ0 = bootstrap_estimator_Σj_exp(y, 0)
+        bootstrap_Σ1 = bootstrap_estimator_Σj_exp(y, 1)
         for h in 1:(N-1)
             @inbounds R0[i, h] += norm((band_matrix(bootstrap_Σ0, h) - Σ0), 1) / q
             @inbounds R1[i, h] += norm((band_matrix(bootstrap_Σ1, h) - Σ1), 1) / q
@@ -236,16 +235,19 @@ function bootstrap_estimator_R(y::Matrix{Float64}, q::Int=500)::Tuple{Int,Int}
     return (argmin(vec(sum(R0, dims=1))), argmin(vec(sum(R1, dims=1))))
 end
 
-# """
-# Constuct Vhat_d without bootstrapping, meant for use in the cross-validation steps
-# """
-# function calc_Vhat_d_nb(y::Matrix{Float64})::SparseMatrixCSC{Float64}
-#     N, T = size(y)
-#     Σ0 = calc_Σj(y, 0)
-#     Σ1 = calc_Σj(y, 1)
-#     Vhat = constr_Vhat(Σ0, Σ1)
-#     return constr_Vhat_d(Vhat)
-# end
+"""
+Constuct Vhat_d without bootstrapping, meant for use in the cross-validation steps
+"""
+function calc_Vhat_d_sigma_hat_nb(y::Matrix{Float64}, h1::Int=0, h0::Int=0)::Tuple{SparseMatrixCSC{Float64},Vector{Float64}}
+    if h1 == 0 || h0 == 0
+        h1, h0 = size(y, 1), size(y, 1)
+    end
+    N, T = size(y)
+    Σ0 = band_matrix(calc_Σj(y, 0), h0)
+    Σ1 = band_matrix(calc_Σj(y, 1), h1)
+    Vhat = constr_Vhat(Σ0, Σ1)
+    return constr_Vhat_d(Vhat), vec_sigma_h(Σ1, h1)
+end
 
 function main(sim_design_id, uuidtag)
     if uuidtag !== nothing
@@ -296,6 +298,7 @@ function main(sim_design_id, uuidtag)
     end
 
     # Write output
+    save_bandwiths_bootstrap(joinpath(path, "bootstrap_bandwidths.csv"), h0, h1)
     mmwrite(joinpath(path, "Vhat_d.mtx"), Vhat_d)
     CSV.write(joinpath(path, "sigma_hat.csv"), Tables.table(sigma_hat))
     save_graph_as_gml(regular_graph, joinpath(path, "reg_graph.graphml"))

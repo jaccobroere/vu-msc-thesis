@@ -3,6 +3,7 @@ Pkg.activate(joinpath(ENV["PROJ_DIR"], "juliaenv"))
 using Base: SimpleLogger
 using SparseArrays
 using LinearAlgebra
+using DataFrames, CSV
 
 
 """
@@ -164,4 +165,9 @@ end
 function inv_Dtilde_SSF_sparse(graph::SimpleGraph, h::Int=0)::SparseMatrixCSC{Float64}
     Dtilde = calc_Dtilde_SSF_sparse(graph, h)
     return sparse(inv(lu(Dtilde)))
+end
+
+function save_bandwiths_bootstrap(path::String, h0, h1)
+    df = DataFrame(h0=[h0], h1=[h1])
+    CSV.write(path, df)
 end

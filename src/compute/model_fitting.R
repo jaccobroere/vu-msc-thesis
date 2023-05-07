@@ -13,13 +13,13 @@ setwd(PROJ_DIR)
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
 sim_design_id <- ifelse(length(args) < 1, "designB_T500_p49", args[1])
-uuidtag <- ifelse(length(args) < 2, "ED04541C-0149-45C6-8F59-6D5A21BFB0C2", args[2])
+uuidtag <- ifelse(length(args) < 2, "B8FB07FB-ACC1-41B5-A6FC-0E1D80437830", args[2])
 
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
 fit_dir <- file.path(PROJ_DIR, "out/simulation/fit", sim_design_id, uuidtag)
 lambdas_dir <- file.path(PROJ_DIR, "out/simulation/lambdas", sim_design_id)
-sim_id_dir <- file.path(PROJ_DIR, "out/simulation", sim_design_id)
+sim_id_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc")
 
 # Parse paths
 path_sigma_hat <- file.path(data_dir, "sigma_hat.csv")
@@ -37,7 +37,8 @@ sigma_hat <- t(fread(path_sigma_hat, header = T, skip = 0))
 Vhat_d <- as.matrix(readMM(path_Vhat_d))
 reg_gr <- read_graph(path_reg_graph, format = "graphml")
 sym_gr <- read_graph(path_sym_graph, format = "graphml")
-# Dtilde_inv <- readMM(path_Dtilde_inv)
+Dtilde_inv <- readMM(path_Dtilde_inv)
+Dtilde <- readMM(path_Dtilde)
 # Load the true values
 A_true <- as.matrix(fread(path_A, header = T, skip = 0))
 B_true <- as.matrix(fread(path_B, header = T, skip = 0))
@@ -104,3 +105,8 @@ calc_msfe(y_test, model_sym_gsplash_a05$yhat)
 calc_msfe(y_test, model_pvar$yhat)
 calc_msfe(y_test, y_hat_true)
 calc_msfe(y_test, model_fast_fusion$yhat)
+
+
+model <- fit_fsplash(sigma_hat, Vhat_d, reg_gr, Dtilde, Dtilde_inv, 0.05)
+res <- model$model
+res$lambda

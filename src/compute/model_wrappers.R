@@ -161,8 +161,9 @@ fit_pvar <- function(y, verbose = FALSE, ...) {
     return(output_list)
 }
 
-fit_fsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
+fit_fsplash <- function(sigma_hat, Vhat_d, graph, Dtilde_inv, lambda = NULL, nlambda = 20) {
     m <- ecount(graph)
+    k <- vcount(graph)
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
     t0 <- Sys.time()
@@ -179,16 +180,35 @@ fit_fsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
     runtimeXtilde <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     t0 <- Sys.time()
-    model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
-    theta1 <- as.vector(model$beta)
-    theta2 <- as.vector(X2_plus %*% (t(sigma_hat) - X1 %*% theta1))
-    coef <- Dtilde_inv %*% c(theta1, theta2)
-    runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
+    if (is.null(lambda)) {
+        model <- glmnet(Xtilde, ytilde, nlambda = nlambda, alpha = 1, intercept = FALSE, standardize = FALSE)
+        # Loop over fitted solution for all lambdas
+        C <- array(NA, dim = (p, p, nlambda))
+        A <- array(NA, dim = (p, p, nlambda))
+        B <- array(NA, dim = (p, p, nlambda))
+        coef <- array(NA, dim = (k, nlambda))
+        for (i in 1:nlambda) {
+            theta1 <- as.vector(model$beta[, i])
+            theta2 <- as.vector(X2_plus %*% (t(sigma_hat) - X1 %*% theta1))
+            c <- Dtilde_inv %*% c(theta1, theta2)
+            AB <- coef_to_AB(c, p)
+            A[, , i] <- AB$A
+            B[, , i] <- AB$B
+            C[, , i] <- AB_to_C(AB$A, AB$B)
+            coef[, i] <- c
+        }
+    } else {
+        model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
+        theta1 <- as.vector(model$beta)
+        theta2 <- as.vector(X2_plus %*% (t(sigma_hat) - X1 %*% theta1))
+        coef <- Dtilde_inv %*% c(theta1, theta2)
+        AB <- coef_to_AB(coef, p)
+        A <- AB$A
+        B <- AB$B
+        C <- AB_to_C(A, B)
+    }
 
-    AB <- coef_to_AB(coef, p)
-    A <- AB$A
-    B <- AB$B
-    C <- AB_to_C(A, B)
+    runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     # Return the fitted model
     output_list <- list(

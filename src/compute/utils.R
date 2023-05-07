@@ -100,15 +100,15 @@ gen_lambda_grid <- function(lambda_0, length.out = 20) {
     return(lambda_grid)
 }
 
-gen_lambda_grid <- function(lambda_0, length.out = 20) {
-    lambda_grid <- 10^(seq(2, -4, length.out = length.out))
-    return(lambda_grid)
-}
+# gen_lambda_grid <- function(lambda_0, length.out = 20) {
+#     lambda_grid <- 10^(seq(2, -4, length.out = length.out))
+#     return(lambda_grid)
+# }
 
 # Create dataframes with lambda values as column names
 create_lambda_df <- function(lambda_grid, filename) {
     df <- data.frame(matrix(ncol = length(lambda_grid), nrow = 0))
-    colnames(df) <- paste0("lambda_", lambda_grid)
+    colnames(df) <- 1:length(lambda_grid)
 
     # If the file does not exist, create it
     if (!file.exists(filename)) {
@@ -144,6 +144,27 @@ run_lambda_finder_gfsplash <- function(y, sigma_hat, Vhat_d, C_true, graph, alph
     write.table(df_lam, path, row.names = FALSE, col.names = FALSE, append = TRUE, sep = ",")
     return(df_lam)
 }
+
+run_lambda_finder_fsplash(y, sigma_hat, Vhat_d, C_ture, graph, Dtilde_inv, path) {
+    train_idx <- (floor(dim(y)[2] / 5) * 4)
+    y_train <- y[, 1:train_idx]
+    y_test <- y[, (train_idx + 1):ncol(y)] 
+    # Calculate lambda_0 for the GSPLASH
+    df_lam <- create_lambda_df(grid_lam, path)
+    # Fit the models and save the prediction results in the data.frame
+    model <- fit_fsplash(sigma_hat, Vhat_d, graph, Dtilde_inv, lambda=NULL)
+    res <- model$model
+    # Calculate predictions and error metric
+    for (i in 1:length(grid_lam)) {
+        lam <- res$lambda[i]
+        y_hat <- predict_with_C(res$C[[i]], y)
+        # Calculate predictions and error metric
+    y_hat <- predict_with_C(model$C, y)
+    error_metric <- calc_msfe(y_test, y_hat)
+    df_lam[1, colnames(df_lam)[i]] <- error_metric
+
+}
+
 
 run_lambda_finder_splash <- function(y, alpha, C_true, path, lambda_min_mult = 1e-4) {
     train_idx <- (floor(dim(y)[2] / 5) * 4)

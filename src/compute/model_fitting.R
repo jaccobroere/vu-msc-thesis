@@ -12,8 +12,8 @@ setwd(PROJ_DIR)
 
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
-sim_design_id <- ifelse(length(args) < 1, "designB_T500_p100", args[1])
-uuidtag <- ifelse(length(args) < 2, "9D5EFD06-1A11-493E-9359-DC10D543B8BC", args[2])
+sim_design_id <- ifelse(length(args) < 1, "designB_T500_p81", args[1])
+uuidtag <- ifelse(length(args) < 2, "29D1E659-10D3-42F9-BF51-B83B26709C63", args[2])
 
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
@@ -107,13 +107,6 @@ calc_msfe(y_test, y_hat_true)
 calc_msfe(y_test, model_fast_fusion$yhat)
 
 
-model <- fit_fsplash(sigma_hat, Vhat_d, reg_gr, Dtilde_inv, nlambda = 1)
+model <- fit_fsplash(sigma_hat, Vhat_d, reg_gr, Dtilde_inv, lambda = 0.1)
 res <- model$model
 res$lambda
-
-
-array(NA, dim = c(1, 2)
-
-model2 <- fit_gfsplash(sigma_hat, Vhat_d, reg_gr, alpha=0.5, lambda=0.05, standard_ADMM = TRUE)
-
-model2$runtimeM

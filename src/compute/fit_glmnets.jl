@@ -17,8 +17,8 @@ include(joinpath(PROJ_DIR, "src", "compute", "transform_bootstrap_graph.jl"))
 
 # Read CLI arguments
 args = ARGS
-sim_design_id = length(args) < 1 ? "designB_T500_p25" : args[1]
-uuidtag = length(args) < 2 ? "B8FB07FB-ACC1-41B5-A6FC-0E1D80437830" : args[2]
+sim_design_id = length(args) < 1 ? "designB_T500_p81" : args[1]
+uuidtag = length(args) < 2 ? "29D1E659-10D3-42F9-BF51-B83B26709C63" : args[2]
 
 # Set up directories
 data_dir = joinpath(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
@@ -44,7 +44,6 @@ graph = create_gsplash_graph(size(y, 1))
 m = ne(graph)
 k = nv(graph)
 p = Integer(sqrt(size(Vhat_d)[1]))
-h0, h1 = 47, 48
 
 # Use linear system solvers for faster computation of the change of variables (see Tibshirani and Taylor, 2011)
 start_time = time()

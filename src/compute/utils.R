@@ -108,7 +108,7 @@ gen_lambda_grid <- function(lambda_0, length.out = 20) {
 # Create dataframes with lambda values as column names
 create_lambda_df <- function(lambda_grid, filename) {
     df <- data.frame(matrix(ncol = length(lambda_grid), nrow = 0))
-    colnames(df) <- 1:length(lambda_grid)
+    colnames(df) <- c(1:length(lambda_grid))
 
     # If the file does not exist, create it
     if (!file.exists(filename)) {
@@ -158,7 +158,7 @@ run_lambda_finder_fsplash <- function(y, sigma_hat, Vhat_d, C_ture, graph, Dtild
         lam <- model$model$lambda[i]
         y_hat <- predict_with_C(res$C[, , i], y)
         error_metric <- calc_msfe(y_test, y_hat)
-        df_lam[1, i] <- error_metric
+        df_lam[1, colnames(df_lam)[i]] <- error_metric
     }
 
     # Append the results to the table

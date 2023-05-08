@@ -145,24 +145,24 @@ run_lambda_finder_gfsplash <- function(y, sigma_hat, Vhat_d, C_true, graph, alph
     return(df_lam)
 }
 
-run_lambda_finder_fsplash(y, sigma_hat, Vhat_d, C_ture, graph, Dtilde_inv, path) {
+run_lambda_finder_fsplash <- function(y, sigma_hat, Vhat_d, C_ture, graph, Dtilde_inv, path) {
     train_idx <- (floor(dim(y)[2] / 5) * 4)
     y_train <- y[, 1:train_idx]
-    y_test <- y[, (train_idx + 1):ncol(y)] 
+    y_test <- y[, (train_idx + 1):ncol(y)]
     # Calculate lambda_0 for the GSPLASH
     df_lam <- create_lambda_df(grid_lam, path)
     # Fit the models and save the prediction results in the data.frame
-    model <- fit_fsplash(sigma_hat, Vhat_d, graph, Dtilde_inv, lambda=NULL)
-    res <- model$model
+    model <- fit_fsplash(sigma_hat, Vhat_d, graph, Dtilde_inv, lambda = NULL)
     # Calculate predictions and error metric
     for (i in 1:length(grid_lam)) {
-        lam <- res$lambda[i]
-        y_hat <- predict_with_C(res$C[[i]], y)
-        # Calculate predictions and error metric
-    y_hat <- predict_with_C(model$C, y)
-    error_metric <- calc_msfe(y_test, y_hat)
-    df_lam[1, colnames(df_lam)[i]] <- error_metric
+        lam <- model$model$lambda[i]
+        y_hat <- predict_with_C(res$C[, , i], y)
+        error_metric <- calc_msfe(y_test, y_hat)
+        df_lam[1, i] <- error_metric
+    }
 
+    # Append the results to the table
+    write.table(df_lam, path, row.names = FALSE, col.names = FALSE, append = TRUE, sep = ",")
 }
 
 

@@ -183,10 +183,10 @@ fit_fsplash <- function(sigma_hat, Vhat_d, graph, Dtilde_inv, lambda = NULL, nla
     if (is.null(lambda)) {
         model <- glmnet(Xtilde, ytilde, nlambda = nlambda, alpha = 1, intercept = FALSE, standardize = FALSE)
         # Loop over fitted solution for all lambdas
-        C <- array(NA, dim = (p, p, nlambda))
-        A <- array(NA, dim = (p, p, nlambda))
-        B <- array(NA, dim = (p, p, nlambda))
-        coef <- array(NA, dim = (k, nlambda))
+        C <- array(NA, dim = c(p, p, nlambda))
+        A <- array(NA, dim = c(p, p, nlambda))
+        B <- array(NA, dim = c(p, p, nlambda))
+        coef <- array(NA, dim = c(k, nlambda))
         for (i in 1:nlambda) {
             theta1 <- as.vector(model$beta[, i])
             theta2 <- as.vector(X2_plus %*% (t(sigma_hat) - X1 %*% theta1))
@@ -195,7 +195,7 @@ fit_fsplash <- function(sigma_hat, Vhat_d, graph, Dtilde_inv, lambda = NULL, nla
             A[, , i] <- AB$A
             B[, , i] <- AB$B
             C[, , i] <- AB_to_C(AB$A, AB$B)
-            coef[, i] <- c
+            coef[, i] <- as.vector(c)
         }
     } else {
         model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)

@@ -17,8 +17,8 @@ include(joinpath(PROJ_DIR, "src", "compute", "transform_bootstrap_graph.jl"))
 
 # Read CLI arguments
 args = ARGS
-sim_design_id = length(args) < 1 ? "designB_T500_p81" : args[1]
-uuidtag = length(args) < 2 ? "29D1E659-10D3-42F9-BF51-B83B26709C63" : args[2]
+sim_design_id = length(args) < 1 ? "designB_T500_p16" : args[1]
+uuidtag = length(args) < 2 ? "3BAC813E-62EF-41EA-B54E-81F63DC3173F" : args[2]
 
 # Set up directories
 data_dir = joinpath(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
@@ -56,8 +56,8 @@ P = X2 * X2_plus
 ytilde = vec((I - P) * sigma_hat)
 Xtilde = (I - P) * X1
 
-@time model = glmnet(Xtilde, ytilde, alpha=1, intercept=false, standardize=false, nlambda=20)
-theta1 = model.betas[:, 50]
+model = glmnet(Xtilde, ytilde, alpha=1, intercept=false, standardize=false, lambda=[0.1, 0.2])
+theta1 = model.betas[:, 1]
 theta2 = vec(X2_plus * (sigma_hat - X1 * theta1))
 coef = Dtilde_inv * [theta1; theta2]
 elapsed_time = (time() - start_time)
@@ -66,6 +66,10 @@ elapsed_time = (time() - start_time)
 A = rcopy(R"coef_to_AB($coef, $p)$A")
 B = rcopy(R"coef_to_AB($coef, $p)$B")
 C = rcopy(R"AB_to_C($A, $B)")
+
+A[1:5, 1:5]
+
+
 
 function cv_fsplash(y, Dtilde_inv, graph, h0, h1, n_fold, n_lambda)
     train_size = div(size(y, 2), 5) * 4
@@ -121,3 +125,33 @@ div(train_size, 5)
 
 
 SlidingWindow(y_train,)
+
+
+function model_fast_fusion(sigma_hat::Matrix{Float64}, Vhat_d::SparseMatrixCSC{Float64}, graph::SimpleGraph{Int64})
+    # Calculate D_tilde by extending it with orthogonal rows to a square matrix
+    Dtilde = Matrix(calc_Dtilde_sparse(graph))
+    m, p = ne(graph), nv(graph)
+
+    # Use linear system solvers for faster computation of the change of variables (see Tibshirani and Taylor, 2011)
+    XD1 = (Dtilde' \ Vhat_d')' # Same as Vhat_d * inv(Dtilde)
+    X1, X2 = XD1[:, 1:m], XD1[:, (m+1):end]
+    X2_plus = (X2' * X2) \ X2' # Same as inv(X2' * X2) * X2'
+
+    # Transform the input to LASSO objective
+    P = X2 * X2_plus
+    ytilde = vec((I - P) * sigma_hat)
+    Xtilde = (I - P) * X1
+
+    # Solve LASSO
+    path = glmnet(Xtilde, ytilde, intercept=false, lambda=[0.615848211066027], alpha=1, standardize=false)
+
+    # Transform back to original variables
+    theta1 = vec(path.betas)
+    theta2 = X2_plus * (sigma_hat - X1 * theta1)
+    theta = vcat(theta1, theta2)
+    coef = Dtilde \ theta # Same as inv(Dtilde) * theta
+
+    return coef
+end
+
+model_fast_fusion(sigma_hat, Vhat_d, graph)

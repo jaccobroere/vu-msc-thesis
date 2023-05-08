@@ -12,8 +12,8 @@ setwd(PROJ_DIR)
 
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
-sim_design_id <- ifelse(length(args) < 1, "designB_T500_p25", args[1])
-uuidtag <- ifelse(length(args) < 2, "503FD119-142F-4B9B-AD46-CA0A417B03E6", args[2])
+sim_design_id <- ifelse(length(args) < 1, "designB_T500_p16", args[1])
+uuidtag <- ifelse(length(args) < 2, "3BAC813E-62EF-41EA-B54E-81F63DC3173F", args[2])
 
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
@@ -106,15 +106,52 @@ calc_msfe(y_test, model_pvar$yhat)
 calc_msfe(y_test, y_hat_true)
 calc_msfe(y_test, model_fast_fusion$yhat)
 
-
-model <- fit_fsplash(sigma_hat, Vhat_d, reg_gr, Dtilde_inv_alt, lambda = 0.1)
+graph <- reg_gr
+model <- fit_fsplash(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda = 0.05)
 model$A[1:5, 1:5]
 
-Dtilde_inv_alt <- solve(calc_Dtilde_sparse(reg_gr))
-
-
-calc_lambda_0_gfsplash(sigma_hat, Vhat_d, reg_gr, alpha = 0)
-
-
-model_fl <- fit_gfsplash(sigma_hat, Vhat_d, graph = reg_gr, alpha = 0, lambda = 0.1)
+model_fl <- fit_gfsplash(sigma_hat, Vhat_d, graph = reg_gr, alpha = 0, lambda = 0.05)
 model_fl$A[1:5, 1:5]
+
+
+
+fit_fsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
+    m <- ecount(graph)
+    p <- as.integer(sqrt(dim(Vhat_d)[1]))
+
+    t0 <- Sys.time()
+    # Use linear system solvers for faster computation of the change of variables (see Tibshirani and Taylor, 2011)
+    XD1 <- Vhat_d %*% Dtilde_inv # Same as Vhat_d * inv(Dtilde)
+    X1 <- XD1[, 1:m]
+    X2 <- XD1[, (m + 1):dim(XD1)[2]]
+    X2_plus <- solve((t(X2) %*% X2), t(X2)) # Same as inv(t(X2) %*% X2) %*% t(X2)
+
+    # Transform the input to LASSO objective
+    P <- X2 %*% X2_plus
+    ytilde <- as.vector((diag(nrow(P)) - P) %*% t(sigma_hat))
+    Xtilde <- (diag(nrow(P)) - P) %*% X1
+    runtimeXtilde <- difftime(Sys.time(), t0, units = "secs")[[1]]
+
+    t0 <- Sys.time()
+    model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
+    theta1 <- as.vector(model$beta)
+    theta2 <- as.vector(X2_plus %*% (t(sigma_hat) - X1 %*% theta1))
+    coef <- Dtilde_inv %*% c(theta1, theta2)
+    runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
+
+    AB <- coef_to_AB(coef, p)
+    A <- AB$A
+    B <- AB$B
+    C <- AB_to_C(A, B)
+
+    # Return the fitted model
+    output_list <- list(
+        model = model,
+        coef = coef,
+        A = A,
+        B = B,
+        C = C,
+        runtimeM = runtimeM,
+        runtimeXtilde = runtimeXtilde
+    )
+}

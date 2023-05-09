@@ -154,4 +154,25 @@ function model_fast_fusion(sigma_hat::Matrix{Float64}, Vhat_d::SparseMatrixCSC{F
     return coef
 end
 
-model_fast_fusion(sigma_hat, Vhat_d, graph)
+model_fast_fusion(sigma_hat, vhat_d, graph)
+
+
+function fit_ssfsplash(sigma_hat::Matrix{Float64}, Vhat_d::SparseMatrixCSC{Float64}, graph::SimpleGraph{Int64})
+    # Calculate D_tilde by extending it with orthogonal rows to a square matrix
+    Dtilde = Matrix(calc_Dtilde_SSF_sparse(graph))
+    m, p = ne(graph), nv(graph)
+
+    # Use linear system solvers for faster computation of the change of variables (see Tibshirani and Taylor, 2011)
+    XD1 = Vhat_d * inv(Dtilde) # Same as Vhat_d * inv(Dtilde)
+
+    # Solve LASSO
+    path = glmnet(XD1, sigma_hat, intercept=false, lambda=[lambda], alpha=1, standardize=false)
+
+    # Transform back to original variables
+    theta1 = vec(path.betas)
+    theta2 = X2_plus * (sigma_hat - X1 * theta1)
+    theta = vcat(theta1, theta2)
+    coef = Dtilde \ theta # Same as inv(Dtilde) * theta
+
+    return coef
+end

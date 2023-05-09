@@ -13,8 +13,8 @@ setwd(PROJ_DIR)
 
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
-sim_design_id <- ifelse(length(args) < 1, "designB_T500_p16", args[1])
-uuidtag <- ifelse(length(args) < 2, "2F6F7285-EC2E-4F0F-B7CD-8B54F91A8240", args[2])
+sim_design_id <- ifelse(length(args) < 1, "designB_T1000_p25", args[1])
+uuidtag <- ifelse(length(args) < 2, "D67DFC71-FF34-4731-B009-6C9668E5DA4E", args[2])
 
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
@@ -32,6 +32,8 @@ path_A <- file.path(data_dir, "A.csv")
 path_B <- file.path(data_dir, "B.csv")
 path_Dtilde_inv <- file.path(sim_id_dir, "Dtilde_inv.mtx")
 path_Dtilde <- file.path(sim_id_dir, "Dtilde.mtx")
+path_Dtilde_SSF_inv <- file.path(sim_id_dir, "Dtilde_SSF_inv.mtx")
+path_Dtilde_SSF <- file.path(sim_id_dir, "Dtilde_SSF.mtx")
 
 # Load the data
 sigma_hat <- t(fread(path_sigma_hat, header = T, skip = 0))
@@ -40,9 +42,12 @@ reg_gr <- read_graph(path_reg_graph, format = "graphml")
 sym_gr <- read_graph(path_sym_graph, format = "graphml")
 Dtilde_inv <- readMM(path_Dtilde_inv)
 Dtilde <- readMM(path_Dtilde)
+Dtilde_SSF_inv <- readMM(path_Dtilde_SSF_inv)
+Dtilde_SSF <- readMM(path_Dtilde_SSF)
 # Load the true values
 A_true <- as.matrix(fread(path_A, header = T, skip = 0))
 B_true <- as.matrix(fread(path_B, header = T, skip = 0))
+C_true <- AB_to_C(A_true, B_true)
 y <- as.matrix(fread(path_y, header = T, skip = 0))
 
 # Read best_lambdas
@@ -60,11 +65,14 @@ model_splash_a05 <- fit_splash(y, get_lam_best(best_lam_df, "best_lam_spl_a05"),
 # Fit a single solution using PVAR(1) with the BigVAR package, also runs a grid search
 model_pvar <- fit_pvar(y)
 
+
+
+
+
 # Model fast fusion
 model_fast_fusion <- fit_fsplash(sigma_hat, Vhat_d, reg_gr, lambda = get_lam_best(best_lam_df, "best_lam_reg_a0"))
 
 # Compute and save the predictions
-C_true <- AB_to_C(A_true, B_true)
 model_gsplash_a0$yhat <- predict_with_C(model_gsplash_a0$C, y)
 model_gsplash_a05$yhat <- predict_with_C(model_gsplash_a05$C, y)
 model_splash_a0$yhat <- predict_with_C(model_splash_a0$C, y)
@@ -107,59 +115,23 @@ calc_msfe(y_test, model_pvar$yhat)
 calc_msfe(y_test, y_hat_true)
 calc_msfe(y_test, model_fast_fusion$yhat)
 
-graph <- reg_gr
-model <- fit_fsplash(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda = 0.05)
+#### PLAYGROUND
+train_idx <- (floor(dim(y)[2] / 5) * 4)
+y_train <- y[, 1:train_idx]
+y_test <- y[, (train_idx + 1):ncol(y)]
+
+model <- wrap_fsplash()
 model$A[1:5, 1:5]
 
-model_fl <- fit_gfsplash(sigma_hat, Vhat_d, graph = reg_gr, alpha = 0, lambda = 0.05)
+# model_ssf <- wrap_ssfsplash()
+# model_ssf$A[1:5, 1:5]
+# # sum(model_ssf$A == 0)
+
+model_spl <- wrap_splash(0.01)
+model_spl$A[1:5, 1:5]
+
+model_fl <- wrap_gfsplash()
 model_fl$A[1:5, 1:5]
+# sum(model_fl$A == 0)
 
-wrap_fsplash <- function() {
-    tic()
-    model <- fit_fsplash(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda = 0.05)
-    toc()
-    return(model)
-}
-
-fit_fsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
-    m <- ecount(graph)
-    p <- as.integer(sqrt(dim(Vhat_d)[1]))
-
-    t0 <- Sys.time()
-    # Use linear system solvers for faster computation of the change of variables (see Tibshirani and Taylor, 2011)
-    XD1 <- Vhat_d %*% Dtilde_inv # Same as Vhat_d * inv(Dtilde)
-    X1 <- XD1[, 1:m]
-    X2 <- XD1[, (m + 1):dim(XD1)[2]]
-    X2_plus <- solve((t(X2) %*% X2), t(X2)) # Same as inv(t(X2) %*% X2) %*% t(X2)
-
-    # Transform the input to LASSO objective
-    P <- X2 %*% X2_plus
-    ytilde <- as.vector((diag(nrow(P)) - P) %*% t(sigma_hat))
-    Xtilde <- (diag(nrow(P)) - P) %*% X1
-    runtimeXtilde <- difftime(Sys.time(), t0, units = "secs")[[1]]
-
-    t0 <- Sys.time()
-    model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
-    theta1 <- as.vector(model$beta)
-    theta2 <- as.vector(X2_plus %*% (t(sigma_hat) - X1 %*% theta1))
-    coef <- Dtilde_inv %*% c(theta1, theta2)
-    runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
-
-    AB <- coef_to_AB(coef, p)
-    A <- AB$A
-    B <- AB$B
-    C <- AB_to_C(A, B)
-
-    # Return the fitted model
-    output_list <- list(
-        model = model,
-        coef = coef,
-        A = A,
-        B = B,
-        C = C,
-        runtimeM = runtimeM,
-        runtimeXtilde = runtimeXtilde
-    )
-}
-
-wrap_fsplash()
+model_pvar <- wrap_pvar()

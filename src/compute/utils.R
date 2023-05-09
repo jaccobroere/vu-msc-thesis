@@ -1,3 +1,5 @@
+library(matlib)
+
 coef_to_AB <- function(coef, p) {
     bandwidth <- p %/% 4
     AB <- matrix(0, nrow = p, ncol = 2 * p)
@@ -228,4 +230,9 @@ null_space_graph <- function(graph) {
         null_vecs[i, mem[i]] <- 1
     }
     return(null_vecs)
+}
+
+calc_EE <- function(M_true, M_hat, type = "2") {
+    # type="F" for Frobenius, type="1" for max absolute column norm
+    return(norm(M_true - M_hat, type = "2"))
 }

@@ -249,60 +249,137 @@ function calc_Vhat_d_sigma_hat_nb(y::Matrix{Float64}, h1::Int=0, h0::Int=0)::Tup
     return constr_Vhat_d(Vhat), vec_sigma_h(Σ1, h1)
 end
 
+# function main(sim_design_id, uuidtag)
+#     if uuidtag !== nothing
+#         path = joinpath("data", "simulation", sim_design_id, uuidtag)
+#         if !isdir(path)
+#             mkpath(path)
+#         end
+#     else
+#         path = joinpath("data", "simulation", sim_design_id)
+#     end
+
+#     # Read data 
+#     y = read_data(joinpath(path, "y.csv"))
+#     p = size(y, 1)
+#     h = div(p, 4)
+
+#     # Subset the first 80% of the data
+#     y = y[:, 1:div(size(y, 2), 5)*4]
+
+#     # Bootstrap the bandwidth
+#     h0, h1 = bootstrap_estimator_R(y, 500)
+
+#     # Do calculations
+#     Σ1 = calc_Σj(y, 1)
+#     Σ0 = calc_Σj(y, 0)
+
+#     Vhat = constr_Vhat(Σ0, Σ1, h0, h1)
+#     sigma_hat = vec_sigma_h(Σ1, h1)
+#     Vhat_d = constr_Vhat_d(Vhat) # Bandwitdh is set to floor(p/4) by default
+
+#     # Construct underlying graph 
+#     regular_graph = create_gsplash_graph(size(y, 1), symmetric=false) # Bandwitdh is set to floor(p/4) by default
+#     symmetric_graph = create_gsplash_graph(size(y, 1), symmetric=true)
+
+#     # Create and invert Dtilde if it does not exist for this dimension (only need to be calculated once)
+#     path_sim = joinpath("data", "simulation", sim_design_id)
+#     if !isfile(joinpath(path_sim, "Dtilde.mtx"))
+#         # Calculate the Dtilde matrix and its inverse, for F-SPLASH and SSF-SPLASH, respectively
+#         Dtilde = calc_Dtilde_sparse(regular_graph)
+#         Dtilde_inv = inv_Dtilde_sparse(regular_graph)
+#         Dtilde_SSF = calc_Dtilde_SSF_sparse(regular_graph, h)
+#         Dtilde_SSF_inv = inv_Dtilde_SSF_sparse(regular_graph, h)
+#         # Save the matrices in sparse matrix format
+#         mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde.mtx"), Dtilde)
+#         mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_inv.mtx"), Dtilde_inv)
+#         mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF.mtx"), Dtilde_SSF)
+#         mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_inv.mtx"), Dtilde_SSF_inv)
+#     end
+
+#     # Write output
+#     save_bandwiths_bootstrap(joinpath(path, "bootstrap_bandwidths.csv"), h0, h1)
+#     mmwrite(joinpath(path, "Vhat_d.mtx"), Vhat_d)
+#     CSV.write(joinpath(path, "sigma_hat.csv"), Tables.table(sigma_hat))
+#     save_graph_as_gml(regular_graph, joinpath(path, "reg_graph.graphml"))
+#     save_graph_as_gml(symmetric_graph, joinpath(path, "sym_graph.graphml"))
+
+#     return nothing
+# end
+
 function main(sim_design_id, uuidtag)
-    if uuidtag !== nothing
-        path = joinpath("data", "simulation", sim_design_id, uuidtag)
-        if !isdir(path)
-            mkpath(path)
+    @time begin
+        if uuidtag !== nothing
+            path = joinpath("data", "simulation", sim_design_id, uuidtag)
+            if !isdir(path)
+                mkpath(path)
+            end
+        else
+            path = joinpath("data", "simulation", sim_design_id)
         end
-    else
-        path = joinpath("data", "simulation", sim_design_id)
     end
+    println("Directory setup: ")
 
-    # Read data 
-    y = read_data(joinpath(path, "y.csv"))
-    p = size(y, 1)
-    h = div(p, 4)
+    @time y_raw = read_data(joinpath(path, "y.csv"))
+    println("Read data: ")
 
-    # Subset the first 80% of the data
-    y = y[:, 1:div(size(y, 2), 5)*4]
-
-    # Bootstrap the bandwidth
-    h0, h1 = bootstrap_estimator_R(y, 500)
-
-    # Do calculations
-    Σ1 = calc_Σj(y, 1)
-    Σ0 = calc_Σj(y, 0)
-
-    Vhat = constr_Vhat(Σ0, Σ1, h0, h1)
-    sigma_hat = vec_sigma_h(Σ1, h1)
-    Vhat_d = constr_Vhat_d(Vhat) # Bandwitdh is set to floor(p/4) by default
-
-    # Construct underlying graph 
-    regular_graph = create_gsplash_graph(size(y, 1), symmetric=false) # Bandwitdh is set to floor(p/4) by default
-    symmetric_graph = create_gsplash_graph(size(y, 1), symmetric=true)
-
-    # Create and invert Dtilde if it does not exist for this dimension (only need to be calculated once)
-    path_sim = joinpath("data", "simulation", sim_design_id)
-    if !isfile(joinpath(path_sim, "Dtilde.mtx"))
-        # Calculate the Dtilde matrix and its inverse, for F-SPLASH and SSF-SPLASH, respectively
-        Dtilde = calc_Dtilde_sparse(regular_graph)
-        Dtilde_inv = inv_Dtilde_sparse(regular_graph)
-        Dtilde_SSF = calc_Dtilde_SSF_sparse(regular_graph, h)
-        Dtilde_SSF_inv = inv_Dtilde_SSF_sparse(regular_graph, h)
-        # Save the matrices in sparse matrix format
-        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde.mtx"), Dtilde)
-        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_inv.mtx"), Dtilde_inv)
-        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF.mtx"), Dtilde_SSF)
-        mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_inv.mtx"), Dtilde_SSF_inv)
+    @time begin
+        p = size(y_raw, 1)
+        h = div(p, 4)
     end
+    println("Compute p and h: ")
+    idx = 1:div(size(y, 2), 5)*4
+    @time y = y_raw[:, idx]
+    println("Subset the first 80% of the data: ")
 
-    # Write output
-    save_bandwiths_bootstrap(joinpath(path, "bootstrap_bandwidths.csv"), h0, h1)
-    mmwrite(joinpath(path, "Vhat_d.mtx"), Vhat_d)
-    CSV.write(joinpath(path, "sigma_hat.csv"), Tables.table(sigma_hat))
-    save_graph_as_gml(regular_graph, joinpath(path, "reg_graph.graphml"))
-    save_graph_as_gml(symmetric_graph, joinpath(path, "sym_graph.graphml"))
+    @time h0, h1 = bootstrap_estimator_R(y, 500)
+    println("Bootstrap the bandwidth: ")
+
+    @time begin
+        Σ1 = calc_Σj(y, 1)
+        Σ0 = calc_Σj(y, 0)
+    end
+    println("Calculate Σ1 and Σ0: ")
+
+    @time Vhat = constr_Vhat(Σ0, Σ1, h0, h1)
+    println("Construct Vhat: ")
+
+    @time sigma_hat = vec_sigma_h(Σ1, h1)
+    println("Calculate sigma_hat: ")
+
+    @time Vhat_d = constr_Vhat_d(Vhat)
+    println("Construct Vhat_d: ")
+
+    @time begin
+        regular_graph = create_gsplash_graph(size(y, 1), symmetric=false)
+        symmetric_graph = create_gsplash_graph(size(y, 1), symmetric=true)
+    end
+    println("Construct underlying graph: ")
+
+    @time begin
+        path_sim = joinpath("data", "simulation", sim_design_id)
+        if !isfile(joinpath(path_sim, "Dtilde.mtx"))
+            Dtilde = calc_Dtilde_sparse(regular_graph)
+            Dtilde_inv = inv_Dtilde_sparse(regular_graph)
+            Dtilde_SSF = calc_Dtilde_SSF_sparse(regular_graph, h)
+            Dtilde_SSF_inv = inv_Dtilde_SSF_sparse(regular_graph, h)
+            mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde.mtx"), Dtilde)
+            mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_inv.mtx"), Dtilde_inv)
+            mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF.mtx"), Dtilde_SSF)
+            mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_inv.mtx"), Dtilde_SSF_inv)
+        end
+    end
+    println("Create and invert Dtilde: ")
+
+    @time begin
+        save_bandwiths_bootstrap(joinpath(path, "bootstrap_bandwidths.csv"), h0, h1)
+        mmwrite(joinpath(path, "Vhat_d.mtx"), Vhat_d)
+        CSV.write(joinpath(path, "sigma_hat.csv"), Tables.table(sigma_hat))
+        save_graph_as_gml(regular_graph, joinpath(path, "reg_graph.graphml"))
+        save_graph_as_gml(regular_graph, joinpath(path, "reg_graph.graphml"))
+        save_graph_as_gml(symmetric_graph, joinpath(path, "sym_graph.graphml"))
+    end
+    println("Write output: ")
 
     return nothing
 end
@@ -314,18 +391,21 @@ if abspath(PROGRAM_FILE) == @__FILE__
 end
 
 # ## TESTING
-# y = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/designB_T500_p49/mc/ED04541C-0149-45C6-8F59-6D5A21BFB0C2", "y.csv"))
+y = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/designB_T1000_p25/mc/D67DFC71-FF34-4731-B009-6C9668E5DA4E", "y.csv"))
 
 
-# y_train = y[:, 1:div(size(y, 2), 5)*4]
+y_train = y[:, 1:div(size(y, 2), 5)*4]
 # bootstrap_estimator_R(y_train, 999)
 
-# Σ = calc_Σj(y_train, 1)
+Σ1 = calc_Σj(y, 1)
+Σ0 = calc_Σj(y, 0)
 
-# band_matrix(Σ, 23)
+h0, h1 = 24, 24
 
-
-
+Vhat = constr_Vhat(Σ0, Σ1, h0, h1)
+Vhat_d = constr_Vhat_d(Vhat)[1:10, 1:10]
 # # Random 5x5 matrix
 # A = rand(5, 5)
 # band_matrix(A, 2)
+
+sum(sum(active_cols(4)))

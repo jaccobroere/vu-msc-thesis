@@ -1,3 +1,4 @@
+using Distributions: continuous_distributions
 #=
 This simulation design replicates the simulation design B from Reuvers and Wijler (2021).
 In this simulation design:
@@ -20,6 +21,27 @@ function design_B_generate_A(m::Int)::Matrix{Float64}
     for i in 1:p
         for j in 1:p
             if abs(i - j) == 1 || abs(i - j) == m
+                setindex!(A, 0.2, i, j)
+            end
+        end
+    end
+    return A
+end
+
+function design_B_generate_A(m::Int)::Matrix{Float64}
+    p = m^2
+    A = zeros(p, p)
+    for i in 1:p
+        for j in 1:p
+            if abs(i - j) == m
+                setindex!(A, 0.2, i, j)
+            end
+
+            if abs(i - j) == 1 && (((i % m == 0) && ((j - 1) % m == 0)) || ((j % m == 0) && ((i - 1) % m == 0)))
+                continue
+            end
+
+            if abs(i - j) == 1
                 setindex!(A, 0.2, i, j)
             end
         end
@@ -60,6 +82,5 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # Run simulation
     run_simulation(p, m, T, sim_design_id, true, uuidtag)
 end
-
 
 

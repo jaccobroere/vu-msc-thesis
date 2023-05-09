@@ -62,18 +62,30 @@ calc_msfe <- function(y, y_hat) {
     return(mean((y - y_hat)^2))
 }
 
-predict_with_C <- function(C, y, train_idx = NULL) {
-    if (is.null(train_idx)) {
-        train_idx <- (floor(dim(y)[2] / 5) * 4)
-    }
-    y_train <- y[, 1:train_idx]
-    y_test <- y[, (train_idx + 1):ncol(y)] # Notice leaving out + 1 here to have a predictions for the first element of y_test
-    predictions <- matrix(0, nrow = nrow(y), ncol = ncol(y_test))
+# predict_with_C <- function(C, y, train_idx = NULL) {
+#     if (is.null(train_idx)) {
+#         train_idx <- (floor(dim(y)[2] / 5) * 4)
+#     }
+#     y_train <- y[, 1:train_idx]
+#     y_test <- y[, (train_idx + 1):ncol(y)] # Notice leaving out + 1 here to have a predictions for the first element of y_test
+#     predictions <- matrix(0, nrow = nrow(y), ncol = ncol(y_test))
+
+#     # Predictions
+#     predictions[, 1] <- C %*% y_train[, ncol(y_train)] # First prediction is based on last element of y_train
+#     for (i in 2:ncol(y_test)) {
+#         predictions[, i] <- C %*% y_test[, i - 1]
+#     }
+
+#     return(predictions)
+# }
+
+predict_with_C <- function(Chat, y_train, y_test) {
+    predictions <- matrix(0, nrow = nrow(y_train), ncol = ncol(y_test))
 
     # Predictions
-    predictions[, 1] <- C %*% y_train[, ncol(y_train)] # First prediction is based on last element of y_train
+    predictions[, 1] <- Chat %*% y_train[, ncol(y_train)] # First prediction is based on last element of y_train
     for (i in 2:ncol(y_test)) {
-        predictions[, i] <- C %*% y_test[, i - 1]
+        predictions[, i] <- Chat %*% y_test[, i - 1]
     }
 
     return(predictions)

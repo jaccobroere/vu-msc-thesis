@@ -66,7 +66,7 @@ model_sym_gsplash_a05 <- fit_gfsplash(sigma_hat, Vhat_d, sym_gr, get_lam_best(be
 # Fit the a single solution using SPLASH
 model_splash_a0 <- fit_splash(y, get_lam_best(best_lam_df, "best_lam_spl_a0"), alpha = 0)
 model_splash_a05 <- fit_splash(y, get_lam_best(best_lam_df, "best_lam_spl_a05"), alpha = 0.5)
-model_splash_a05 <- fit_splash(y, lambda=0.1, alpha = 0.5)
+model_splash_a05 <- fit_splash(y, lambda = c(0.1, 0.2), alpha = 0.5)
 
 # Fit a single solution for F-SPLASH and SSF-SPLASH
 model_fsplash <- fit_fsplash(sigma_hat, Vhat_d, reg_gr, lambda = get_lam_best(best_lam_df, "best_lam_fsp"))
@@ -120,4 +120,4 @@ calc_msfe(y_test, model_fast_fusion$yhat)
 
 
 A_true[1:10, 1:10]
-model_splash_a05$A[1:10, 1:10]
+model_splash_a05$model$lambda

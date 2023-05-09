@@ -99,14 +99,14 @@ fit_splash <- function(y, lambda, alpha, verbose = FALSE, ...) {
         message(paste0("SPLASH took ", round(runtime, 2), " seconds to run."))
     }
 
-    A <- model$AB[, 1:p, ]
-    B <- model$AB[, (p + 1):(2 * p), ]
+    # A <- model$AB[, 1:p,    ]
+    # B <- model$AB[, (p + 1):(2 * p), ]
     # Return the fitted model
     output_list <- list(
         model = model,
-        A = A,
-        B = B,
-        C = AB_to_C(A, B),
+        # A = A,
+        # B = B,
+        # C = AB_to_C(A, B),
         runtime = runtime
     )
     return(output_list)

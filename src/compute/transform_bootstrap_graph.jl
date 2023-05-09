@@ -235,20 +235,6 @@ function bootstrap_estimator_R(y::Matrix{Float64}, q::Int=500)::Tuple{Int,Int}
     return (argmin(vec(sum(R0, dims=1))), argmin(vec(sum(R1, dims=1))))
 end
 
-"""
-Constuct Vhat_d without bootstrapping, meant for use in the cross-validation steps
-"""
-function calc_Vhat_d_sigma_hat_nb(y::Matrix{Float64}, h1::Int=0, h0::Int=0)::Tuple{SparseMatrixCSC{Float64},Vector{Float64}}
-    if h1 == 0 || h0 == 0
-        h1, h0 = size(y, 1), size(y, 1)
-    end
-    N, T = size(y)
-    Σ0 = band_matrix(calc_Σj(y, 0), h0)
-    Σ1 = band_matrix(calc_Σj(y, 1), h1)
-    Vhat = constr_Vhat(Σ0, Σ1)
-    return constr_Vhat_d(Vhat), vec_sigma_h(Σ1, h1)
-end
-
 # function main(sim_design_id, uuidtag)
 #     if uuidtag !== nothing
 #         path = joinpath("data", "simulation", sim_design_id, uuidtag)

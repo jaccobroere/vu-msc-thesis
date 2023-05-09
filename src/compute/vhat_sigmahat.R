@@ -36,8 +36,8 @@ vec_sigma_h <- function(Sigma1, h1 = 0) {
     if (h1 == 0) {
         return(as.vector(t(Sigma1)))
     }
-    Sigma1 <- band_matrix(Sigma1, h1)
-    return(as.vector(t(Sigma1)))
+    res <- band_matrix(Sigma1, h1)
+    return(as.vector(t(res)))
 }
 
 active_cols <- function(p, bandwidth = 0) {

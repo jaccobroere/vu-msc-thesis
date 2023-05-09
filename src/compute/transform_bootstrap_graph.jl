@@ -83,100 +83,6 @@ function band_matrix(A::Matrix{Float64}, h::Int)::Matrix{Float64}
 end
 
 """
-Construct the V matrix containing the columns of C' = [A B]', that are nonzero.
-
-## Arguments
-- `Σ0::Matrix{Float64}`: The covariance matrix of y.
-- `Σ1::Matrix{Float64}`: The covariance matrix of lag 1.
-- `h::int=0`: The bandwidth to use, if 0, then no bandwidth is used.
-- `prebanded::bool=false`: Whether Σ0 and Σ1 are already banded. Default is false.
-
-## Returns
-- `Matrix{Float64}`: The V matrix with dimensions N x (N+1), containing the columns of C' = [A B]', that are nonzero.
-"""
-function constr_Vhat(Σ0::Matrix{Float64}, Σ1::Matrix{Float64}, h0::Int=0, h1::Int=0)::Matrix{Float64}
-    if h0 == 0 || h1 == 0
-        return [Σ1' Σ0]
-    end
-
-    Σ0 = band_matrix(Σ0, h0)
-    Σ1 = band_matrix(Σ1, h1)
-    return [Σ1' Σ0]
-end
-
-"""
-Construct the vectorized autocovariance of lag 1 from the banded autocovariance matrix.
-
-## Arguments
-- `Σ1::Matrix{Float64}`: The banded autocovariance matrix of lag 1.
-- `h::Int=0`: The half-bandwidth to use. Default is size(Σ1, 1)/4.
-
-## Returns
-- `Vector{Float64}`: The vectorized autocovariance of lag 1.
-"""
-function vec_sigma_h(Σ1::Matrix{Float64}, h1::Int=0)::Vector{Float64}
-    if h1 == 0
-        return vec(Σ1')
-    end
-    Σ1 = band_matrix(Σ1, h1)
-    return vec(Σ1')
-end
-
-
-"""
-Calculate the active column indices for the matrix V_h^(d).
-
-## Arguments
-- `p::Int`: The dimension of the matrix V.
-- `bandwidth::Int=0`: The bandwidth to use. Default is p/4.
-
-## Returns
-- `Vector{Vector{Bool}}`: A p-length vector containing Boolean vectors representing the active column indices for each row.
-"""
-function active_cols(p::Int, bandwidth::Int=0)::Vector{Vector{Bool}}
-    if bandwidth == 0
-        bandwidth = div(p, 4)
-    end
-
-    active_set = [zeros(Bool, p * 2) for _ in 1:p]
-
-    for i in 1:p
-        lower_a = collect(max(1, i - bandwidth):max(0, i - 1))
-        upper_a = collect((i+1):min(i + bandwidth, p))
-        full_b = collect((p+max(1, (i - bandwidth))):(p+min(i + bandwidth, p)))
-        selection = vcat(lower_a, upper_a, full_b)
-
-        setindex!(active_set[i], ones(Bool, length(selection)), selection)
-    end
-    return active_set
-end
-
-"""
-Construct a diagonal block matrix from the active columns of V.
-
-## Arguments
-- `V::Matrix{Float64}`: The V matrix with dimensions N x (N+1), containing the columns of C' = [A B]', that are nonzero.
-- `bandwidth::Int=0`: The half-bandwidth to use. Default is size(V, 1)/4.
-
-## Returns
-- `SparseMatrixCSC{Float64}`: The resulting diagonal block matrix with dimensions p^2 x K, where K is the number of nonzero columns in V.
-"""
-function constr_Vhat_d(V::Matrix{Float64}, bandwidth::Int=0)::SparseMatrixCSC{Float64}
-    p = size(V, 1)
-    active = active_cols(p, bandwidth)
-    res = [V[:, active[i]] for i in 1:p]
-    Vhat_d = spzeros(p^2, sum(sum(active)))
-
-    row_index = col_index = 1
-    for (M, act) in zip(res, active)
-        @inbounds setindex!(Vhat_d, M, collect(row_index:(row_index+p-1)), collect(col_index:(col_index+sum(act)-1)))
-        row_index += p
-        col_index += sum(act)
-    end
-    return Vhat_d
-end
-
-"""
 Estimate the covariance matrix of lag j using a bootstrap method (Guo et al. 2016).
 
 ## Arguments
@@ -235,163 +141,49 @@ function bootstrap_estimator_R(y::Matrix{Float64}, q::Int=500)::Tuple{Int,Int}
     return (argmin(vec(sum(R0, dims=1))), argmin(vec(sum(R1, dims=1))))
 end
 
-# function main(sim_design_id, uuidtag)
-#     if uuidtag !== nothing
-#         path = joinpath("data", "simulation", sim_design_id, uuidtag)
-#         if !isdir(path)
-#             mkpath(path)
-#         end
-#     else
-#         path = joinpath("data", "simulation", sim_design_id)
-#     end
-
-#     # Read data 
-#     y = read_data(joinpath(path, "y.csv"))
-#     p = size(y, 1)
-#     h = div(p, 4)
-
-#     # Subset the first 80% of the data
-#     y = y[:, 1:div(size(y, 2), 5)*4]
-
-#     # Bootstrap the bandwidth
-#     h0, h1 = bootstrap_estimator_R(y, 500)
-
-#     # Do calculations
-#     Σ1 = calc_Σj(y, 1)
-#     Σ0 = calc_Σj(y, 0)
-
-#     Vhat = constr_Vhat(Σ0, Σ1, h0, h1)
-#     sigma_hat = vec_sigma_h(Σ1, h1)
-#     Vhat_d = constr_Vhat_d(Vhat) # Bandwitdh is set to floor(p/4) by default
-
-#     # Construct underlying graph 
-#     regular_graph = create_gsplash_graph(size(y, 1), symmetric=false) # Bandwitdh is set to floor(p/4) by default
-#     symmetric_graph = create_gsplash_graph(size(y, 1), symmetric=true)
-
-#     # Create and invert Dtilde if it does not exist for this dimension (only need to be calculated once)
-#     path_sim = joinpath("data", "simulation", sim_design_id)
-#     if !isfile(joinpath(path_sim, "Dtilde.mtx"))
-#         # Calculate the Dtilde matrix and its inverse, for F-SPLASH and SSF-SPLASH, respectively
-#         Dtilde = calc_Dtilde_sparse(regular_graph)
-#         Dtilde_inv = inv_Dtilde_sparse(regular_graph)
-#         Dtilde_SSF = calc_Dtilde_SSF_sparse(regular_graph, h)
-#         Dtilde_SSF_inv = inv_Dtilde_SSF_sparse(regular_graph, h)
-#         # Save the matrices in sparse matrix format
-#         mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde.mtx"), Dtilde)
-#         mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_inv.mtx"), Dtilde_inv)
-#         mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF.mtx"), Dtilde_SSF)
-#         mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_inv.mtx"), Dtilde_SSF_inv)
-#     end
-
-#     # Write output
-#     save_bandwiths_bootstrap(joinpath(path, "bootstrap_bandwidths.csv"), h0, h1)
-#     mmwrite(joinpath(path, "Vhat_d.mtx"), Vhat_d)
-#     CSV.write(joinpath(path, "sigma_hat.csv"), Tables.table(sigma_hat))
-#     save_graph_as_gml(regular_graph, joinpath(path, "reg_graph.graphml"))
-#     save_graph_as_gml(symmetric_graph, joinpath(path, "sym_graph.graphml"))
-
-#     return nothing
-# end
-
 function main(sim_design_id, uuidtag)
-    @time begin
-        if uuidtag !== nothing
-            path = joinpath("data", "simulation", sim_design_id, uuidtag)
-            if !isdir(path)
-                mkpath(path)
-            end
-        else
-            path = joinpath("data", "simulation", sim_design_id)
+    if uuidtag !== nothing
+        path = joinpath("data", "simulation", sim_design_id, uuidtag)
+        if !isdir(path)
+            mkpath(path)
         end
+    else
+        path = joinpath("data", "simulation", sim_design_id)
     end
-    println("Directory setup: ")
 
-    @time y_raw = read_data(joinpath(path, "y.csv"))
-    println("Read data: ")
-
-    @time begin
-        p = size(y_raw, 1)
+    # Create and invert Dtilde if it does not exist for this dimension (only need to be calculated once)
+    path_sim = joinpath("data", "simulation", sim_design_id)
+    if !isfile(joinpath(path_sim, "Dtilde.mtx"))
+        # Read data 
+        y_read = read_data(joinpath(path, "y.csv"))
+        p = size(y, 1)
         h = div(p, 4)
-    end
-    println("Compute p and h: ")
-    idx = 1:div(size(y, 2), 5)*4
-    @time y = y_raw[:, idx]
-    println("Subset the first 80% of the data: ")
-
-    @time h0, h1 = bootstrap_estimator_R(y, 500)
-    println("Bootstrap the bandwidth: ")
-
-    @time begin
-        Σ1 = calc_Σj(y, 1)
-        Σ0 = calc_Σj(y, 0)
-    end
-    println("Calculate Σ1 and Σ0: ")
-
-    @time Vhat = constr_Vhat(Σ0, Σ1, h0, h1)
-    println("Construct Vhat: ")
-
-    @time sigma_hat = vec_sigma_h(Σ1, h1)
-    println("Calculate sigma_hat: ")
-
-    @time Vhat_d = constr_Vhat_d(Vhat)
-    println("Construct Vhat_d: ")
-
-    @time begin
-        regular_graph = create_gsplash_graph(size(y, 1), symmetric=false)
+        # Subset the first 80% of the data
+        y = y_read[:, 1:div(size(y_read, 2), 5)*4]
+        # Bootstrap the bandwidth
+        h0, h1 = bootstrap_estimator_R(y, 2000)
+        # Construct underlying graph 
+        regular_graph = create_gsplash_graph(size(y, 1), symmetric=false) # Bandwitdh is set to floor(p/4) by default
         symmetric_graph = create_gsplash_graph(size(y, 1), symmetric=true)
-    end
-    println("Construct underlying graph: ")
-
-    @time begin
-        path_sim = joinpath("data", "simulation", sim_design_id)
-        if !isfile(joinpath(path_sim, "Dtilde.mtx"))
-            Dtilde = calc_Dtilde_sparse(regular_graph)
-            Dtilde_inv = inv_Dtilde_sparse(regular_graph)
-            Dtilde_SSF = calc_Dtilde_SSF_sparse(regular_graph, h)
-            Dtilde_SSF_inv = inv_Dtilde_SSF_sparse(regular_graph, h)
-            mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde.mtx"), Dtilde)
-            mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_inv.mtx"), Dtilde_inv)
-            mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF.mtx"), Dtilde_SSF)
-            mmwrite(joinpath("data", "simulation", sim_design_id, "Dtilde_SSF_inv.mtx"), Dtilde_SSF_inv)
-        end
-    end
-    println("Create and invert Dtilde: ")
-
-    @time begin
+        # Calculate the Dtilde matrix and its inverse, for F-SPLASH and SSF-SPLASH, respectively
+        Dtilde = calc_Dtilde_sparse(regular_graph)
+        Dtilde_inv = inv_Dtilde_sparse(regular_graph)
+        Dtilde_SSF = calc_Dtilde_SSF_sparse(regular_graph, h)
+        Dtilde_SSF_inv = inv_Dtilde_SSF_sparse(regular_graph, h)
+        # Save the matrices in sparse matrix format
+        mmwrite(joinpath(path_sim, "Dtilde.mtx"), Dtilde)
+        mmwrite(joinpath(path_sim, "Dtilde_inv.mtx"), Dtilde_inv)
+        mmwrite(joinpath(path_sim, "Dtilde_SSF.mtx"), Dtilde_SSF)
+        mmwrite(joinpath(path_sim, "Dtilde_SSF_inv.mtx"), Dtilde_SSF_inv)
+        # Save the graphs
+        save_graph_as_gml(regular_graph, joinpath(path_sim, "reg_graph.graphml"))
+        save_graph_as_gml(symmetric_graph, joinpath(path_sim, "sym_graph.graphml"))
+        # Save the bandwidths
         save_bandwiths_bootstrap(joinpath(path, "bootstrap_bandwidths.csv"), h0, h1)
-        mmwrite(joinpath(path, "Vhat_d.mtx"), Vhat_d)
-        CSV.write(joinpath(path, "sigma_hat.csv"), Tables.table(sigma_hat))
-        save_graph_as_gml(regular_graph, joinpath(path, "reg_graph.graphml"))
-        save_graph_as_gml(regular_graph, joinpath(path, "reg_graph.graphml"))
-        save_graph_as_gml(symmetric_graph, joinpath(path, "sym_graph.graphml"))
     end
-    println("Write output: ")
 
     return nothing
 end
 
-if abspath(PROGRAM_FILE) == @__FILE__
-    sim_design_id = ARGS[1]
-    uuidtag = length(ARGS) >= 2 ? ARGS[2] : nothing
-    main(sim_design_id, uuidtag)
-end
-
 # ## TESTING
-y = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/designB_T1000_p25/mc/D67DFC71-FF34-4731-B009-6C9668E5DA4E", "y.csv"))
-
-
-y_train = y[:, 1:div(size(y, 2), 5)*4]
-# bootstrap_estimator_R(y_train, 999)
-
-Σ1 = calc_Σj(y, 1)
-Σ0 = calc_Σj(y, 0)
-
-h0, h1 = 24, 24
-
-Vhat = constr_Vhat(Σ0, Σ1, h0, h1)
-Vhat_d = constr_Vhat_d(Vhat)[1:10, 1:10]
-# # Random 5x5 matrix
-# A = rand(5, 5)
-# band_matrix(A, 2)
-
-sum(sum(active_cols(4)))
+# y = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/designB_T1000_p25/mc/D67DFC71-FF34-4731-B009-6C9668E5DA4E", "y.csv"))

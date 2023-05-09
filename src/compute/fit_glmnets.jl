@@ -176,3 +176,18 @@ function fit_ssfsplash(sigma_hat::Matrix{Float64}, Vhat_d::SparseMatrixCSC{Float
 
     return coef
 end
+
+
+
+p = 9
+h = div(p, 4)
+
+vcat(
+    collect((p-h):(p-1)),
+    reverse(collect((p-h):(p-1))),
+    collect((p-h):(p-1)),
+    collect((p:p)),
+    reverse(collect((p-h):(p-1))),
+)
+
+reverse(collect((p-h):(p-1)))

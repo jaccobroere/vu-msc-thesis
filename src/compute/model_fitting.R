@@ -13,9 +13,10 @@ setwd(PROJ_DIR)
 
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
-sim_design_id <- ifelse(length(args) < 1, "designB_T1000_p25", args[1])
-uuidtag <- ifelse(length(args) < 2, "D67DFC71-FF34-4731-B009-6C9668E5DA4E", args[2])
-
+# sim_design_id <- ifelse(length(args) < 1, "designB_T1000_p25", args[1])
+# uuidtag <- ifelse(length(args) < 2, "D67DFC71-FF34-4731-B009-6C9668E5DA4E", args[2])
+sim_design_id <- ifelse(length(args) < 1, "designB_T1000_p4", args[1])
+uuidtag <- ifelse(length(args) < 2, "9280C290-E662-4A83-AEB2-AC9475E59448", args[2])
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
 fit_dir <- file.path(PROJ_DIR, "out/simulation/fit", sim_design_id, uuidtag)
@@ -115,10 +116,33 @@ train_idx <- (floor(dim(y)[2] / 5) * 4)
 y_train <- y[, 1:train_idx]
 y_test <- y[, (train_idx + 1):ncol(y)]
 
-model <- wrap_fsplash()
+model <- wrap_fsplash(0.05, 0)
 model$A[1:5, 1:5]
 
-# model_ssf <- wrap_ssfsplash()
+res <- rep(NULL, 20)
+lams <- 10^seq(-4, 0, length.out = 20)
+i <- 1
+for (l in lams) {
+    message("lambda: ", l)
+    model_ssf <- wrap_ssfsplash(l, 0.5)
+    res[i] <- model_ssf
+    i <- i + 1
+}
+lams[which.min(res)]
+
+resa <- rep(NULL, 20)
+alphs <- seq(0.01, 0.99, length.out = 20)
+i <- 1
+for (a in alphs) {
+    message("alpha: ", a)
+    model_ssf <- wrap_ssfsplash(lams[which.min(res)], a)
+    resa[i] <- model_ssf
+    i <- i + 1
+}
+alphs[which.min(res)]
+
+model_ssf <- wrap_ssfsplash(0.0001, 0)
+
 # model_ssf$A[1:5, 1:5]
 # # sum(model_ssf$A == 0)
 
@@ -129,4 +153,55 @@ model_fl <- wrap_gfsplash()
 model_fl$A[1:5, 1:5]
 # sum(model_fl$A == 0)
 
-model_pvar <- wrap_pvar()
+wrap_ssfsplash <- function(lambda, alpha) {
+    tic()
+    model <- fit_ssfsplash(sigma_hat, Vhat_d, reg_gr, Dtilde_SSF_inv, lambda = lambda, alpha = alpha)
+    toc()
+    print(calc_rmsfe(y_test, predict_with_C(model$C, y), predict_with_C(C_true, y)))
+    ee <- calc_rmsfe(y_test, predict_with_C(model$C, y), predict_with_C(C_true, y))
+    print(calc_EE(A_true, model$A, type = "2"))
+    print(calc_EE(B_true, model$B, type = "2"))
+    print(sum(model$A == 0))
+    return(ee)
+}
+
+p <- 4
+h <- 1
+
+result <- c(
+    (p - h):(p - 1),
+    rev((p - h):(p - 1)),
+    (p - h):(p - 1),
+    (p),
+    rev((p - h):(p - 1))
+)
+(1 - 0.2) / sqrt(result)
+
+
+alpha <- 0.99
+m <- ecount(reg_gr)
+k <- vcount(reg_gr)
+
+M <- .sparseDiagonal(x = c(
+    rep(alpha, m),
+    # 1 / ((1 - alpha) * sqrt(multipliers))
+    rep((1 - alpha), (k - m))
+))
+
+M_inv <- .sparseDiagonal(x = c(
+    rep((1 / alpha), m),
+    # 1 / ((1 - alpha) * sqrt(multipliers))
+    rep((1 / (1 - alpha)), (k - m))
+))
+
+III <- as.matrix(M %*% M_inv)
+
+all(Dtilde_SSF_inv %*% M_inv == round(inv(as.matrix(M) %*% as.matrix(Dtilde_SSF))))
+
+Dtilde_SSF_inv %*% M_inv
+inv(as.matrix(M) %*% as.matrix(Dtilde_SSF))
+
+III
+M_inv
+
+approx()

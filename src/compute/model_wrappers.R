@@ -233,19 +233,26 @@ fit_fsplash <- function(sigma_hat, Vhat_d, graph, Dtilde_inv, lambda = NULL, nla
     )
 }
 
-fit_ssfsplash <- function(sigma_hat, Vhat_d, Dtilde_SSF_inv, lambda, alpha) {
+fit_ssfsplash <- function(sigma_hat, Vhat_d, graph, Dtilde_SSF_inv, lambda, alpha) {
     # Get dimensions of the problem
-    # m <- ecount(graph)
-    # k <- vcount(graph)
+    m <- ecount(graph) # This graph objects represent the graph of the non-symmetric GSPLASH
+    k <- vcount(graph)
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
-
-    # Reparametrize to gamma
-    gamma <- alpha / (1 - alpha)
-    lambda_star <- lambda * (1 - alpha)
 
     # Calculate the scaled version of Dtilde_SSF_inv, the multiplier matrix M, has to be inverted
     # but is a diagonal matrix, so we now the explicit form of the inverse and calculate it directly
-    M_inv <- .sparseDiagonal(x = c(rep(1, m), rep((1 / gamma), k - m)))
+    h <- floor(p / 4)
+    multipliers <- c(
+        (p - h):(p - 1),
+        rev((p - h):(p - 1)),
+        (p - h):(p - 1),
+        (p),
+        rev((p - h):(p - 1))
+    )
+    M_inv <- .sparseDiagonal(x = c(
+        rep((1 / alpha), m),
+        1 / ((1 - alpha) * sqrt(multipliers))
+    ))
     Dtilde_SSF_inv_gamma <- Dtilde_SSF_inv %*% M_inv
 
     # Transform the input to LASSO objective (see Tibshirani and Taylor, 2011)
@@ -269,7 +276,7 @@ fit_ssfsplash <- function(sigma_hat, Vhat_d, Dtilde_SSF_inv, lambda, alpha) {
             coef[, i] <- as.vector(c)
         }
     } else {
-        model <- glmnet(XD1, as.vector(sigma_hat), lambda = lambda_star, alpha = 1, intercept = FALSE)
+        model <- glmnet(XD1, as.vector(sigma_hat), lambda = lambda, alpha = 1, intercept = FALSE)
         theta <- as.vector(model$beta)
         coef <- Dtilde_SSF_inv_gamma %*% theta
         AB <- coef_to_AB(coef, p)

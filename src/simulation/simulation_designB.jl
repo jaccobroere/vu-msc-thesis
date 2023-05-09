@@ -1,10 +1,11 @@
-"""
+#=
 This simulation design replicates the simulation design B from Reuvers and Wijler (2021).
 In this simulation design:
 - A has first horizontal and first vertical interactions between neighbors
 - B is a diagonal matrix
-"""
-
+=#
+using Pkg
+Pkg.activate(joinpath(ENV["PROJ_DIR"], "juliaenv"), io=devnull)
 using LinearAlgebra
 using Distributions
 using Random

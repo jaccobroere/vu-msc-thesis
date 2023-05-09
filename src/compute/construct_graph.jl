@@ -1,5 +1,5 @@
 using Pkg
-Pkg.activate(joinpath(ENV["PROJ_DIR"], "juliaenv"))
+Pkg.activate(joinpath(ENV["PROJ_DIR"], "juliaenv"), io=devnull)
 using Graphs, GraphIO, EzXML
 path = dirname(abspath(@__FILE__))
 include(joinpath(path, "utils.jl"))

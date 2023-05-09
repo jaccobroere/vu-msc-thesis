@@ -8,12 +8,13 @@ library(data.table)
 library(tictoc)
 library(matrixStats)
 library(Matrix)
+library(tictoc)
 setwd(PROJ_DIR)
 
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
 sim_design_id <- ifelse(length(args) < 1, "designB_T500_p16", args[1])
-uuidtag <- ifelse(length(args) < 2, "3BAC813E-62EF-41EA-B54E-81F63DC3173F", args[2])
+uuidtag <- ifelse(length(args) < 2, "2F6F7285-EC2E-4F0F-B7CD-8B54F91A8240", args[2])
 
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
@@ -113,7 +114,12 @@ model$A[1:5, 1:5]
 model_fl <- fit_gfsplash(sigma_hat, Vhat_d, graph = reg_gr, alpha = 0, lambda = 0.05)
 model_fl$A[1:5, 1:5]
 
-
+wrap_fsplash <- function() {
+    tic()
+    model <- fit_fsplash(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda = 0.05)
+    toc()
+    return(model)
+}
 
 fit_fsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
     m <- ecount(graph)
@@ -155,3 +161,5 @@ fit_fsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
         runtimeXtilde = runtimeXtilde
     )
 }
+
+wrap_fsplash()

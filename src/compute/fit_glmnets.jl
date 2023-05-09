@@ -13,7 +13,7 @@ source('src/compute/utils.R')
 
 
 PROJ_DIR = ENV["PROJ_DIR"]
-include(joinpath(PROJ_DIR, "src", "compute", "transform_bootstrap_graph.jl"))
+include(joinpath(PROJ_DIR, "src", "compute", "precalculations_and_write.jl.jl"))
 
 # Read CLI arguments
 args = ARGS

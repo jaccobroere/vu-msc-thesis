@@ -11,7 +11,7 @@ using IterativeSolvers
 PROJ_DIR = ENV["PROJ_DIR"]
 include(joinpath(PROJ_DIR, "src", "compute", "construct_graph.jl"))
 include(joinpath(PROJ_DIR, "src", "compute", "utils.jl"))
-include(joinpath(PROJ_DIR, "src", "compute", "transform_bootstrap_graph.jl"))
+include(joinpath(PROJ_DIR, "src", "compute", "precalculations_and_write.jl.jl"))
 
 function null_space_graph(graph::SimpleGraph{Int64})::Matrix{Int64}
     null_vecs = zeros(Float64, nv(graph), nv(graph) - ne(graph))

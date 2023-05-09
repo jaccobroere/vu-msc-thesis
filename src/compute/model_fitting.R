@@ -54,7 +54,6 @@ y <- as.matrix(fread(path_y, header = T, skip = 0))
 best_lam_df <- as.data.frame(fread(file.path(lambdas_dir, "best_lambdas.csv"), header = T, skip = 0))
 
 # Fit the a single solution using (Augmented) ADMM of GSPLASH
-model_gsplash_a0 <- fit_gfsplash(sigma_hat, Vhat_d, reg_gr, get_lam_best(best_lam_df, "best_lam_reg_a0"), alpha = 0, standard_ADMM = TRUE)
 model_gsplash_a05 <- fit_gfsplash(sigma_hat, Vhat_d, reg_gr, get_lam_best(best_lam_df, "best_lam_reg_a05"), alpha = 0.5, standard_ADMM = TRUE)
 # Fit a single solution of symmetric_GSPLASH
 model_sym_gsplash_a0 <- fit_gfsplash(sigma_hat, Vhat_d, sym_gr, get_lam_best(best_lam_df, "best_lam_sym_a0"), alpha = 0, standard_ADMM = TRUE)
@@ -62,15 +61,11 @@ model_sym_gsplash_a05 <- fit_gfsplash(sigma_hat, Vhat_d, sym_gr, get_lam_best(be
 # Fit the a single solution using SPLASH
 model_splash_a0 <- fit_splash(y, get_lam_best(best_lam_df, "best_lam_spl_a0"), alpha = 0)
 model_splash_a05 <- fit_splash(y, get_lam_best(best_lam_df, "best_lam_spl_a05"), alpha = 0.5)
+# Fit a single solution for F-SPLASH and SSF-SPLASH
+model_fsplash <- fit_fsplash(sigma_hat, Vhat_d, reg_gr, lambda = get_lam_best(best_lam_df, "best_lam_fsp"))
+model_ssfsplash <- fit_ssfsplash(sigma_hat, Vhat_d, Dtilde_SSF_inv, lambda = get_lam_best(best_lam_df, "best_lam_ssf"), alpha = 0.5)
 # Fit a single solution using PVAR(1) with the BigVAR package, also runs a grid search
 model_pvar <- fit_pvar(y)
-
-
-
-
-
-# Model fast fusion
-model_fast_fusion <- fit_fsplash(sigma_hat, Vhat_d, reg_gr, lambda = get_lam_best(best_lam_df, "best_lam_reg_a0"))
 
 # Compute and save the predictions
 model_gsplash_a0$yhat <- predict_with_C(model_gsplash_a0$C, y)

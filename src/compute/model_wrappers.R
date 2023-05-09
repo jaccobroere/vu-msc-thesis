@@ -192,7 +192,7 @@ fit_fsplash <- function(sigma_hat, Vhat_d, graph, Dtilde_inv, lambda = NULL, nla
 
     t0 <- Sys.time()
     if (is.null(lambda)) {
-        model <- glmnet(Xtilde, ytilde, nlambda = nlambda, alpha = 1, intercept = FALSE, standardize = TRUE)
+        model <- glmnet(Xtilde, ytilde, nlambda = nlambda, alpha = 1, intercept = FALSE)
         # Loop over fitted solution for all lambdas
         C <- array(NA, dim = c(p, p, nlambda))
         A <- array(NA, dim = c(p, p, nlambda))
@@ -209,8 +209,7 @@ fit_fsplash <- function(sigma_hat, Vhat_d, graph, Dtilde_inv, lambda = NULL, nla
             coef[, i] <- as.vector(c)
         }
     } else {
-        # model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
-        model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE, standardize = TRUE)
+        model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE)
         theta1 <- as.vector(model$beta)
         theta2 <- as.vector(X2_plus %*% (t(sigma_hat) - X1 %*% theta1))
         coef <- Dtilde_inv %*% c(theta1, theta2)
@@ -246,15 +245,15 @@ fit_ssfsplash <- function(sigma_hat, Vhat_d, Dtilde_SSF_inv, lambda, alpha) {
 
     # Calculate the scaled version of Dtilde_SSF_inv, the multiplier matrix M, has to be inverted
     # but is a diagonal matrix, so we now the explicit form of the inverse and calculate it directly
-    # M_inv <- .sparseDiagonal(x = c(rep(1, m), rep((1 / gamma), k - m)))
-    Dtilde_SSF_inv_gamma <- Dtilde_SSF_inv # %*% M_inv
+    M_inv <- .sparseDiagonal(x = c(rep(1, m), rep((1 / gamma), k - m)))
+    Dtilde_SSF_inv_gamma <- Dtilde_SSF_inv %*% M_inv
 
     # Transform the input to LASSO objective (see Tibshirani and Taylor, 2011)
     XD1 <- Vhat_d %*% Dtilde_SSF_inv_gamma # Same as Vhat_d * inv(Dtilde)
 
     t0 <- Sys.time()
     if (is.null(lambda)) {
-        model <- glmnet(XD1, as.vector(sigma_hat), nlambda = nlambda, alpha = 1, intercept = FALSE, standardize = TRUE)
+        model <- glmnet(XD1, as.vector(sigma_hat), nlambda = nlambda, alpha = 1, intercept = FALSE)
         # Loop over fitted solution for all lambdas
         C <- array(NA, dim = c(p, p, nlambda))
         A <- array(NA, dim = c(p, p, nlambda))
@@ -270,8 +269,7 @@ fit_ssfsplash <- function(sigma_hat, Vhat_d, Dtilde_SSF_inv, lambda, alpha) {
             coef[, i] <- as.vector(c)
         }
     } else {
-        # model <- glmnet(XD1, as.vector(sigma_hat), lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
-        model <- glmnet(XD1, as.vector(sigma_hat), lambda = lambda, alpha = 1, intercept = FALSE, standardize = TRUE)
+        model <- glmnet(XD1, as.vector(sigma_hat), lambda = lambda_star, alpha = 1, intercept = FALSE)
         theta <- as.vector(model$beta)
         coef <- Dtilde_SSF_inv_gamma %*% theta
         AB <- coef_to_AB(coef, p)

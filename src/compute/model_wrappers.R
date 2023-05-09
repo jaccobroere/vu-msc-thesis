@@ -185,9 +185,9 @@ fit_fsplash <- function(sigma_hat, Vhat_d, graph, Dtilde_inv, lambda = NULL, nla
     X2_plus <- solve((t(X2) %*% X2), t(X2)) # Same as inv(t(X2) %*% X2) %*% t(X2)
 
     # Transform the input to LASSO objective
-    P <- X2 %*% X2_plus
-    ytilde <- as.vector((diag(nrow(P)) - P) %*% t(sigma_hat))
-    Xtilde <- (diag(nrow(P)) - P) %*% X1
+    IminP <- diag(nrow(X2)) - X2 %*% X2_plus # Calculate I - P directly, P = X2 %*% X2_plus
+    ytilde <- as.vector(IminP %*% t(sigma_hat))
+    Xtilde <- IminP %*% X1
     runtimeXtilde <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     t0 <- Sys.time()

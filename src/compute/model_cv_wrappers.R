@@ -14,7 +14,7 @@ library(Matrix)
 library(caret)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
 
-fit_splash.cv <- function(y, alpha, nlambdas, n_folds = 5, ...) {
+fit_splash.cv <- function(y, alpha, nlambdas, nfolds = 5, ...) {
     # Read problem dimensionality
     p <- dim(y)[1]
 
@@ -23,7 +23,7 @@ fit_splash.cv <- function(y, alpha, nlambdas, n_folds = 5, ...) {
     y_test <- y[, ((floor(dim(y)[2] / 5) * 4) + 1):dim(y)[2]]
 
     # Create cross-validation folds
-    folds <- create_folds(y_train, nfolds = n_folds)
+    folds <- create_folds(y_train, nfolds = nfolds)
 
     # Fit the model on each fold and save the results
     errors <- matrix(NA, nrow = length(folds), ncol = nlambdas)
@@ -44,14 +44,14 @@ fit_splash.cv <- function(y, alpha, nlambdas, n_folds = 5, ...) {
         for (j in 1:nlambdas) {
             A_cv[, , j] <- model_cv$AB[, 1:p, j]
             B_cv[, , j] <- model_cv$AB[, (p + 1):(2 * p), j]
-            C_cv[, , j] <- AB_to_C(A, B)
-            y_pred_cv[, , j] <- predict_with_C(C[, , j], y_train_cv, y_val_cv)
+            C_cv[, , j] <- AB_to_C(A_cv[, , j], B_cv[, , j])
+            y_pred_cv[, , j] <- predict_with_C(C_cv[, , j], y_train_cv, y_val_cv)
             errors_cv[i, j] <- calc_msfe(y_pred_cv[, , j], y_val_cv)
         }
     }
 
     # Get the best lambda value
-    best_lambda <- model$lambda[which.min(colMeans(errors_cv)), 1]
+    best_lambda <- model_cv$lambda[which.min(colMeans(errors_cv)), 1]
 
     # Fit the model on the entire training set
     t0 <- Sys.time()
@@ -70,7 +70,229 @@ fit_splash.cv <- function(y, alpha, nlambdas, n_folds = 5, ...) {
         C = C,
         y_pred = predict_with_C(C, y_train, y_test),
         errors_cv = errors_cv,
-        best_lambda = best_lambda
+        best_lambda = best_lambda,
+        runtime = difftime(t1, t0, units = "secs")[[1]]
+    )
+    return(output_list)
+}
+
+fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, alpha, nlambdas, nfolds = 5, ...) {
+    # Read problem dimensionality
+    p <- dim(y)[1]
+    m <- ecount(graph)
+    k <- vcount(graph)
+
+    # Parse bandwidths
+    h0 <- bandwidths[1]
+    h1 <- bandwidths[2]
+
+    # Split y into training and testing sets
+    y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
+    y_test <- y[, ((floor(dim(y)[2] / 5) * 4) + 1):dim(y)[2]]
+
+    # Create cross-validation folds
+    folds <- create_folds(y_train, nfolds = nfolds)
+
+    # Fit the model on each fold and save the results
+    errors <- matrix(NA, nrow = nfolds, ncol = nlambdas)
+    for (i in 1:nfolds) {
+        # Split the data into training and validation sets
+        y_train_cv <- y_train[, folds$train[[i]]]
+        y_val_cv <- y_train[, folds$test[[i]]]
+
+        # Construct Vhat_d and sigma_hat from the training validation
+        Sigma0 <- calc_Sigma_j(y_train_cv, 0)
+        Sigma1 <- calc_Sigma_j(y_train_cv, 1)
+        Vhat <- construct_Vhat(Sigma0, Sigma1, h0, h1)
+        sigma_hat <- vec_sigma_h(Sigma1, h1)
+        Vhat_d <- construct_Vhat_d(Vhat)
+
+        # Transform Generalized Lasso problem into LASSO problem
+        XD1 <- Vhat_d %*% Dtilde_inv # Same as Vhat_d * inv(Dtilde)
+        X1 <- XD1[, 1:m]
+        X2 <- XD1[, (m + 1):dim(XD1)[2]]
+        X2_plus <- solve((t(X2) %*% X2), t(X2)) # Same as inv(t(X2) %*% X2) %*% t(X2)
+
+        # Transform the input to LASSO objective
+        IminP <- diag(nrow(X2)) - X2 %*% X2_plus # Calculate I - P directly, P = X2 %*% X2_plus
+        ytilde <- as.vector(IminP %*% t(sigma_hat))
+        Xtilde <- IminP %*% X1
+
+        # Fit the model on the training set
+        model_cv <- glmnet(XD1, ytilde, nlambda = nlambdas, alpha = 1, intercept = FALSE, lambda.min.ratio = 1e-4, ...)
+
+        # Compute the prediction error on the validation set
+        C_cv <- array(NA, dim = c(p, p, nlambda))
+        A_cv <- array(NA, dim = c(p, p, nlambda))
+        B_cv <- array(NA, dim = c(p, p, nlambda))
+        y_pred_cv <- array(NA, dim = c(p, dim(y_val_cv)[2], nlambda))
+        errors_cv <- array(NA, dim = c(nfolds, nlambdas))
+        for (j in 1:nlambdas) {
+            theta1 <- as.vector(model$beta[, j])
+            theta2 <- as.vector(X2_plus %*% (t(sigma_hat) - X1 %*% theta1))
+            coef_cv <- Dtilde_inv %*% c(theta1, theta2)
+            AB <- coef_to_AB(coef_cv, p)
+            A_cv[, , j] <- AB$A
+            B_cv[, , j] <- AB$B
+            C_cv[, , j] <- AB_to_C(AB$A, AB$B)
+            y_pred_cv[, , j] <- predict_with_C(C_cv[, , j], y_train_cv, y_val_cv)
+            errors_cv[i, j] <- calc_msfe(y_pred_cv[, , j], y_val_cv)
+        }
+    }
+
+    # Get the best lambda value
+    best_lambda <- model_cv$lambda[which.min(colMeans(errors_cv))]
+
+    # Construct Vhat_d and sigma_hat from the training validation
+    Sigma0 <- calc_Sigma_j(y_train, 0)
+    Sigma1 <- calc_Sigma_j(y_train, 1)
+    Vhat <- construct_Vhat(Sigma0, Sigma1, h0, h1)
+    sigma_hat <- vec_sigma_h(Sigma1, h1)
+    Vhat_d <- construct_Vhat_d(Vhat)
+
+    t0 <- Sys.time()
+    XD1 <- Vhat_d %*% Dtilde_inv # Same as Vhat_d * inv(Dtilde)
+    X1 <- XD1[, 1:m]
+    X2 <- XD1[, (m + 1):dim(XD1)[2]]
+    X2_plus <- solve((t(X2) %*% X2), t(X2)) # Same as inv(t(X2) %*% X2) %*% t(X2)
+
+    # Transform the input to LASSO objective
+    IminP <- diag(nrow(X2)) - X2 %*% X2_plus # Calculate I - P directly, P = X2 %*% X2_plus
+    ytilde <- as.vector(IminP %*% t(sigma_hat))
+    Xtilde <- IminP %*% X1
+    # Fit the model on the entire training set
+
+    # Fit the model on the training set
+    model_cv <- glmnet(XD1, ytilde, lambda = best_lambda, alpha = 1, intercept = FALSE, ...)
+    t1 <- Sys.time()
+
+    # Extract the model output
+    A <- model$AB[, 1:p, ]
+    B <- model$AB[, (p + 1):(2 * p), ]
+    C <- AB_to_C(A, B)
+
+    output_list <- list(
+        model = model,
+        A = A,
+        B = B,
+        C = C,
+        y_pred = predict_with_C(C, y_train, y_test),
+        errors_cv = errors_cv,
+        best_lambda = best_lambda,
+        runtime = difftime(t1, t0, units = "secs")[[1]]
+    )
+    return(output_list)
+}
+
+fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambdas, nfolds = 5, ...) {
+    # Read problem dimensionality
+    p <- dim(y)[1]
+    m <- ecount(graph)
+    k <- vcount(graph)
+    h <- floor(p / 4) # Bandwidth for the A and B matrix
+
+    # Parse bandwidths
+    h0 <- bandwidths[1]
+    h1 <- bandwidths[2]
+
+    # Split y into training and testing sets
+    y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
+    y_test <- y[, ((floor(dim(y)[2] / 5) * 4) + 1):dim(y)[2]]
+
+    # Create cross-validation folds
+    folds <- create_folds(y_train, nfolds = nfolds)
+
+    # Fit the model on each fold and save the results
+    errors <- matrix(NA, nrow = nfolds, ncol = nlambdas)
+    for (i in 1:nfolds) {
+        # Split the data into training and validation sets
+        y_train_cv <- y_train[, folds$train[[i]]]
+        y_val_cv <- y_train[, folds$test[[i]]]
+
+        # Construct Vhat_d and sigma_hat from the training validation
+        Sigma0 <- calc_Sigma_j(y_train_cv, 0)
+        Sigma1 <- calc_Sigma_j(y_train_cv, 1)
+        Vhat <- construct_Vhat(Sigma0, Sigma1, h0, h1)
+        sigma_hat <- vec_sigma_h(Sigma1, h1)
+        Vhat_d <- construct_Vhat_d(Vhat)
+
+        # Transform Generalized Lasso problem into LASSO problem
+        multipliers <- c(
+            (p - h):(p - 1),
+            rev((p - h):(p - 1)),
+            (p - h):(p - 1),
+            (p),
+            rev((p - h):(p - 1))
+        )
+        M_inv <- .sparseDiagonal(x = c(
+            rep((1 / alpha), m),
+            1 / ((1 - alpha) * sqrt(multipliers))
+        ))
+        Dtilde_SSF_inv_gamma <- Dtilde_SSF_inv %*% M_inv
+
+        # Transform the input to LASSO objective (see Tibshirani and Taylor, 2011)
+        XD1 <- Vhat_d %*% Dtilde_SSF_inv_gamma # Same as Vhat_d * inv(Dtilde)
+
+        # Fit the model on the training set
+        model_cv <- glmnet(XD1, as.vector(sigma_hat), nlambda = nlambdas, alpha = 1, intercept = FALSE, lambda.min.ratio = 1e-4, ...)
+
+        # Compute the prediction error on the validation set
+        C_cv <- array(NA, dim = c(p, p, nlambda))
+        A_cv <- array(NA, dim = c(p, p, nlambda))
+        B_cv <- array(NA, dim = c(p, p, nlambda))
+        y_pred_cv <- array(NA, dim = c(p, dim(y_val_cv)[2], nlambda))
+        errors_cv <- array(NA, dim = c(nfolds, nlambdas))
+        for (j in 1:nlambdas) {
+            theta <- as.vector(model$beta[, j])
+            coef_cv <- Dtilde_SSF_inv_gamma %*% theta
+            AB <- coef_to_AB(coef_cv, p)
+            A_cv[, , j] <- AB$A
+            B_cv[, , j] <- AB$B
+            C_cv[, , j] <- AB_to_C(AB$A, AB$B)
+            y_pred_cv[, , j] <- predict_with_C(C_cv[, , j], y_train_cv, y_val_cv)
+            errors_cv[i, j] <- calc_msfe(y_pred_cv[, , j], y_val_cv)
+        }
+    }
+
+    # Get the best lambda value
+    best_lambda <- model_cv$lambda[which.min(colMeans(errors_cv))]
+
+    # Construct Vhat_d and sigma_hat from the training validation
+    Sigma0 <- calc_Sigma_j(y_train, 0)
+    Sigma1 <- calc_Sigma_j(y_train, 1)
+    Vhat <- construct_Vhat(Sigma0, Sigma1, h0, h1)
+    sigma_hat <- vec_sigma_h(Sigma1, h1)
+    Vhat_d <- construct_Vhat_d(Vhat)
+
+    t0 <- Sys.time()
+    XD1 <- Vhat_d %*% Dtilde_inv # Same as Vhat_d * inv(Dtilde)
+    X1 <- XD1[, 1:m]
+    X2 <- XD1[, (m + 1):dim(XD1)[2]]
+    X2_plus <- solve((t(X2) %*% X2), t(X2)) # Same as inv(t(X2) %*% X2) %*% t(X2)
+
+    # Transform the input to LASSO objective
+    IminP <- diag(nrow(X2)) - X2 %*% X2_plus # Calculate I - P directly, P = X2 %*% X2_plus
+    ytilde <- as.vector(IminP %*% t(sigma_hat))
+    Xtilde <- IminP %*% X1
+    
+    # Fit the model on the entire training set
+    model_cv <- glmnet(XD1, ytilde, lambda = best_lambda, alpha = 1, intercept = FALSE, ...)
+    t1 <- Sys.time()
+
+    # Extract the model output
+    A <- model$AB[, 1:p, ]
+    B <- model$AB[, (p + 1):(2 * p), ]
+    C <- AB_to_C(A, B)
+
+    output_list <- list(
+        model = model,
+        A = A,
+        B = B,
+        C = C,
+        y_pred = predict_with_C(C, y_train, y_test),
+        errors_cv = errors_cv,
+        best_lambda = best_lambda,
+        runtime = difftime(t1, t0, units = "secs")[[1]]
     )
     return(output_list)
 }

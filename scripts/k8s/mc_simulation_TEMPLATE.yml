@@ -10,7 +10,7 @@ spec:
       containers:
       - name: modelfit-cont
         image: jaccusaurelius/vu-msc-thesis:kube
-        command: ["bash", "-c", "scripts/model_fit_sim_iter.sh designB_T500_p16"]
+        command: ["bash", "-c", "scripts/model_fit_montecarlo.sh REPLACEME"]
         volumeMounts:
         - name: pv-out
           mountPath: /app/vu-msc-thesis/out

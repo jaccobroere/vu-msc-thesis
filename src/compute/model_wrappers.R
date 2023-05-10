@@ -12,14 +12,7 @@ library(glmnet)
 library(Matrix)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
 
-fit_gfsplash <- function(sigma_hat, Vhat_d, graph = NULL, D = NULL, lambda, alpha, verbose = FALSE, scale = TRUE, ...) {
-    if (scale) {
-        # Scale the data
-        sd_y <- sd(sigma_hat)
-        sigma_hat <- scale(as.vector(sigma_hat), center = FALSE)
-        sd_x <- apply(Vhat_d, 2, sd)
-        Vhat_d <- scale(Vhat_d)
-    }
+fit_gfsplash <- function(sigma_hat, Vhat_d, graph = NULL, D = NULL, lambda, alpha, verbose = FALSE, ...) {
     # Retrieve the cross-sectional dimension of the problem
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
@@ -53,9 +46,6 @@ fit_gfsplash <- function(sigma_hat, Vhat_d, graph = NULL, D = NULL, lambda, alph
 
     t0 <- Sys.time()
     coef <- as.vector(model$beta_path[, 1])
-    if (scale) {
-        coef <- coef / sd_x * sd_y
-    }
     AB <- coef_to_AB(coef, p)
     A <- AB$A
     B <- AB$B

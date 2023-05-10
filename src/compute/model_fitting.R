@@ -145,10 +145,17 @@ cv_splash_a0$msfe
 cv_fsplash$msfe
 cv_ssfsplash$msfe
 cv_pvar$msfe
-
+cv_splash_a0
 cv_pvar
 dim(cv_pvar$errors_cv)
 
 alpha <- 0
 nfolds <- 5
 nlambdas <- 20
+
+
+
+fl <- fusedlasso(as.vector(sigma_hat), Vhat_d, graph = reg_gr, gamma = 0, maxsteps = 2)
+fl$lambda
+
+as.vector(sigma_hat)

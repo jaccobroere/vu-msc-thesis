@@ -360,18 +360,90 @@ fit_pvar.cv <- function(y, nlambdas = 20, nfolds = 5, ...) {
     return(output_list)
 }
 
+fit_gfsplash.cv.iter <- function(y, bandwidths, graph, alpha, nlambdas = 20, lambda.min.ratio = 1e-4, ...) {
+    # Read problem dimensionality
+    p <- dim(y)[1]
+    m <- ecount(graph)
+    k <- vcount(graph)
+    h <- floor(p / 4) # Bandwidth for the A and B matrix
 
+    # Parse bandwidths
+    h0 <- bandwidths[1]
+    h1 <- bandwidths[2]
 
-create_folds <- function(y, nfolds = 5, test_size = 0.2) {
-    # Create cross-validation folds
-    time_indices <- 1:dim(y)[2]
-    initialWindow <- dim(y)[2] - floor(dim(y)[2] * test_size)
-    horizon <- dim(y)[2] * 0.2 / nfolds
-    folds <- createTimeSlices(time_indices,
-        initialWindow = initialWindow,
-        horizon = horizon,
-        fixedWindow = TRUE,
-        skip = horizon - 1
+    # Reparameterize the lambda and alpha for the linreg_path_v2 function, see paper Zhu 2017 Augmented ADMM
+    gamma <- alpha / (1 - alpha)
+
+    # Split y into training and testing sets
+    train_idx <- (floor(dim(y)[2] / 5) * 4)
+    y_train <- y[, 1:train_idx]
+    # y_test <- y[, ((floor(dim(y)[2] / 5) * 4) + 1):dim(y)[2]]
+    y_test <- y[, (train_idx + 1):(train_idx + 20)]
+
+    # Construct the D matrix from the penalty graph
+    D <- as(getDgSparse(graph = graph), "TsparseMatrix")
+
+    # Fit the model on each fold and save the results
+    C <- array(NA, dim = c(p, p, nlambdas))
+    A <- array(NA, dim = c(p, p, nlambdas))
+    B <- array(NA, dim = c(p, p, nlambdas))
+    y_pred <- array(NA, dim = c(p, dim(y_test)[2], nlambdas))
+    errors <- rep(NA, nlambdas)
+
+    # Construct Vhat_d and sigma_hat from the training validation
+    t0 <- Sys.time()
+    Sigma0 <- calc_Sigma_j(y_train, 0)
+    Sigma1 <- calc_Sigma_j(y_train, 1)
+    Vhat <- construct_Vhat(Sigma0, Sigma1, h0, h1)
+    sigma_hat <- construct_sigma_hat(Sigma1, h1)
+    print(sigma_hat)
+    Vhat_d <- as.matrix(construct_Vhat_d(Vhat))
+
+    # Calculate lambda_0 and construct lambda grid accordingly
+    lambda_0 <- calc_lambda_0_gfsplash(sigma_hat, Vhat_d, graph, alpha) # This gives lambda_0 in the (lambda, alpha) parametrization
+    lambda_grid_linreg <- rev(lambda_0 * 10^seq(log10(lambda.min.ratio), 0, length.out = nlambdas)) / (1 + gamma)
+
+    # Fit the model on the training set
+    model_grid <- linreg_path_v2(
+        Y = as.vector(sigma_hat),
+        X = Vhat_d,
+        val = D@x,
+        idx = D@i + 1,
+        jdx = D@j + 1,
+        lambda_graph = as.vector(lambda_grid_linreg),
+        gamma = gamma,
+        p = dim(Vhat_d)[2],
+        m = dim(D)[1]
+        # ...
     )
-    return(folds)
+
+    # Compute the prediction error on the validation set
+    for (j in 1:nlambdas) {
+        coef <- as.vector(model_grid$beta_path[, j])
+        AB <- coef_to_AB(coef, p)
+        A[, , j] <- AB$A
+        B[, , j] <- AB$B
+        C[, , j] <- AB_to_C(AB$A, AB$B)
+        y_pred[, , j] <- predict_with_C(C[, , j], y_train, y_test)
+        errors[j] <- calc_msfe(y_pred[, , j], y_test)
+    }
+
+    # Get the best lambda value
+    best_idx <- which.min(errors)
+    best_msfe <- errors[best_idx]
+    best_lambda <- lambda_grid_linreg[best_idx] * (1 + gamma)
+
+    output_list <- list(
+        model = model_grid,
+        A = A,
+        B = B,
+        C = C,
+        errors = errors,
+        y_pred = y_pred,
+        best_msfe = best_msfe,
+        best_lambda = best_lambda,
+        best_idx = best_idx,
+        runtime = difftime(t1, t0, units = "secs")[[1]]
+    )
+    return(output_list)
 }

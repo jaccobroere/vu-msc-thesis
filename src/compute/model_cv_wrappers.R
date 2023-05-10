@@ -303,7 +303,7 @@ fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambd
     return(output_list)
 }
 
-fit_pvar.cv <- function(y, nlambdas = 20, verbose = FALSE, ...) {
+fit_pvar.cv <- function(y, nlambdas = 20, nfolds = 5, ...) {
     # Split y into training and testing sets
     y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
     y_test <- y[, (floor(dim(y)[2] / 5) * 4 + 1):dim(y)[2]]
@@ -324,7 +324,7 @@ fit_pvar.cv <- function(y, nlambdas = 20, verbose = FALSE, ...) {
         loss = "L2",
         T1 = floor(dim(y_train)[2] / 5) * 4 + 1,
         T2 = dim(y_train)[2],
-        window.size = flooor(dim(y_train)[2] / 5), # Use 5-fold cross-validation
+        window.size = floor(dim(y_train)[2] / 5), # Use 5-fold cross-validation
         model.controls = list(
             intercept = FALSE,
             loss = "L2"
@@ -344,14 +344,18 @@ fit_pvar.cv <- function(y, nlambdas = 20, verbose = FALSE, ...) {
     )
     t1 <- Sys.time()
 
+    C <- model[, , 1][, -1] # Remove the first column (intercept)
+    y_pred <- predict_with_C(C, y_train, y_test)
+
     # Return the fitted model
     output_list <- list(
         model = model,
         cvmodel = model_cv,
-        errors_cv = model_cv@InSampMSFE,
-        C = model[, , 1][, -1], # Remove the first column (intercept)
-        runtime = difftime(t1, t0, units = "secs")[[1]],
-        y_pred = predict_with_C(model[, , 1][, -1], y_train, y_test)
+        C = C,
+        y_pred = y_pred,
+        msfe = calc_msfe(y_test, y_pred),
+        best_lambda = model_cv@OptimalLambda,
+        runtime = difftime(t1, t0, units = "secs")[[1]]
     )
     return(output_list)
 }

@@ -140,10 +140,14 @@ source("src/compute/model_cv_wrappers.R")
 cv_splash_a0 <- fit_splash.cv(y, alpha = 0, nfolds = 5, nlambdas = 20)
 cv_fsplash <- fit_fsplash.cv(y, bandwidths, reg_gr, Dtilde_inv, nfolds = 5, nlambdas = 20)
 cv_ssfsplash <- fit_ssfsplash.cv(y, bandwidths, reg_gr, Dtilde_SSF_inv, alpha = 0.5, nfolds = 5, nlambdas = 20)
+cv_pvar <- fit_pvar.cv(y, nfolds = 5, nlambdas = 20)
 cv_splash_a0$msfe
 cv_fsplash$msfe
 cv_ssfsplash$msfe
+cv_pvar$msfe
 
+cv_pvar
+dim(cv_pvar$errors_cv)
 
 alpha <- 0
 nfolds <- 5

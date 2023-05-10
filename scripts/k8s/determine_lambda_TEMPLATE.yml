@@ -10,8 +10,7 @@ spec:
       containers:
         - name: detlam-cont
           image: jaccusaurelius/vu-msc-thesis:kube
-          command:
-            ["bash", "scripts/model_fit_montecarlo.sh", "designB_T500_p9"]
+          command: ["bash", "scripts/model_fit_montecarlo.sh", "REPLACEME"]
           volumeMounts:
             - name: pv-out
               mountPath: /app/vu-msc-thesis/out

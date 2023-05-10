@@ -45,18 +45,28 @@ step_sim() {
 
 # Transform data
 step_transform () {
-    # Run Julia script for step 1
-    echo "Running precalculations_and_write.jl.jl ..."
-    julia --project=$JULIA_DIR src/compute/precalculations_and_write.jl.jl ${sim_design_id}/mc $uuidtag
-    echo "precalculations_and_write.jl.jl completed."
+    # Run the precalculation script only if it has not been done before for this design 
+    if [! -f "data/simulation/${sim_design_id}/Dtilde.mtx"]; then
+      echo "Running precalculations_and_write.jl ..."
+      julia --project=$JULIA_DIR src/compute/precalculations_and_write.jl ${sim_design_id}/mc $uuidtag
+      echo "precalculations_and_write.jl completed."
+    else 
+      echo "precalculations_and_write.jl already completed at an earlier iteration for ${sim_design_id}."
+    fi
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
 }
 
 # Calculate performance for each lambda value once
 step_modelfit () {
-    echo "Running modelfit_lambda.R ..."
-    Rscript src/compute/model_fitting.R ${sim_design_id} $uuidtag # > /dev/null 2>&1
+    if [! -f "out/simulation/lambdas/${sim_design_id}/grid_reg_a05.csv"]; then
+      echo "Running modelfit_lambda.R ..."
+      Rscript src/compute/model_fitting.R ${sim_design_id} $uuidtag  # > /dev/null 2>&1
+      echo "modelfit_lambda.R completed."
+    else 
+      echo "The the optimal lambda values for the GF-SPLASH models have not been computed yet for ${sim_design_id}."
+      echo "Please run the command: 'determine_lambda_preliminary.sh ${sim_design_id}' first."
+    fi
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
 }
@@ -71,4 +81,4 @@ path=src/simulation/simulation_${design}.jl
 sim_design_id=${inputarg}
 
 uuidtag=$(uuidgen)
-step_create_directories && step_sim && step_transform #  && step_modelfit
+step_create_directories && step_sim && step_transform && step_modelfit

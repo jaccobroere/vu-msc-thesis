@@ -9,11 +9,10 @@ library(splash)
 library(FGSG)
 library(BigVAR)
 library(glmnet)
-library(pracma)
-library(Rlinsolve)
+library(Matrix)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
 
-fit_gfsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALSE, ...) {
+fit_gfsplash <- function(sigma_hat, Vhat_d, graph = NULL, D = NULL, lambda, alpha, verbose = FALSE, ...) {
     # Retrieve the cross-sectional dimension of the problem
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
@@ -32,7 +31,7 @@ fit_gfsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALS
     # Fit linear regression model using ADMM
     t0 <- Sys.time()
     model <- linreg_path_v2(
-        Y = sigma_hat,
+        Y = as.vector(sigma_hat),
         X = Vhat_d,
         val = val,
         idx = idx,
@@ -46,7 +45,8 @@ fit_gfsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALS
     runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     t0 <- Sys.time()
-    AB <- coef_to_AB(model$beta_path[, 1], p)
+    coef <- as.vector(model$beta_path[, 1])
+    AB <- coef_to_AB(coef, p)
     A <- AB$A
     B <- AB$B
     runtimeC <- difftime(Sys.time(), t0, units = "secs")[[1]]
@@ -87,14 +87,14 @@ fit_splash <- function(y, lambda, alpha, verbose = FALSE, ...) {
         message(paste0("SPLASH took ", round(runtime, 2), " seconds to run."))
     }
 
-    A <- model$AB[, 1:p, ]
-    B <- model$AB[, (p + 1):(2 * p), ]
+    # A <- model$AB[, 1:p,    ]
+    # B <- model$AB[, (p + 1):(2 * p), ]
     # Return the fitted model
     output_list <- list(
         model = model,
-        A = A,
-        B = B,
-        C = AB_to_C(A, B),
+        # A = A,
+        # B = B,
+        # C = AB_to_C(A, B),
         runtime = runtime
     )
     return(output_list)
@@ -110,7 +110,7 @@ fit_pvar <- function(y, verbose = FALSE, ...) {
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
     # Compute lambda grid
-    lambda_grid <- gen_lambda_grid(100)
+    lambda_grid <- gen_lambda_grid(20)
 
     # Perform cross-validation for the selection of the penalty parameter
     t0 <- Sys.time()
@@ -121,7 +121,7 @@ fit_pvar <- function(y, verbose = FALSE, ...) {
         gran = lambda_grid,
         loss = "L2",
         T1 = floor(dim(y_train)[2] / 5) * 4 + 1,
-        T2 = dim(y_train)[2] + 1,
+        T2 = dim(y_train)[2],
         ownlambdas = TRUE,
         model.controls = list(
             intercept = FALSE,
@@ -160,8 +160,9 @@ fit_pvar <- function(y, verbose = FALSE, ...) {
     return(output_list)
 }
 
-fit_fsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
+fit_fsplash <- function(sigma_hat, Vhat_d, graph, Dtilde_inv, lambda = NULL, nlambda = 20) {
     m <- ecount(graph)
+    k <- vcount(graph)
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
     t0 <- Sys.time()
@@ -172,22 +173,41 @@ fit_fsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
     X2_plus <- solve((t(X2) %*% X2), t(X2)) # Same as inv(t(X2) %*% X2) %*% t(X2)
 
     # Transform the input to LASSO objective
-    P <- X2 %*% X2_plus
-    ytilde <- as.vector((diag(nrow(P)) - P) %*% t(sigma_hat))
-    Xtilde <- (diag(nrow(P)) - P) %*% X1
+    IminP <- diag(nrow(X2)) - X2 %*% X2_plus # Calculate I - P directly, P = X2 %*% X2_plus
+    ytilde <- as.vector(IminP %*% t(sigma_hat))
+    Xtilde <- IminP %*% X1
     runtimeXtilde <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     t0 <- Sys.time()
-    model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
-    theta1 <- as.vector(model$beta)
-    theta2 <- as.vector(X2_plus %*% (t(sigma_hat) - X1 %*% theta1))
-    coef <- Dtilde_inv %*% c(theta1, theta2)
-    runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
+    if (is.null(lambda)) {
+        model <- glmnet(Xtilde, ytilde, nlambda = nlambda, alpha = 1, intercept = FALSE)
+        # Loop over fitted solution for all lambdas
+        C <- array(NA, dim = c(p, p, nlambda))
+        A <- array(NA, dim = c(p, p, nlambda))
+        B <- array(NA, dim = c(p, p, nlambda))
+        coef <- array(NA, dim = c(k, nlambda))
+        for (i in 1:nlambda) {
+            theta1 <- as.vector(model$beta[, i])
+            theta2 <- as.vector(X2_plus %*% (t(sigma_hat) - X1 %*% theta1))
+            c <- Dtilde_inv %*% c(theta1, theta2)
+            AB <- coef_to_AB(c, p)
+            A[, , i] <- AB$A
+            B[, , i] <- AB$B
+            C[, , i] <- AB_to_C(AB$A, AB$B)
+            coef[, i] <- as.vector(c)
+        }
+    } else {
+        model <- glmnet(Xtilde, ytilde, lambda = lambda, alpha = 1, intercept = FALSE)
+        theta1 <- as.vector(model$beta)
+        theta2 <- as.vector(X2_plus %*% (t(sigma_hat) - X1 %*% theta1))
+        coef <- Dtilde_inv %*% c(theta1, theta2)
+        AB <- coef_to_AB(coef, p)
+        A <- AB$A
+        B <- AB$B
+        C <- AB_to_C(A, B)
+    }
 
-    AB <- coef_to_AB(coef, p)
-    A <- AB$A
-    B <- AB$B
-    C <- AB_to_C(A, B)
+    runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
 
     # Return the fitted model
     output_list <- list(
@@ -201,24 +221,59 @@ fit_fsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
     )
 }
 
-fit_ssfsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
-    m <- ecount(graph)
+fit_ssfsplash <- function(sigma_hat, Vhat_d, graph, Dtilde_SSF_inv, lambda, alpha) {
+    # Get dimensions of the problem
+    m <- ecount(graph) # This graph objects represent the graph of the non-symmetric GSPLASH
+    k <- vcount(graph)
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
+    # Calculate the scaled version of Dtilde_SSF_inv, the multiplier matrix M, has to be inverted
+    # but is a diagonal matrix, so we now the explicit form of the inverse and calculate it directly
+    h <- floor(p / 4)
+    multipliers <- c(
+        (p - h):(p - 1),
+        rev((p - h):(p - 1)),
+        (p - h):(p - 1),
+        (p),
+        rev((p - h):(p - 1))
+    )
+    M_inv <- .sparseDiagonal(x = c(
+        rep((1 / alpha), m),
+        1 / ((1 - alpha) * sqrt(multipliers))
+    ))
+    Dtilde_SSF_inv_gamma <- Dtilde_SSF_inv %*% M_inv
+
     # Transform the input to LASSO objective (see Tibshirani and Taylor, 2011)
-    XD1 <- Vhat_d %*% Dtilde_inv # Same as Vhat_d * inv(Dtilde)
+    XD1 <- Vhat_d %*% Dtilde_SSF_inv_gamma # Same as Vhat_d * inv(Dtilde)
 
     t0 <- Sys.time()
-    model <- glmnet(XD1, sigma_hat, lambda = lambda, alpha = 1, intercept = FALSE, standardize = FALSE)
-    theta <- as.vector(model$beta)
-    coef <- Dtilde_inv %*% theta # Back-transform the coefficients
+    if (is.null(lambda)) {
+        model <- glmnet(XD1, as.vector(sigma_hat), nlambda = nlambda, alpha = 1, intercept = FALSE)
+        # Loop over fitted solution for all lambdas
+        C <- array(NA, dim = c(p, p, nlambda))
+        A <- array(NA, dim = c(p, p, nlambda))
+        B <- array(NA, dim = c(p, p, nlambda))
+        coef <- array(NA, dim = c(k, nlambda))
+        for (i in 1:nlambda) {
+            theta <- as.vector(model$beta[, i])
+            c <- Dtilde_SSF_inv_gamma %*% theta
+            AB <- coef_to_AB(c, p)
+            A[, , i] <- AB$A
+            B[, , i] <- AB$B
+            C[, , i] <- AB_to_C(AB$A, AB$B)
+            coef[, i] <- as.vector(c)
+        }
+    } else {
+        model <- glmnet(XD1, as.vector(sigma_hat), lambda = lambda, alpha = 1, intercept = FALSE)
+        theta <- as.vector(model$beta)
+        coef <- Dtilde_SSF_inv_gamma %*% theta
+        AB <- coef_to_AB(coef, p)
+        A <- AB$A
+        B <- AB$B
+        C <- AB_to_C(A, B)
+    }
+
     runtimeM <- difftime(Sys.time(), t0, units = "secs")[[1]]
-
-    AB <- coef_to_AB(coef, p)
-    A <- AB$A
-    B <- AB$B
-    C <- AB_to_C(A, B)
-
     # Return the fitted model
     output_list <- list(
         model = model,
@@ -227,42 +282,5 @@ fit_ssfsplash <- function(sigma_hat, Vhat_d, Dtilde, Dtilde_inv, lambda) {
         B = B,
         C = C,
         runtimeM = runtimeM
-    )
-}
-
-fit_fgsg_gsplash <- function(sigma_hat, Vhat_d, graph, lambda, alpha, verbose = FALSE, ...) {
-    # Retrieve the cross-sectional dimension of the problem
-    p <- as.integer(sqrt(dim(Vhat_d)[1]))
-
-    # Reparamaterize lambda
-    lambda2 <- lambda * alpha # l1 penalty
-    lambda1 <- lambda * (1 - alpha) # Fusion penalty
-
-    # Create edge vector
-    edge_vector <- as.vector(t(as_edgelist(graph)))
-
-    # Fit FGSG GFLASSO implementation
-    t0 <- Sys.time()
-    model <- FGSG::gflasso(y = sigma_hat, A = Vhat_d, tp = edge_vector, s1 = lambda1, s2 = lambda2, ...) # Notice that \lambda1 and \lambda2 are swapped here
-    runtime <- difftime(Sys.time(), t0, units = "secs")[[1]]
-
-    # Print how long it took to run formatted with a message
-    if (verbose) {
-        message(paste0("FGSG took ", round(runtime, 2), " seconds to run."))
-    }
-
-    # Transform back to A, B
-    coef <- model$weight
-    AB <- coef_to_AB(coef, p)
-    A <- AB$A
-    B <- AB$B
-
-    # Return the fitted model
-    output_list <- list(
-        model = model,
-        A = A,
-        B = B,
-        C = AB_to_C(A, B),
-        runtime = runtime
     )
 }

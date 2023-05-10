@@ -1,6 +1,11 @@
+using Pkg
+Pkg.activate(joinpath(ENV["PROJ_DIR"], "juliaenv"), io=devnull)
 using Base: SimpleLogger
 using SparseArrays
 using LinearAlgebra
+using DataFrames, CSV
+
+
 """
 Calculates the amount of active elemements, i.e. the number of columns of Vhat_d, or the number of elements in vec(C')
 """
@@ -142,23 +147,27 @@ function inv_Dtilde_sparse(graph::SimpleGraph)::SparseMatrixCSC{Float64}
     return sparse(inv(lu(Dtilde)))
 end
 
-function calc_Dtilde_SSF_sparse(graph::SimpleGraph, alpha::Float64=0.5)::SparseMatrixCSC{Float64}
+function calc_Dtilde_SSF_sparse(graph::SimpleGraph, h::Int=0)::SparseMatrixCSC{Float64}
     D = incidence_matrix(graph, oriented=true)' # Incidence matrix needs to be transposed before obtaining D^(G)
     k, m = nv(graph), ne(graph)
-    # Reparametrize to gamma
-    gamma = alpha / (1 - alpha)
     # Create the extra penalty rows in D for one of the elements in each of the diagonals
-    extension = spzeros(Float64, k - m, m)
+    extension = spzeros(Float64, k - m, k)
     i = 1
     for j in 1:k
-        if j > 3h^2 && j < 3h^2 + 4h
-            extension[i, j] = gamma
+        if j >= (3h^2 + 1) && j <= (3h^2 + 4h + 1)
+            extension[i, j] = 1
+            i += 1
         end
     end
     return vcat(D, extension) # Combine D and the extension
 end
 
-function inv_Dtilde_SSF_sparse(graph::SimpleGraph, alpha::Float64=0.5)::SparseMatrixCSC{Float64}
-    Dtilde = calc_Dtilde_SSF_sparse(graph, alpha)
+function inv_Dtilde_SSF_sparse(graph::SimpleGraph, h::Int=0)::SparseMatrixCSC{Float64}
+    Dtilde = calc_Dtilde_SSF_sparse(graph, h)
     return sparse(inv(lu(Dtilde)))
+end
+
+function save_bandwiths_bootstrap(path::String, h0, h1)
+    df = DataFrame(h0=[h0], h1=[h1])
+    CSV.write(path, df)
 end

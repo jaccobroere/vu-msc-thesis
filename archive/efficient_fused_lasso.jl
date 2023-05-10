@@ -11,7 +11,7 @@ using IterativeSolvers
 PROJ_DIR = ENV["PROJ_DIR"]
 include(joinpath(PROJ_DIR, "src", "compute", "construct_graph.jl"))
 include(joinpath(PROJ_DIR, "src", "compute", "utils.jl"))
-include(joinpath(PROJ_DIR, "src", "compute", "transform_bootstrap_graph.jl"))
+include(joinpath(PROJ_DIR, "src", "compute", "precalculations_and_write.jl.jl"))
 
 function null_space_graph(graph::SimpleGraph{Int64})::Matrix{Int64}
     null_vecs = zeros(Float64, nv(graph), nv(graph) - ne(graph))
@@ -57,23 +57,5 @@ sigma_hat = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/
 p = 5
 G = create_gsplash_graph(p)
 D = Matrix(incidence_matrix(G, oriented=true))'
-pD, mD = nv(G), ne(G)
+k, m = nv(G), ne(G)
 
-h = div(p, 4)
-
-ext = zeros(pD - mD, pD)
-i = 1
-for j in 1:pD
-    if j >= (3h^2 + 1) && j <= (3h^2 + 4h + 1)
-        print(j)
-        ext[i, j] = 1
-        i += 1
-    end
-end
-ext
-
-
-D_SSF = vcat(D, ext)
-inv(lu(sparse(D_SSF)))
-
-5 >= (3h^2 + 1) && 5 <= (3h^2 + 4h + 1)

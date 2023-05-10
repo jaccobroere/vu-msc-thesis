@@ -1,4 +1,4 @@
-# MSc Thesis: Impulse response analysis using spatio-temporal models
+# MSc Thesis: Graph-guided Fused Lasso approaches to the estimation of spatio-temporal autoregressions.
 *Author: Jacco Broere*
 
 This repository contains all the necessary code for replicating the results in my MSc thesis.

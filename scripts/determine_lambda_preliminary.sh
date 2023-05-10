@@ -35,6 +35,7 @@ step_create_directories () {
 }
 
 step_sim() {
+    # Simulation of data step
     echo "Running $path ..."
     julia --project=$JULIA_DIR $path ${sim_design_id}/detlam $uuidtag
     echo "$path completed."
@@ -45,9 +46,9 @@ step_sim() {
 # Transform data
 step_transform () {
     # Run Julia script for step 1
-    echo "Running precalculations_and_write.jl.jl ..."
-    julia --project=$JULIA_DIR src/compute/precalculations_and_write.jl.jl ${sim_design_id}/detlam $uuidtag
-    echo "precalculations_and_write.jl.jl completed."
+    echo "Running precalculations_and_write.jl ..."
+    julia --project=$JULIA_DIR src/compute/precalculations_and_write.jl ${sim_design_id}/detlam $uuidtag
+    echo "precalculations_and_write.jl completed."
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
 }
@@ -55,7 +56,7 @@ step_transform () {
 # Calculate performance for each lambda value once
 step_detlam () {
     echo "Running determine_lambda.R ..."
-    Rscript src/compute/determine_lambda.R ${sim_design_id} $uuidtag > /dev/null 2>&1
+    Rscript src/compute/determine_lambda.R ${sim_design_id} $uuidtag # > /dev/null 2>&1
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
 }

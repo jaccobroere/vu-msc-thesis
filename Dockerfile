@@ -63,7 +63,7 @@ COPY scripts /app/vu-msc-thesis/scripts
 # Set working directory
 WORKDIR /app/vu-msc-thesis
 
-# RUN bash scripts/determine_lambda_sim_iter.sh designB_T100_p9
+# RUN bash scripts/model_fit_montecarlo.sh designB_T100_p9
 
 # Specify command to run when container starts
 CMD ["bash"]

@@ -14,7 +14,7 @@ library(Matrix)
 library(caret)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
 
-fit_splash.cv <- function(y, alpha, nlambdas, nfolds = 5, ...) {
+fit_splash.cv <- function(y, alpha, nlambdas = 20, nfolds = 5, ...) {
     # Read problem dimensionality
     p <- dim(y)[1]
 
@@ -26,7 +26,7 @@ fit_splash.cv <- function(y, alpha, nlambdas, nfolds = 5, ...) {
     folds <- create_folds(y_train, nfolds = nfolds)
 
     # Fit the model on each fold and save the results
-    errors <- matrix(NA, nrow = length(folds), ncol = nlambdas)
+    errors <- matrix(NA, nrow = nfolds, ncol = nlambdas)
     for (i in 1:nfolds) {
         # Split the data into training and validation sets
         y_train_cv <- y_train[, folds$train[[i]]]
@@ -76,7 +76,7 @@ fit_splash.cv <- function(y, alpha, nlambdas, nfolds = 5, ...) {
     return(output_list)
 }
 
-fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, alpha, nlambdas, nfolds = 5, ...) {
+fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, alpha, nlambdas = 20, nfolds = 5, ...) {
     # Read problem dimensionality
     p <- dim(y)[1]
     m <- ecount(graph)
@@ -184,7 +184,7 @@ fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, alpha, nlambdas, nf
     return(output_list)
 }
 
-fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambdas, nfolds = 5, ...) {
+fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambdas = 20, nfolds = 5, ...) {
     # Read problem dimensionality
     p <- dim(y)[1]
     m <- ecount(graph)
@@ -274,7 +274,7 @@ fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambd
     IminP <- diag(nrow(X2)) - X2 %*% X2_plus # Calculate I - P directly, P = X2 %*% X2_plus
     ytilde <- as.vector(IminP %*% t(sigma_hat))
     Xtilde <- IminP %*% X1
-    
+
     # Fit the model on the entire training set
     model_cv <- glmnet(XD1, ytilde, lambda = best_lambda, alpha = 1, intercept = FALSE, ...)
     t1 <- Sys.time()
@@ -296,6 +296,60 @@ fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambd
     )
     return(output_list)
 }
+
+fit_pvar.cv <- function(y, nlambdas = 20, verbose = FALSE, ...) {
+    # Split y into training and testing sets
+    y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
+    y_test <- y[, (floor(dim(y)[2] / 5) * 4 + 1):dim(y)[2]]
+
+    # Fit a single solution using PVAR(1) with the BigVAR package
+    # Retrieve the cross-sectional dimension of the problem
+    p <- as.integer(sqrt(dim(Vhat_d)[1]))
+
+    # Create cross-validation folds
+    folds <- create_folds(y_train, nfolds = nfolds)
+
+    # Perform cross-validation for the selection of the penalty parameter
+    model_setup <- constructModel(
+        Y = t(y),
+        p = 1,
+        struct = "Basic",
+        gran = c(50, nlambdas),
+        loss = "L2",
+        T1 = floor(dim(y_train)[2] / 5) * 4 + 1,
+        T2 = dim(y_train)[2],
+        window.size = flooor(dim(y_train)[2] / 5), # Use 5-fold cross-validation
+        model.controls = list(
+            intercept = FALSE,
+            loss = "L2"
+        )
+    )
+    model_cv <- cv.BigVAR(model_setup)
+
+    # Fit PVAR(1) using the optimal value for lambda
+    t0 <- Sys.time()
+    model <- BigVAR.fit(
+        Y = t(y_train), # Take transpose becasue BigVAR.fit expects a matrix with rows as observations and columns as variables
+        p = 1,
+        struct = "Basic",
+        lambda = model_cv@OptimalLambda,
+        intercept = FALSE,
+        ...
+    )
+    t1 <- Sys.time()
+
+    # Return the fitted model
+    output_list <- list(
+        model = model,
+        cvmodel = model_cv,
+        errors_cv = model_cv@InSampMSFE,
+        C = model[, , 1][, -1], # Remove the first column (intercept)
+        runtime = difftime(t1, t0, units = "secs")[[1]],
+        y_pred = predict_with_C(model[, , 1][, -1], y_train, y_test)
+    )
+    return(output_list)
+}
+
 
 
 create_folds <- function(y, nfolds = 5, test_size = 0.2) {

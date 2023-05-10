@@ -128,3 +128,5 @@ model_fsplash$model$lambda
 
 mmm <- glmnet(Vhat_d, as.vector(sigma_hat), alpha = 1)
 mmm$lambda
+
+model_pvar$cvmodel

@@ -1,4 +1,3 @@
-# library(matlib)
 coef_to_AB <- function(coef, p) {
     bandwidth <- p %/% 4
     AB <- matrix(0, nrow = p, ncol = 2 * p)
@@ -106,8 +105,6 @@ calc_lambda_0_gfsplash <- function(sigma_hat, Vhat_d, graph, alpha, ...) {
     return(lambda_res)
 }
 
-
-
 calc_Dtilde <- function(graph) {
     null_vecs <- null_space_graph(graph)
     Dtilde <- rbind(as.matrix(getDg(graph)), t(null_vecs))
@@ -132,7 +129,7 @@ null_space_graph <- function(graph) {
 }
 
 calc_EE <- function(M_true, M_hat, type = "2") {
-    # type="F" for Frobenius, type="1" for max absolute column norm
+    # type="F" for Frobenius, type="1" for max absolute column norm,  uses Matrix package
     return(norm(M_true - M_hat, type = "2"))
 }
 

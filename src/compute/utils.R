@@ -50,16 +50,16 @@ AB_to_C <- function(A, B) {
     return(C)
 }
 
-calc_rmsfe <- function(y, y_hat, y_true) {
+calc_rmsfe <- function(y_true, y_pred, y_true_hat) {
     # Calculate the relative mean squared forecast error
-    sum_hat <- sum((y - y_hat)^2)
-    sum_true <- sum((y - y_true)^2)
+    sum_hat <- sum((y_true - y_pred)^2)
+    sum_true <- sum((y_true - y_true_hat)^2)
     return(sum_hat / sum_true)
 }
 
-calc_msfe <- function(y, y_hat) {
+calc_msfe <- function(y_true, y_pred) {
     # Calculate the mean squared forecast error
-    return(mean((y - y_hat)^2))
+    return(mean((y_true - y_pred)^2))
 }
 
 # predict_with_C <- function(C, y, train_idx = NULL) {
@@ -148,9 +148,9 @@ run_lambda_finder_gfsplash <- function(y, sigma_hat, Vhat_d, C_true, graph, alph
         lam <- grid_lam[i]
         model <- fit_admm_gsplash(sigma_hat, Vhat_d, graph, lam, alpha = alpha)
         # Calculate predictions and error metric
-        y_hat <- predict_with_C(model$C, y)
+        y_pred <- predict_with_C(model$C, y)
         y_true_pred <- predict_with_C(C_true, y)
-        error_metric <- calc_msfe(y_test, y_hat)
+        error_metric <- calc_msfe(y_test, y_pred)
         df_lam[1, colnames(df_lam)[i]] <- error_metric
     }
 
@@ -170,8 +170,8 @@ run_lambda_finder_fsplash <- function(y, sigma_hat, Vhat_d, C_ture, graph, Dtild
     # Calculate predictions and error metric
     for (i in 1:length(grid_lam)) {
         lam <- model$model$lambda[i]
-        y_hat <- predict_with_C(res$C[, , i], y)
-        error_metric <- calc_msfe(y_test, y_hat)
+        y_pred <- predict_with_C(res$C[, , i], y)
+        error_metric <- calc_msfe(y_test, y_pred)
         df_lam[1, colnames(df_lam)[i]] <- error_metric
     }
 
@@ -199,9 +199,9 @@ run_lambda_finder_splash <- function(y, alpha, C_true, path, lambda_min_mult = 1
         B <- model$AB[, (p + 1):(2 * p), i]
         C <- AB_to_C(A, B)
         # Calculate predictions and error metric
-        y_hat <- predict_with_C(C, y)
+        y_pred <- predict_with_C(C, y)
         y_true_pred <- predict_with_C(C_true, y)
-        error_metric <- calc_msfe(y_test, y_hat)
+        error_metric <- calc_msfe(y_test, y_pred)
         df_lam[1, colnames(df_lam)[i]] <- error_metric
     }
 

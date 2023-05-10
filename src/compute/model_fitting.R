@@ -3,6 +3,7 @@ PROJ_DIR <- system("echo $PROJ_DIR", intern = TRUE)
 setwd(PROJ_DIR)
 source("src/compute/utils.R")
 source("src/compute/model_wrappers.R")
+source("src/compute/model_cv_wrappers.R")
 library(data.table)
 library(tictoc)
 library(matrixStats)
@@ -33,6 +34,7 @@ path_Dtilde_inv <- file.path(sim_id_dir, "Dtilde_inv.mtx")
 path_Dtilde <- file.path(sim_id_dir, "Dtilde.mtx")
 path_Dtilde_SSF_inv <- file.path(sim_id_dir, "Dtilde_SSF_inv.mtx")
 path_Dtilde_SSF <- file.path(sim_id_dir, "Dtilde_SSF.mtx")
+path_bandwidth <- file.path(data_dir, "bootstrap_bandwidths.csv")
 
 # Load the data
 sigma_hat <- t(fread(path_sigma_hat, header = T, skip = 0))
@@ -43,6 +45,7 @@ Dtilde_inv <- readMM(path_Dtilde_inv)
 Dtilde <- readMM(path_Dtilde)
 Dtilde_SSF_inv <- readMM(path_Dtilde_SSF_inv)
 Dtilde_SSF <- readMM(path_Dtilde_SSF)
+bandwidths <- as.data.frame(fread(path_bandwidth, header = T, skip = 0))
 # Load the true values
 A_true <- as.matrix(fread(path_A, header = T, skip = 0))
 B_true <- as.matrix(fread(path_B, header = T, skip = 0))
@@ -130,3 +133,18 @@ mmm <- glmnet(Vhat_d, as.vector(sigma_hat), alpha = 1)
 mmm$lambda
 
 model_pvar$cvmodel
+
+
+# Testing cv functions
+source("src/compute/model_cv_wrappers.R")
+cv_splash_a0 <- fit_splash.cv(y, alpha = 0, nfolds = 5, nlambdas = 20)
+cv_fsplash <- fit_fsplash.cv(y, bandwidths, reg_gr, Dtilde_inv, nfolds = 5, nlambdas = 20)
+cv_ssfsplash <- fit_ssfsplash.cv(y, bandwidths, reg_gr, Dtilde_SSF_inv, alpha = 0.5, nfolds = 5, nlambdas = 20)
+cv_splash_a0$msfe
+cv_fsplash$msfe
+cv_ssfsplash$msfe
+
+
+alpha <- 0
+nfolds <- 5
+nlambdas <- 20

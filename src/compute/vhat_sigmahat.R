@@ -23,7 +23,7 @@ band_matrix <- function(A, h) {
     return(B)
 }
 
-constr_Vhat <- function(Sigma0, Sigma1, h0 = 0, h1 = 0) {
+construct_Vhat <- function(Sigma0, Sigma1, h0 = 0, h1 = 0) {
     if (h0 == 0 || h1 == 0) {
         return(cbind(t(Sigma1), Sigma0))
     }
@@ -32,7 +32,7 @@ constr_Vhat <- function(Sigma0, Sigma1, h0 = 0, h1 = 0) {
     return(cbind(t(Sigma1), Sigma0))
 }
 
-vec_sigma_h <- function(Sigma1, h1 = 0) {
+construct_sigma_hat <- function(Sigma1, h1 = 0) {
     if (h1 == 0) {
         return(as.vector(t(Sigma1)))
     }
@@ -58,7 +58,7 @@ active_cols <- function(p, bandwidth = 0) {
     return(active_set)
 }
 
-constr_Vhat_d <- function(V, bandwidth = 0) {
+construct_Vhat_d <- function(V, bandwidth = 0) {
     p <- nrow(V)
     active <- active_cols(p, bandwidth)
     Vhat_d <- Matrix(0, p^2, sum(active), sparse = TRUE)

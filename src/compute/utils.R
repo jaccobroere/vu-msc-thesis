@@ -1,3 +1,5 @@
+library(Matrix)
+
 coef_to_AB <- function(coef, p) {
     bandwidth <- p %/% 4
     AB <- matrix(0, nrow = p, ncol = 2 * p)
@@ -77,13 +79,16 @@ calc_msfe <- function(y_true, y_pred) {
 #     return(predictions)
 # }
 
-predict_with_C <- function(Chat, y_train, y_test) {
+predict_with_C <- function(C_hat, y_train, y_test) {
+    if (ncol(y_test) == 1) {
+        return(C_hat %*% y_train[, ncol(y_train)])
+    }
     predictions <- matrix(0, nrow = nrow(y_train), ncol = ncol(y_test))
 
     # Predictions
-    predictions[, 1] <- Chat %*% y_train[, ncol(y_train)] # First prediction is based on last element of y_train
+    predictions[, 1] <- C_hat %*% y_train[, ncol(y_train)] # First prediction is based on last element of y_train
     for (i in 2:ncol(y_test)) {
-        predictions[, i] <- Chat %*% y_test[, i - 1]
+        predictions[, i] <- C_hat %*% y_test[, i - 1]
     }
 
     return(predictions)
@@ -134,6 +139,7 @@ calc_EE <- function(M_true, M_hat, type = "2") {
 }
 
 create_folds <- function(y, nfolds = 5, test_size = 0.2) {
+    library(caret)
     # Create cross-validation folds
     time_indices <- 1:dim(y)[2]
     initialWindow <- dim(y)[2] - floor(dim(y)[2] * test_size)

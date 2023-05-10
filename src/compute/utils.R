@@ -1,4 +1,4 @@
-library(matlib)
+# library(matlib)
 
 coef_to_AB <- function(coef, p) {
     bandwidth <- p %/% 4

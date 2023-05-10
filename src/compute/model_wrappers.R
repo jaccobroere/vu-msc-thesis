@@ -9,8 +9,6 @@ library(splash)
 library(FGSG)
 library(BigVAR)
 library(glmnet)
-library(pracma)
-library(Rlinsolve)
 library(Matrix)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
 

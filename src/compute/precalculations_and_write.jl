@@ -179,7 +179,7 @@ function main(sim_design_id, uuidtag)
         save_graph_as_gml(regular_graph, joinpath(path_sim, "reg_graph.graphml"))
         save_graph_as_gml(symmetric_graph, joinpath(path_sim, "sym_graph.graphml"))
         # Save the bandwidths
-        save_bandwiths_bootstrap(joinpath(path, "bootstrap_bandwidths.csv"), h0, h1)
+        save_bandwiths_bootstrap(joinpath(path_sim, "bootstrap_bandwidths.csv"), h0, h1)
     end
 
     return nothing
@@ -188,9 +188,7 @@ end
 if abspath(PROGRAM_FILE) == @__FILE__
     # Parse command line argument
     sim_design_id = ARGS[1]
-    print(sim_design_id)
     uuidtag = length(ARGS) >= 2 ? ARGS[2] : nothing
-    print(uuidtag)
 
     # Run main function
     main(sim_design_id, uuidtag)

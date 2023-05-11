@@ -25,7 +25,7 @@ sim_id_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "detlam")
 path_reg_graph <- file.path(sim_id_dir, "reg_graph.graphml")
 path_sym_graph <- file.path(sim_id_dir, "sym_graph.graphml")
 path_y <- file.path(data_dir, "y.csv")
-path_bandwidth <- file.path(data_dir, "bootstrap_bandwidths.csv")
+path_bandwidth <- file.path(sim_id_dir, "bootstrap_bandwidths.csv")
 
 # Load the data
 reg_gr <- read_graph(path_reg_graph, format = "graphml")

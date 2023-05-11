@@ -1,3 +1,5 @@
+library(Matrix)
+
 coef_to_AB <- function(coef, p) {
     bandwidth <- p %/% 4
     AB <- matrix(0, nrow = p, ncol = 2 * p)
@@ -48,28 +50,45 @@ AB_to_C <- function(A, B) {
     return(C)
 }
 
-calc_rmsfe <- function(y, y_hat, y_true) {
+calc_rmsfe <- function(y_true, y_pred, y_true_hat) {
     # Calculate the relative mean squared forecast error
-    sum_hat <- sum((y - y_hat)^2)
-    sum_true <- sum((y - y_true)^2)
+    sum_hat <- sum((y_true - y_pred)^2)
+    sum_true <- sum((y_true - y_true_hat)^2)
     return(sum_hat / sum_true)
 }
 
-calc_msfe <- function(y, y_hat) {
+calc_msfe <- function(y_true, y_pred) {
     # Calculate the mean squared forecast error
-    return(mean((y - y_hat)^2))
+    return(mean((y_true - y_pred)^2))
 }
 
-predict_with_C <- function(C, y) {
-    train_idx <- (floor(dim(y)[2] / 5) * 4)
-    y_train <- y[, 1:train_idx]
-    y_test <- y[, (train_idx + 1):ncol(y)] # Notice leaving out + 1 here to have a predictions for the first element of y_test
-    predictions <- matrix(0, nrow = nrow(y), ncol = ncol(y_test))
+# predict_with_C <- function(C, y, train_idx = NULL) {
+#     if (is.null(train_idx)) {
+#         train_idx <- (floor(dim(y)[2] / 5) * 4)
+#     }
+#     y_train <- y[, 1:train_idx]
+#     y_test <- y[, (train_idx + 1):ncol(y)] # Notice leaving out + 1 here to have a predictions for the first element of y_test
+#     predictions <- matrix(0, nrow = nrow(y), ncol = ncol(y_test))
+
+#     # Predictions
+#     predictions[, 1] <- C %*% y_train[, ncol(y_train)] # First prediction is based on last element of y_train
+#     for (i in 2:ncol(y_test)) {
+#         predictions[, i] <- C %*% y_test[, i - 1]
+#     }
+
+#     return(predictions)
+# }
+
+predict_with_C <- function(C_hat, y_train, y_test) {
+    if (ncol(y_test) == 1) {
+        return(C_hat %*% y_train[, ncol(y_train)])
+    }
+    predictions <- matrix(0, nrow = nrow(y_train), ncol = ncol(y_test))
 
     # Predictions
-    predictions[, 1] <- C %*% y_train[, ncol(y_train)] # First prediction is based on last element of y_train
+    predictions[, 1] <- C_hat %*% y_train[, ncol(y_train)] # First prediction is based on last element of y_train
     for (i in 2:ncol(y_test)) {
-        predictions[, i] <- C %*% y_test[, i - 1]
+        predictions[, i] <- C_hat %*% y_test[, i - 1]
     }
 
     return(predictions)
@@ -78,7 +97,7 @@ predict_with_C <- function(C, y) {
 # Calcualte lambda_0 for the generalized lasso cases
 calc_lambda_0_gfsplash <- function(sigma_hat, Vhat_d, graph, alpha, ...) {
     # Check validity of alpha value
-    if (alpha < 0 | alpha >= 1) stop("alpha must be between 0 and 1")
+    if (alpha < 0 | alpha >= 1) stop("alpha must be between in [0, 1), for alpha=1, use a standard lasso solver instead")
 
     # Fit genlasso for only the first two iterations (1 iteration does not work)
     model <- fusedlasso(sigma_hat, Vhat_d, graph = graph, gamma = alpha / (1 - alpha), maxsteps = 2, ...)
@@ -91,95 +110,45 @@ calc_lambda_0_gfsplash <- function(sigma_hat, Vhat_d, graph, alpha, ...) {
     return(lambda_res)
 }
 
-# Generate grid of values for lambda, same approach as Reuvers and Wijler # THIS VERSION IS PUT ON HOLD RIGHT NOW, MAYBE USEFUL LATER
-# gen_lambda_grid <- function(lambda_0, length.out = 20) {
-#     lambda_min <- lambda_0 * 1e-4
-#     lambda_grid <- 10^(seq(log10(lambda_0), log10(lambda_min), length.out = length.out))
-#     return(lambda_grid)
-# }
-
-gen_lambda_grid <- function(lambda_0, length.out = 20) {
-    lambda_grid <- 10^(seq(2, -4, length.out = length.out))
-    return(lambda_grid)
+calc_Dtilde <- function(graph) {
+    null_vecs <- null_space_graph(graph)
+    Dtilde <- rbind(as.matrix(getDg(graph)), t(null_vecs))
+    return(Dtilde)
 }
 
-# Create dataframes with lambda values as column names
-create_lambda_df <- function(lambda_grid, filename) {
-    df <- data.frame(matrix(ncol = length(lambda_grid), nrow = 0))
-    colnames(df) <- paste0("lambda_", lambda_grid)
+calc_Dtilde_sparse <- function(graph) {
+    null_vecs <- null_space_graph(graph)
+    Dtilde <- rbind(as.matrix(getDg(graph)), t(null_vecs))
+    Dtilde <- Matrix(Dtilde, sparse = TRUE)
+    return(Dtilde)
+}
 
-    # If the file does not exist, create it
-    if (!file.exists(filename)) {
-        # Save the dataframe as a .csv file
-        write.csv(df, file = filename, row.names = FALSE, quote = FALSE)
+null_space_graph <- function(graph) {
+    null_vecs <- zeros(vcount(graph), (vcount(graph) - ecount(graph)))
+    conn <- components(graph)
+    mem <- conn$membership
+    for (i in 1:length(mem)) {
+        null_vecs[i, mem[i]] <- 1
     }
-    return(df)
+    return(null_vecs)
 }
 
-
-run_lambda_finder_gfsplash <- function(y, sigma_hat, Vhat_d, C_true, graph, alpha, path) {
-    train_idx <- (floor(dim(y)[2] / 5) * 4)
-    y_train <- y[, 1:train_idx]
-    y_test <- y[, (train_idx + 1):ncol(y)]
-    # Calculate lambda_0 for the GSPLASH
-    lam0 <- calc_lambda_0_gfsplash(sigma_hat, Vhat_d, graph, alpha = alpha)
-    # Generate grid of values for lambda
-    grid_lam <- gen_lambda_grid(lam0, length.out = 20)
-    # Call the function for each specification and create file if it does not exist yet
-    df_lam <- create_lambda_df(grid_lam, path)
-    # Fit the models and save the prediction results in the data.frame
-    for (i in 1:length(grid_lam)) {
-        lam <- grid_lam[i]
-        model <- fit_admm_gsplash(sigma_hat, Vhat_d, graph, lam, alpha = alpha)
-        # Calculate predictions and error metric
-        y_hat <- predict_with_C(model$C, y)
-        y_true_pred <- predict_with_C(C_true, y)
-        error_metric <- calc_msfe(y_test, y_hat)
-        df_lam[1, colnames(df_lam)[i]] <- error_metric
-    }
-
-    # Append the results to the table
-    write.table(df_lam, path, row.names = FALSE, col.names = FALSE, append = TRUE, sep = ",")
-    return(df_lam)
+calc_EE <- function(M_true, M_hat, type = "2") {
+    # type="F" for Frobenius, type="1" for max absolute column norm,  uses Matrix package
+    return(norm(M_true - M_hat, type = "2"))
 }
 
-run_lambda_finder_splash <- function(y, alpha, C_true, path, lambda_min_mult = 1e-4) {
-    train_idx <- (floor(dim(y)[2] / 5) * 4)
-    y_train <- y[, 1:train_idx]
-    y_test <- y[, (train_idx + 1):ncol(y)]
-    # Split the training set off
-    y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
-    # Run the SPLASH model with the given lambda_grid
-    # model <- splash::splash(t(y_train), banded_covs = c(TRUE, TRUE), B = 500, n_lambdas = 20, alphas = c(alpha), lambda_min_mult = lambda_min_mult)
-    lambda_grid <- gen_lambda_grid(lambda_min_mult, length.out = 20)
-    model <- splash::splash(t(y_train), banded_covs = c(TRUE, TRUE), B = 500, lambdas = lambda_grid, alphas = c(alpha))
-    p <- dim(model$AB)[1]
-    # Create placeholder dataframe
-    df_lam <- create_lambda_df(c(model$lambdas), path)
-    # Generate and save predictions for each lambda value
-    for (i in 1:dim(model$AB)[3]) {
-        A <- model$AB[, 1:p, i]
-        B <- model$AB[, (p + 1):(2 * p), i]
-        C <- AB_to_C(A, B)
-        # Calculate predictions and error metric
-        y_hat <- predict_with_C(C, y)
-        y_true_pred <- predict_with_C(C_true, y)
-        error_metric <- calc_msfe(y_test, y_hat)
-        df_lam[1, colnames(df_lam)[i]] <- error_metric
-    }
-
-    # Append the results to the table
-    write.table(df_lam, path, row.names = FALSE, col.names = FALSE, append = TRUE, sep = ",")
-    return(df_lam)
-}
-
-get_lam_best <- function(df, model) {
-    return(df[df$model == model, "lambda"])
-}
-
-save_fitting_results <- function(model, prefix, fit_dir) {
-    fwrite(data.table(model$A), file = file.path(fit_dir, paste0(prefix, "_estimate_A.csv")))
-    fwrite(data.table(model$B), file = file.path(fit_dir, paste0(prefix, "_estimate_B.csv")))
-    fwrite(data.table(model$C), file = file.path(fit_dir, paste0(prefix, "_estimate_C.csv")))
-    fwrite(data.table(model$yhat), file = file.path(fit_dir, paste0(prefix, "_yhat.csv")))
+create_folds <- function(y, nfolds = 5, test_size = 0.2) {
+    library(caret)
+    # Create cross-validation folds
+    time_indices <- 1:dim(y)[2]
+    initialWindow <- dim(y)[2] - floor(dim(y)[2] * test_size)
+    horizon <- dim(y)[2] * 0.2 / nfolds
+    folds <- createTimeSlices(time_indices,
+        initialWindow = initialWindow,
+        horizon = horizon,
+        fixedWindow = TRUE,
+        skip = horizon - 1
+    )
+    return(folds)
 }

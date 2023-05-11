@@ -1,3 +1,11 @@
+using Pkg
+Pkg.activate(joinpath(ENV["PROJ_DIR"], "juliaenv"), io=devnull)
+using Base: SimpleLogger
+using SparseArrays
+using LinearAlgebra
+using DataFrames, CSV
+
+
 """
 Calculates the amount of active elemements, i.e. the number of columns of Vhat_d, or the number of elements in vec(C')
 """
@@ -104,3 +112,62 @@ function is_edge_case(i::Int, p::Int, h::Int)::Bool
     end
 end
 
+"""
+This function calculates the number of the first element that has 
+no fusion partner in the Fused Lasso penalty associated with it. That is, it is
+the number of elements in the first (p - h) rows that are put into c, minus 2h + 1,
+which are the number of elements that come after this element in the (p -h)th row.
+"""
+function n_elements_to_first_skip(p::Int, h::Int)::Int
+    if h == 0
+        h = div(p, 4)
+    end
+    return (-5h^2 - 2h + 4h * p + p) - (2h + 1)
+end
+
+function null_space_graph_sparse(graph::SimpleGraph{Int64})::SparseMatrixCSC{Float64}
+    null_vecs = spzeros(Float64, nv(graph), nv(graph) - ne(graph))
+    conn = connected_components(graph)
+    for (j, vec) in enumerate(conn)
+        for i in vec
+            null_vecs[i, j] = 1.0
+        end
+    end
+    return null_vecs
+end
+
+function calc_Dtilde_sparse(graph::SimpleGraph)::SparseMatrixCSC{Float64}
+    D_prime = incidence_matrix(graph, oriented=true) # Incidence matrix needs to be transposed before obtaining D^(G)
+    null = null_space_graph_sparse(graph)
+    return vcat(D_prime', null') # Thus transpose here
+end
+
+function inv_Dtilde_sparse(graph::SimpleGraph)::SparseMatrixCSC{Float64}
+    Dtilde = calc_Dtilde_sparse(graph)
+    return sparse(inv(lu(Dtilde)))
+end
+
+function calc_Dtilde_SSF_sparse(graph::SimpleGraph, h::Int=0)::SparseMatrixCSC{Float64}
+    D = incidence_matrix(graph, oriented=true)' # Incidence matrix needs to be transposed before obtaining D^(G)
+    k, m = nv(graph), ne(graph)
+    # Create the extra penalty rows in D for one of the elements in each of the diagonals
+    extension = spzeros(Float64, k - m, k)
+    i = 1
+    for j in 1:k
+        if j >= (3h^2 + 1) && j <= (3h^2 + 4h + 1)
+            extension[i, j] = 1
+            i += 1
+        end
+    end
+    return vcat(D, extension) # Combine D and the extension
+end
+
+function inv_Dtilde_SSF_sparse(graph::SimpleGraph, h::Int=0)::SparseMatrixCSC{Float64}
+    Dtilde = calc_Dtilde_SSF_sparse(graph, h)
+    return sparse(inv(lu(Dtilde)))
+end
+
+function save_bandwiths_bootstrap(path::String, h0, h1)
+    df = DataFrame(h0=[h0], h1=[h1])
+    CSV.write(path, df)
+end

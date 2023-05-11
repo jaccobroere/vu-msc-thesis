@@ -1,3 +1,5 @@
+using Graphs: SimpleGraphs, connected_components!
+using LinearAlgebra
 using Base: vect
 using CSV
 using Tables
@@ -9,6 +11,15 @@ Calculates the amount of active elemements, i.e. the number of columns of Vhat_d
 """
 function total_active_elements(p::Int, h::Int)::Int
     return p * (4h + 1) - 2(h^2 + h)
+end
+
+
+""" 
+Calculates the total number of edges in a non-symmetric GF-SPLASH graph,
+namely the total number of nonzero elements minus (4 * bandwith + 1)
+"""
+function total_number_edges(p::Int, h::Int)::Int
+    return p * (4h + 1) - 2h^2 - 6h - 1
 end
 
 """
@@ -31,78 +42,80 @@ function nonzero_elements_per_equation(i::Int, p::Int, h::Int)::Int
 end
 
 
-# total_active_elements(25, 6)
+include(joinpath("..", "compute", "construct_graph.jl"))
 
-# Test the active elements selection logic
-# h = 2
-# p = 5
 
-# tot = 0
-# for i in 1:p
-#     lower_a = collect(max(1, i - h):max(0, i - 1))
-#     upper_a = collect((i+1):min(i + h, p))
-#     full_a = vcat(lower_a, upper_a)
-#     full_b = collect((p+max(1, (i - h))):(p+min(i + h, p)))
-#     selection = vcat(lower_a, upper_a, full_b)
-#     print("Length selection $(length(selection)) length full_a $(length(full_a)) length full_b $(length(full_b))\n")
-#     tot += length(selection)
-# end
+graph = create_gsplash_graph(5)
+sym_graph = create_gsplash_graph(9, symmetric=true)
 
-# print(tot)
+using Graphs, Colors, Plots, LinearAlgebra
 
-# tot_per_ci(25, 6)
-# Read data
-# y = Matrix(CSV.read("out/sim_y.csv", DataFrame))
-# Vhat_d = Matrix(CSV.read("out/v2_Vhat_d.csv", DataFrame))
-# sigma_hat = Matrix(CSV.read("out/v2_sigma_hat.csv", DataFrame))
+D = incidence_matrix(graph, oriented=true)
+D = Matrix(D)
 
-using CSV, DataFrames, Tables
 
-coef = Matrix(CSV.read("/Users/jacco/Documents/repos/vu-msc-thesis/out/simulation/coef/designB_T500_p25_admm_estimate.csv", DataFrame))
-coef = vec(coef)
 
-function coef_to_AB(coef::Vector{Float64}, p::Int)::Tuple{Matrix{Float64},Matrix{Float64}}
-    rcoef = reverse(coef)
-    bandwidth = div(p, 4)
-    AB = zeros(p, 2p)
-    cnt = 1
-    for i in 1:p
-        for j in 1:2p
-            if j <= p # Belongs to A
-                if abs(i - j) <= bandwidth && i != j
-                    AB[i, j] = pop!(rcoef)
-                end
-            else # Belongs to B
-                if abs(i - abs(j - p)) <= bandwidth
-                    AB[i, j] = pop!(rcoef)
-                end
-            end
+
+null_vecs
+
+null_vecs' * D
+
+
+s
+
+A = nullspace(D)
+
+Dtilde = vcat(D, A')
+inv(Dtilde)
+
+function compute_null_space(graph::SimpleGraph)
+    conn = connected_components(graph)
+    p = nv(graph)
+
+
+
+end
+
+function transform_genlasso(graph::SimpleGraph{Int64})::Matrix{Float64}
+    D = Matrix(incidence_matrix(graph, oriented=true))
+    Dtilde = vcat(D, nullspace(D)')
+
+    return inv(Dtilde)
+end
+
+
+function qr_transform_genlasso(graph::SimpleGraph{Int64})
+    D = Matrix(incidence_matrix(graph, oriented=true))
+    p, m = size(D) # m < p in pure fusion case
+    QR = qr(D)
+
+    return Matrix(QR.Q)
+end
+
+Q = qr_transform_genlasso(graph)
+
+
+
+
+function null_space_graph(graph::SimpleGraph{Int64})::Matrix{Int64}
+    null_vecs = zeros(Int64, nv(graph), nv(graph) - ne(graph))
+    conn = connected_components(graph)
+    for (j, vec) in enumerate(conn)
+        for i in vec
+            null_vecs[i, j] = 1
         end
     end
-    return AB[:, 1:p], AB[:, (p+1):end]
+    return null_vecs
 end
 
-A, B = coef_to_AB(coef, 25)
-
-A
-
-function gamma_to_alpha(gamma::Float64)::Float64
-    return gamma / (1 + gamma)
+function construct_Dtilde(graph::SimpleGraph)::Matrix{Int64}
+    null = null_space_graph(graph)
+    return hcat(D, null)
 end
 
-function gamma_lambda_to_lambda_new(gamma::Float64, lambda::Float64)::Float64
-    return lambda * (1 + gamma)
-end
+graph = create_gsplash_graph(5)
+null = null_space_graph(graph)
+
+Dtilde = construct_Dtilde(D, null)
 
 
-λ = 0.2
-γ = 0.3
-
-
-α = gamma_to_alpha(γ)
-λ_star = gamma_lambda_to_lambda_new(γ, λ)
-
-isapprox(λ, (1 - α) * λ_star)
-isapprox(γ * λ, α * λ_star)
-
-(1 - α) * λ_star

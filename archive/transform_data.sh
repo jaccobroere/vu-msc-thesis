@@ -26,9 +26,9 @@ step1() {
   fi
 
   # Run Julia script for step 1
-  echo "Running transform_bootstrap_graph.jl ..."
-  julia --project=$JULIA_DIR src/compute/transform_bootstrap_graph.jl $prefix
-  echo "transform_bootstrap_graph.jl completed."
+  echo "Running precalculations_and_write.jl.jl ..."
+  julia --project=$JULIA_DIR src/compute/precalculations_and_write.jl.jl $prefix
+  echo "precalculations_and_write.jl.jl completed."
 }
 
 step1

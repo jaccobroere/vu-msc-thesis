@@ -185,5 +185,14 @@ function main(sim_design_id, uuidtag)
     return nothing
 end
 
+if abspath(PROGRAM_FILE) == @__FILE__
+    # Parse command line argument
+    sim_design_id = ARGS[1]
+    T, p = parse_sim_design_id(sim_design_id)
+    uuidtag = length(ARGS) >= 2 ? ARGS[2] : nothing
+
+    # Run main function
+    main(sim_design_id, uuidtag)
+end
 # ## TESTING
 # y = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/designB_T1000_p25/mc/D67DFC71-FF34-4731-B009-6C9668E5DA4E", "y.csv"))

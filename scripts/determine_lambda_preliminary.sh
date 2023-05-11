@@ -46,7 +46,7 @@ step_sim() {
 # Transform data
 step_transform () {
     # Run the precalculation script only if it has not been done before for this design
-    if [! -f "data/simulation/${sim_design_id}/Dtilde.mtx"]; then
+    if [ ! -f "data/simulation/${sim_design_id}/Dtilde.mtx" ]; then
       echo "Running precalculations_and_write.jl ..."
       julia --project=$JULIA_DIR src/compute/precalculations_and_write.jl ${sim_design_id}/detlam $uuidtag
       echo "precalculations_and_write.jl completed."

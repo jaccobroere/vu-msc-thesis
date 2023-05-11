@@ -21,8 +21,8 @@ lambdas_dir <- file.path(PROJ_DIR, "out/simulation/lambdas", sim_design_id)
 sim_id_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id)
 
 # Parse paths
-path_reg_graph <- file.path(data_dir, "reg_graph.graphml")
-path_sym_graph <- file.path(data_dir, "sym_graph.graphml")
+path_reg_graph <- file.path(sim_id_dir, "reg_graph.graphml")
+path_sym_graph <- file.path(sim_id_dir, "sym_graph.graphml")
 path_y <- file.path(data_dir, "y.csv")
 path_bandwidth <- file.path(data_dir, "bootstrap_bandwidths.csv")
 

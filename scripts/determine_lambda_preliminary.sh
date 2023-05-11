@@ -53,7 +53,6 @@ step_transform () {
     else 
       echo "precalculations_and_write.jl already completed at an earlier iteration for ${sim_design_id}."
     fi
-    echo "precalculations_and_write.jl completed."
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
 }

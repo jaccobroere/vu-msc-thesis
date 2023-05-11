@@ -156,7 +156,7 @@ function main(sim_design_id, uuidtag)
     if !isfile(joinpath(path_sim, "Dtilde.mtx"))
         # Read data 
         y_read = read_data(joinpath(path, "y.csv"))
-        p = size(y, 1)
+        p = size(y_read, 1)
         h = div(p, 4)
         # Subset the first 80% of the data
         y = y_read[:, 1:div(size(y_read, 2), 5)*4]
@@ -188,8 +188,9 @@ end
 if abspath(PROGRAM_FILE) == @__FILE__
     # Parse command line argument
     sim_design_id = ARGS[1]
-    T, p = parse_sim_design_id(sim_design_id)
+    print(sim_design_id)
     uuidtag = length(ARGS) >= 2 ? ARGS[2] : nothing
+    print(uuidtag)
 
     # Run main function
     main(sim_design_id, uuidtag)

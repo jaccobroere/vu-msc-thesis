@@ -60,7 +60,6 @@ RUN cd /app/admm_src_zhu && \
 # Copy code to run
 COPY src /app/vu-msc-thesis/src
 COPY scripts /app/vu-msc-thesis/scripts
-COPY data /app/vu-msc-thesis/data
 
 # Set working directory
 WORKDIR /app/vu-msc-thesis

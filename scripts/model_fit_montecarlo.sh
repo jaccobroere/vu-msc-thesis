@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd $PROJ_DIR
+
 # Progress bar
 total_steps=4
 current_step=0

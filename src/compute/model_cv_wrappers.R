@@ -31,8 +31,8 @@ fit_splash.cv <- function(y, alpha, nlambdas = 20, nfolds = 5, ...) {
     errors_cv <- array(NA, dim = c(nfolds, nlambdas))
     for (i in 1:nfolds) {
         # Split the data into training and validation sets
-        y_train_cv <- y_train[, folds$train[[i]]]
-        y_val_cv <- y_train[, folds$test[[i]]]
+        y_train_cv <- y_train[, folds[[i]]$train]
+        y_val_cv <- y_train[, folds[[i]]$test]
 
         # Fit the model on the training set
         model_cv <- splash(t(y_train_cv), alphas = c(alpha), n_lambdas = nlambdas, track_progress = FALSE)
@@ -99,8 +99,8 @@ fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, nlambdas = 20, nfol
     errors_cv <- array(NA, dim = c(nfolds, nlambdas))
     for (i in 1:nfolds) {
         # Split the data into training and validation sets
-        y_train_cv <- y_train[, folds$train[[i]]]
-        y_val_cv <- y_train[, folds$test[[i]]]
+        y_train_cv <- y_train[, folds[[i]]$train]
+        y_val_cv <- y_train[, folds[[i]]$test]
 
         # Construct Vhat_d and sigma_hat from the training validation
         Sigma0 <- calc_Sigma_j(y_train_cv, 0)
@@ -226,8 +226,8 @@ fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambd
     errors_cv <- array(NA, dim = c(nfolds, nlambdas))
     for (i in 1:nfolds) {
         # Split the data into training and validation sets
-        y_train_cv <- y_train[, folds$train[[i]]]
-        y_val_cv <- y_train[, folds$test[[i]]]
+        y_train_cv <- y_train[, folds[[i]]$train]
+        y_val_cv <- y_train[, folds[[i]]$test]
 
         # Construct Vhat_d and sigma_hat from the training validation
         Sigma0 <- calc_Sigma_j(y_train_cv, 0)

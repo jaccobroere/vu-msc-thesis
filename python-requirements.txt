@@ -10,3 +10,4 @@ jupyter
 ipython
 ipywidgets
 ipykernel
+tabulate

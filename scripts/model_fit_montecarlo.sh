@@ -61,7 +61,7 @@ step_transform () {
 
 # Calculate performance for each lambda value once
 step_modelfit () {
-    if [ ! -f "out/simulation/lambdas/${sim_design_id}/grid_reg_a05.csv" ]; then
+    if [ ! -f "out/simulation/lambdas/${sim_design_id}/grid_gfsplash_a05.csv" ]; then
       echo "The the optimal lambda values for the GF-SPLASH models have not been computed yet for ${sim_design_id}."
       echo "Please run the command: 'determine_lambda_preliminary.sh ${sim_design_id}' first."
     else 

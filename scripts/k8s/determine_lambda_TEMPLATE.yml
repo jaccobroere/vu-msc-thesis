@@ -4,13 +4,20 @@ metadata:
   name: detlam
 spec:
   completions: 20
-  parallelism: 5
+  parallelism: 4
   template:
     spec:
       containers:
         - name: detlam-cont
           image: jaccusaurelius/vu-msc-thesis:kube
           command: ["bash", "scripts/determine_lambda_preliminary.sh", "REPLACEME"]
+          resources: 
+            requests:
+              cpu: 1500m 
+              memory: 1500Mi 
+            limits:
+              cpu: 1500m
+              memory: 1900Mi 
           volumeMounts:
             - name: pv-out
               mountPath: /app/vu-msc-thesis/out

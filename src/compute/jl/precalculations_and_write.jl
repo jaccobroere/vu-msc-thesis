@@ -1,7 +1,7 @@
 # isage example: julia construct_V_sigma.jl "data\y.csv" "version1"
 # Output: version1_Vhat_d.csv, version1_sigma_hat.csv, version1_Vhat_d.feather, version1_sigma_hat.feather
 using Pkg
-Pkg.activate(joinpath(ENV["PROJ_DIR"], "juliaenv"), io=devnull)
+Pkg.activate(joinpath(ENV["JULIA_DIR"]), io=devnull)
 using Distributed
 Threads.nthreads()
 

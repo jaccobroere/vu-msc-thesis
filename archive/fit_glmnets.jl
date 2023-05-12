@@ -1,5 +1,5 @@
 using Pkg
-Pkg.activate(joinpath(ENV["PROJ_DIR"], "juliaenv"), io=devnull)
+Pkg.activate(joinpath(ENV["JULIA_DIR"]), io=devnull)
 
 using GLMNet
 using SparseArrays, MatrixMarket

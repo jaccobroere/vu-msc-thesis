@@ -33,25 +33,31 @@ def collect_dataframes(lambdas_dir, model_name):
 def save_best_lam(lambdas_dir):
     # Read in the dataframes
     grid_lam_reg_a0 = collect_dataframes(lambdas_dir, "reg_a0")
-    grid_lam_reg_a05 = collect_dataframes(lambdas_dir, "reg_a05")
-    grid_lam_sym_a0 = collect_dataframes(lambdas_dir, "sym_a0")
-    grid_lam_sym_a05 = collect_dataframes(lambdas_dir, "sym_a05")
+    grid_lam_gfsplash_a05 = collect_dataframes(lambdas_dir, "gfsplash_a05")
+    grid_lam_gfsplash_sym_a0 = collect_dataframes(lambdas_dir, "gfsplash_sym_a0")
+    grid_lam_gfsplash_sym_a05 = collect_dataframes(lambdas_dir, "gfsplash_sym_a05")
     grid_lam_spl_a0 = collect_dataframes(lambdas_dir, "spl_a0")
     grid_lam_spl_a05 = collect_dataframes(lambdas_dir, "spl_a05")
 
     # calculate the average for each column
     avg_lam_reg_a0 = np.mean(grid_lam_reg_a0, axis=0)
-    avg_lam_reg_a05 = np.mean(grid_lam_reg_a05, axis=0)
-    avg_lam_sym_a0 = np.mean(grid_lam_sym_a0, axis=0)
-    avg_lam_sym_a05 = np.mean(grid_lam_sym_a05, axis=0)
+    avg_lam_gfsplash_a05 = np.mean(grid_lam_gfsplash_a05, axis=0)
+    avg_lam_gfsplash_sym_a0 = np.mean(grid_lam_gfsplash_sym_a0, axis=0)
+    avg_lam_gfsplash_sym_a05 = np.mean(grid_lam_gfsplash_sym_a05, axis=0)
     avg_lam_spl_a0 = np.mean(grid_lam_spl_a0, axis=0)
     avg_lam_spl_a05 = np.mean(grid_lam_spl_a05, axis=0)
 
     # calculate what lambda was the best
     best_lam_reg_a0 = parse_float(avg_lam_reg_a0.index[np.argmin(avg_lam_reg_a0)])
-    best_lam_reg_a05 = parse_float(avg_lam_reg_a05.index[np.argmin(avg_lam_reg_a05)])
-    best_lam_sym_a0 = parse_float(avg_lam_sym_a0.index[np.argmin(avg_lam_sym_a0)])
-    best_lam_sym_a05 = parse_float(avg_lam_sym_a05.index[np.argmin(avg_lam_sym_a05)])
+    best_lam_gfsplash_a05 = parse_float(
+        avg_lam_gfsplash_a05.index[np.argmin(avg_lam_gfsplash_a05)]
+    )
+    best_lam_gfsplash_sym_a0 = parse_float(
+        avg_lam_gfsplash_sym_a0.index[np.argmin(avg_lam_gfsplash_sym_a0)]
+    )
+    best_lam_gfsplash_sym_a05 = parse_float(
+        avg_lam_gfsplash_sym_a05.index[np.argmin(avg_lam_gfsplash_sym_a05)]
+    )
     best_lam_spl_a0 = parse_float(avg_lam_spl_a0.index[np.argmin(avg_lam_spl_a0)])
     best_lam_spl_a05 = parse_float(avg_lam_spl_a05.index[np.argmin(avg_lam_spl_a05)])
 
@@ -60,17 +66,17 @@ def save_best_lam(lambdas_dir):
         {
             "model": [
                 "best_lam_reg_a0",
-                "best_lam_reg_a05",
-                "best_lam_sym_a0",
-                "best_lam_sym_a05",
+                "best_lam_gfsplash_a05",
+                "best_lam_gfsplash_sym_a0",
+                "best_lam_gfsplash_sym_a05",
                 "best_lam_spl_a0",
                 "best_lam_spl_a05",
             ],
             "lambda": [
                 best_lam_reg_a0,
-                best_lam_reg_a05,
-                best_lam_sym_a0,
-                best_lam_sym_a05,
+                best_lam_gfsplash_a05,
+                best_lam_gfsplash_sym_a0,
+                best_lam_gfsplash_sym_a05,
                 best_lam_spl_a0,
                 best_lam_spl_a05,
             ],

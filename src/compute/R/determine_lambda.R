@@ -139,6 +139,6 @@ fit_gfsplash.lambda_grid <- function(y, bandwidths, graph, alpha, path, nlambdas
 }
 
 # Fit the grids and save the results
-grid_reg_a05 <- fit_gfsplash.lambda_grid(y, bandwidths, reg_gr, alpha = 0.5, path = file.path(lambdas_dir, "grid_reg_a05.csv"))
-grid_sym_a0 <- fit_gfsplash.lambda_grid(y, bandwidths, sym_gr, alpha = 0, path = file.path(lambdas_dir, "grid_sym_a0.csv"))
-grid_sym_a05 <- fit_gfsplash.lambda_grid(y, bandwidths, sym_gr, alpha = 0.5, path = file.path(lambdas_dir, "grid_sym_a05.csv"))
+grid_gfsplash_a05 <- fit_gfsplash.lambda_grid(y, bandwidths, reg_gr, alpha = 0.5, path = file.path(lambdas_dir, "grid_gfsplash_a05.csv"))
+grid_gfsplash_sym_a0 <- fit_gfsplash.lambda_grid(y, bandwidths, sym_gr, alpha = 0, path = file.path(lambdas_dir, "grid_gfsplash_sym_a0.csv"))
+grid_gfsplash_sym_a05 <- fit_gfsplash.lambda_grid(y, bandwidths, sym_gr, alpha = 0.5, path = file.path(lambdas_dir, "grid_gfsplash_sym_a05.csv"))

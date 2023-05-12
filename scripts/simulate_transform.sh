@@ -45,7 +45,7 @@ step_sim() {
 step_transform () {
     # Run Julia script for step 1
     echo "Running precalculations_and_write.jl.jl ..."
-    julia --project=$JULIA_DIR src/compute/precalculations_and_write.jl.jl ${prefix}_T${T}_p${p}
+    julia --project=$JULIA_DIR src/compute/jl/precalculations_and_write.jl.jl ${prefix}_T${T}_p${p}
     echo "precalculations_and_write.jl.jl completed."
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50

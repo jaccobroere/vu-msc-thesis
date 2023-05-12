@@ -8,7 +8,7 @@ using RCall
 using CrossValidation
 
 R"""
-source('src/compute/utils.R')
+source('src/compute/R/utils.R')
 """
 
 

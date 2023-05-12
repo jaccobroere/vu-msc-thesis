@@ -10,7 +10,6 @@ library(splash)
 library(BigVAR)
 library(glmnet)
 library(Matrix)
-library(caret)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
 
 fit_splash.cv <- function(y, alpha, nlambdas = 20, nfolds = 5, ...) {
@@ -22,7 +21,7 @@ fit_splash.cv <- function(y, alpha, nlambdas = 20, nfolds = 5, ...) {
     y_test <- y[, ((floor(dim(y)[2] / 5) * 4) + 1):dim(y)[2]]
 
     # Create cross-validation folds
-    folds <- create_folds(y_train, nfolds = nfolds)
+    folds <- rolling_cv(y_train, nfolds = nfolds)
 
     # Fit the model on each fold and save the results
     C_cv <- array(NA, dim = c(p, p, nlambdas))
@@ -90,7 +89,7 @@ fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, nlambdas = 20, nfol
     y_test <- y[, ((floor(dim(y)[2] / 5) * 4) + 1):dim(y)[2]]
 
     # Create cross-validation folds
-    folds <- create_folds(y_train, nfolds = nfolds)
+    folds <- rolling_cv(y_train, nfolds = nfolds)
 
     # Fit the model on each fold and save the results
     C_cv <- array(NA, dim = c(p, p, nlambdas))
@@ -217,7 +216,7 @@ fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambd
     y_test <- y[, ((floor(dim(y)[2] / 5) * 4) + 1):dim(y)[2]]
 
     # Create cross-validation folds
-    folds <- create_folds(y_train, nfolds = nfolds)
+    folds <- rolling_cv(y_train, nfolds = nfolds)
 
     # Fit the model on each fold and save the results
     C_cv <- array(NA, dim = c(p, p, nlambdas))
@@ -313,7 +312,7 @@ fit_pvar.cv <- function(y, nlambdas = 20, nfolds = 5, ...) {
     p <- as.integer(sqrt(dim(Vhat_d)[1]))
 
     # Create cross-validation folds
-    folds <- create_folds(y_train, nfolds = nfolds)
+    folds <- rolling_cv(y_train, nfolds = nfolds)
 
     # Perform cross-validation for the selection of the penalty parameter
     model_setup <- constructModel(

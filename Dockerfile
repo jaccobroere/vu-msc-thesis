@@ -49,6 +49,8 @@ COPY juliaenv /app/juliaenv
 RUN pip3 install -r /app/python-requirements.txt
 RUN julia --project=$JULIA_DIR -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
 RUN julia --project=$JULIA_DIR -e 'using Distributed, LoopVectorization, Tables, LinearAlgebra, Random, CSV, StatsBase, DataFrames, Distributions, SparseArrays, Statistics, Graphs, GraphIO, EzXML, MatrixMarket'
+RUN ln -s /usr/bin/python3 /usr/bin/python
+
 
 # Install C dependencies for R package from Zhu et al. (2015)
 RUN cd /app/admm_src_zhu && \

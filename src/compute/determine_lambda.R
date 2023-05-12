@@ -2,6 +2,7 @@
 PROJ_DIR <- system("echo $PROJ_DIR", intern = TRUE)
 setwd(PROJ_DIR)
 source("src/compute/vhat_sigmahat.R")
+source("src/compute/utils.R")
 setwd(system("echo $ZHU_DIR", intern = TRUE))
 source("R/opt.R")
 source("R/gen_data.R")
@@ -18,13 +19,13 @@ uuidtag <- ifelse(length(args) < 2, "503FD119-142F-4B9B-AD46-CA0A417B03E6", args
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "detlam", uuidtag)
 lambdas_dir <- file.path(PROJ_DIR, "out/simulation/lambdas", sim_design_id)
-sim_id_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id)
+sim_id_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "detlam")
 
 # Parse paths
-path_reg_graph <- file.path(data_dir, "reg_graph.graphml")
-path_sym_graph <- file.path(data_dir, "sym_graph.graphml")
+path_reg_graph <- file.path(sim_id_dir, "reg_graph.graphml")
+path_sym_graph <- file.path(sim_id_dir, "sym_graph.graphml")
 path_y <- file.path(data_dir, "y.csv")
-path_bandwidth <- file.path(data_dir, "bootstrap_bandwidths.csv")
+path_bandwidth <- file.path(sim_id_dir, "bootstrap_bandwidths.csv")
 
 # Load the data
 reg_gr <- read_graph(path_reg_graph, format = "graphml")

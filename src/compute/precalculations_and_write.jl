@@ -156,7 +156,7 @@ function main(sim_design_id, uuidtag)
     if !isfile(joinpath(path_sim, "Dtilde.mtx"))
         # Read data 
         y_read = read_data(joinpath(path, "y.csv"))
-        p = size(y, 1)
+        p = size(y_read, 1)
         h = div(p, 4)
         # Subset the first 80% of the data
         y = y_read[:, 1:div(size(y_read, 2), 5)*4]
@@ -179,11 +179,19 @@ function main(sim_design_id, uuidtag)
         save_graph_as_gml(regular_graph, joinpath(path_sim, "reg_graph.graphml"))
         save_graph_as_gml(symmetric_graph, joinpath(path_sim, "sym_graph.graphml"))
         # Save the bandwidths
-        save_bandwiths_bootstrap(joinpath(path, "bootstrap_bandwidths.csv"), h0, h1)
+        save_bandwiths_bootstrap(joinpath(path_sim, "bootstrap_bandwidths.csv"), h0, h1)
     end
 
     return nothing
 end
 
+if abspath(PROGRAM_FILE) == @__FILE__
+    # Parse command line argument
+    sim_design_id = ARGS[1]
+    uuidtag = length(ARGS) >= 2 ? ARGS[2] : nothing
+
+    # Run main function
+    main(sim_design_id, uuidtag)
+end
 # ## TESTING
 # y = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/designB_T1000_p25/mc/D67DFC71-FF34-4731-B009-6C9668E5DA4E", "y.csv"))

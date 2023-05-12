@@ -138,17 +138,32 @@ calc_EE <- function(M_true, M_hat, type = "2") {
     return(norm(M_true - M_hat, type = "2"))
 }
 
-create_folds <- function(y, nfolds = 5, test_size = 0.2) {
-    library(caret)
-    # Create cross-validation folds
-    time_indices <- 1:dim(y)[2]
-    initialWindow <- dim(y)[2] - floor(dim(y)[2] * test_size)
-    horizon <- dim(y)[2] * 0.2 / nfolds
-    folds <- createTimeSlices(time_indices,
-        initialWindow = initialWindow,
-        horizon = horizon,
-        fixedWindow = TRUE,
-        skip = horizon - 1
-    )
-    return(folds)
+rolling_cv <- function(y, nfolds, test_size = 0.2) {
+    # Get the number of rows in the matrix
+    ncols <- ncol(y)
+
+    # Initialize a list to store the training and validation sets
+    cv_folds <- list()
+
+    # Calculate the window sizes
+    train_window_size <- ncols - (floor(ncols * test_size))
+    test_window_size <- ncols * test_size / nfolds
+
+    idx <- 1
+    for (i in 1:nfolds) {
+        # The training set is the current window
+        training_set <- idx:(idx + train_window_size - 1)
+
+        # The validation set is the row immediately after the window
+        test_set <- (idx + train_window_size):(idx + train_window_size + test_window_size - 1)
+
+        # Add the training and validation sets to the list
+        cv_folds[[i]] <- list("train" = training_set, "test" = test_set)
+
+        # Update the index
+        idx <- idx + test_window_size
+    }
+
+    # Return the list of training and validation sets
+    return(cv_folds)
 }

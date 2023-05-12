@@ -72,14 +72,3 @@ construct_Vhat_d <- function(V, bandwidth = 0) {
     }
     return(Vhat_d)
 }
-
-
-
-library(caret)
-
-dum <- c(1:500)
-
-cv <- createTimeSlices(dum, initialWindow = 400, fixedWindow = TRUE, horizon = 20, skip = 19)
-
-cv$train[[3]]
-cv$test[[5]]

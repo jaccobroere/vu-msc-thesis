@@ -4,14 +4,14 @@ metadata:
   name: detlam
 spec:
   completions: 20
-  parallelism: 10
+  parallelism: 5
   template:
     spec:
       containers:
         - name: detlam-cont
           image: jaccusaurelius/vu-msc-thesis:kube
           command:
-            ["bash", "scripts/model_fit_montecarlo.sh", "designB_T500_p9"]
+            ["bash", "scripts/determine_lambda_preliminary.sh", "designB_T500_p9"]
           volumeMounts:
             - name: pv-out
               mountPath: /app/vu-msc-thesis/out

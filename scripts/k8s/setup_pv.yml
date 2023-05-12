@@ -4,13 +4,13 @@ metadata:
   name: pv-out
 spec:
   capacity:
-    storage: 10Gi
+    storage: 30Gi
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain 
   storageClassName: manual
   hostPath:
-    path: /Users/jacco/Documents/repos/vu-msc-thesis/out
+    path: /Users/jacco/Documents/repos/vu-msc-thesis
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -21,7 +21,7 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: 10Gi
+      storage: 30Gi
   storageClassName: manual
 ---
 apiVersion: v1
@@ -35,7 +35,7 @@ spec:
     command: ["sleep", "infinity"]
     volumeMounts:
     - name: pv-out
-      mountPath: /app/vu-msc-thesis/out
+      mountPath: /app/vu-msc-thesis
   volumes:
     - name: pv-out
       persistentVolumeClaim:

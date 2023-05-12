@@ -1,9 +1,9 @@
 setwd(system("echo $PROJ_DIR", intern = TRUE))
 source("src/compute/utils.R")
 source("src/compute/vhat_sigmahat.R")
-# setwd(system("echo $ZHU_DIR", intern = TRUE))
-# source("R/opt.R")
-# source("R/gen_data.R")
+setwd(system("echo $ZHU_DIR", intern = TRUE))
+source("R/opt.R")
+source("R/gen_data.R")
 library(genlasso)
 library(igraph)
 library(splash)
@@ -27,7 +27,7 @@ fit_splash.cv <- function(y, alpha, nlambdas = 20, nfolds = 5, ...) {
     C_cv <- array(NA, dim = c(p, p, nlambdas))
     A_cv <- array(NA, dim = c(p, p, nlambdas))
     B_cv <- array(NA, dim = c(p, p, nlambdas))
-    y_pred_cv <- array(NA, dim = c(p, length(folds$test[[1]]), nlambdas))
+    y_pred_cv <- array(NA, dim = c(p, length(folds[[1]]$test), nlambdas))
     errors_cv <- array(NA, dim = c(nfolds, nlambdas))
     for (i in 1:nfolds) {
         # Split the data into training and validation sets
@@ -95,7 +95,7 @@ fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, nlambdas = 20, nfol
     C_cv <- array(NA, dim = c(p, p, nlambdas))
     A_cv <- array(NA, dim = c(p, p, nlambdas))
     B_cv <- array(NA, dim = c(p, p, nlambdas))
-    y_pred_cv <- array(NA, dim = c(p, length(folds$test[[1]]), nlambdas))
+    y_pred_cv <- array(NA, dim = c(p, length(folds[[1]]$test), nlambdas))
     errors_cv <- array(NA, dim = c(nfolds, nlambdas))
     for (i in 1:nfolds) {
         # Split the data into training and validation sets
@@ -222,7 +222,7 @@ fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambd
     C_cv <- array(NA, dim = c(p, p, nlambdas))
     A_cv <- array(NA, dim = c(p, p, nlambdas))
     B_cv <- array(NA, dim = c(p, p, nlambdas))
-    y_pred_cv <- array(NA, dim = c(p, length(folds$test[[1]]), nlambdas))
+    y_pred_cv <- array(NA, dim = c(p, length(folds[[1]]$test), nlambdas))
     errors_cv <- array(NA, dim = c(nfolds, nlambdas))
     for (i in 1:nfolds) {
         # Split the data into training and validation sets
@@ -309,7 +309,7 @@ fit_pvar.cv <- function(y, nlambdas = 20, nfolds = 5, ...) {
 
     # Fit a single solution using PVAR(1) with the BigVAR package
     # Retrieve the cross-sectional dimension of the problem
-    p <- as.integer(sqrt(dim(Vhat_d)[1]))
+    p <- nrow(y)
 
     # Create cross-validation folds
     folds <- rolling_cv(y_train, nfolds = nfolds)

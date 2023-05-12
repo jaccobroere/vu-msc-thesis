@@ -1,8 +1,8 @@
 # Load all the necessary packages
 PROJ_DIR <- system("echo $PROJ_DIR", intern = TRUE)
 setwd(PROJ_DIR)
-source("src/compute/vhat_sigmahat.R")
-source("src/compute/utils.R")
+source("src/compute/R/vhat_sigmahat.R")
+source("src/compute/R/utils.R")
 setwd(system("echo $ZHU_DIR", intern = TRUE))
 source("R/opt.R")
 source("R/gen_data.R")

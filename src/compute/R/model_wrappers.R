@@ -1,5 +1,5 @@
 setwd(system("echo $PROJ_DIR", intern = TRUE))
-source("src/compute/utils.R")
+source("src/compute/R/utils.R")
 setwd(system("echo $ZHU_DIR", intern = TRUE))
 source("R/opt.R")
 source("R/gen_data.R")

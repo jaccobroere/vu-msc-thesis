@@ -1,6 +1,6 @@
 PROJ_DIR <- system("echo $PROJ_DIR", intern = TRUE)
 setwd(PROJ_DIR)
-source("src/compute/utils.R")
+source("src/compute/R/utils.R")
 library(data.table)
 
 # Read arguments from CLI

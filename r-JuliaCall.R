@@ -2,4 +2,4 @@ install.packages(JuliaCall, dependencies = TRUE, repos = "http://cran.rstudio.co
 library(JuliaCall)
 julia <- julia_setup(installJulia = TRUE)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
-julia_source("src/compute/precalculations_and_write.jl.jl")
+julia_source("src/compute/R/precalculations_and_write.jl.jl")

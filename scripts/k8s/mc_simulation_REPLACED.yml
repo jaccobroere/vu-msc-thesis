@@ -4,20 +4,13 @@ metadata:
   name: modelfit
 spec:
   completions: 100 
-  parallelism: 4 
+  parallelism: 10
   template:
     spec:
       containers:
       - name: modelfit-cont
         image: jaccusaurelius/vu-msc-thesis:kube
-        command: ["bash", "scripts/model_fit_montecarlo.sh", "REPLACEME"]
-        resources: 
-          requests:
-            cpu: 1500m 
-            memory: 1500Mi 
-          limits:
-            cpu: 1500m
-            memory: 1900Mi 
+        command: ["bash", "-c", "scripts/model_fit_montecarlo.sh designB_T500_p25"]
         volumeMounts:
         - name: pv-out
           mountPath: /app/vu-msc-thesis/out

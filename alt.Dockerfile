@@ -2,7 +2,7 @@
 # Run the following command to run the container and mount the correct folder.
 # docker run -it --rm -v $(pwd):/app/vu-msc-thesis jaccusaurelius/vu-msc-thesis:latest
 # jaccusaurelius/vu-msc-thesis:kube can be used for docker with k8s
-FROM julia:1.9-rc-bullseye
+FROM julia:1.9-buster
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PROJ_DIR=/app/vu-msc-thesis
 ENV ZHU_DIR=/app/admm_src_zhu
@@ -40,7 +40,6 @@ RUN apt-get install -y libatlas3-base libopenblas-base
 # Debian binaries for R packages
 RUN apt-get update && \ 
     apt-get install -y r-cran-data.table \
-        r-cran-tictoc \
         r-cran-rcpp \ 
         r-cran-matrixstats \ 
         r-cran-glmnet \ 

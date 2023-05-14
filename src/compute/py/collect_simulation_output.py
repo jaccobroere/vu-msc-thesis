@@ -1,4 +1,5 @@
 import os
+import re
 
 import pandas as pd
 from tabulate import tabulate
@@ -6,6 +7,16 @@ from tabulate import tabulate
 # Read enivornment voriable
 PROJ_DIR = os.environ["PROJ_DIR"]
 os.chdir(PROJ_DIR)
+
+
+def parse_design_id(design_id: str) -> tuple:
+    match = re.match(r"(\w+)_T(\d+)_p(\d+)", design_id)
+    if match:
+        design_id = match.group(1)
+        T, p = int(match.group(2)), int(match.group(3))
+        return design_id, T, p
+
+    raise ValueError(f"Invalid design_id: {design_id}")
 
 
 # %%
@@ -16,33 +27,41 @@ def create_full_data_dictionary(design: str = "designB"):
 
     # Iterate over the directories in the out/simulation/fit/ directory
     for design_dir in os.listdir(fit_dir):
-        if design_dir.startswith("designB"):
-            # Get the UUIDs of the subdirectories in the design_dir directory
-            uuids = os.listdir(os.path.join(fit_dir, design_dir))
+        design_id, T, p = parse_design_id(design_dir)
+        data[design_dir] = data.get(design_id, {})
 
-            # Iterate over the UUIDs
-            for uuid in uuids:
-                # Get the path to the csv files in the uuid directory
-                uuid_dir = os.path.join(fit_dir, design_dir, uuid)
-                csv_files = os.listdir(uuid_dir)
+        # Get the UUIDs of the subdirectories in the design_dir directory
+        uuids = os.listdir(os.path.join(fit_dir, design_dir))
 
-                # Iterate over the csv files
-                for csv_file in csv_files:
-                    splits = csv_file.split("_")
-                    print(splits)
-                    
-                    # If the csv file starts with the prefix "splash_", then it is a model output
-                    if csv_file.startswith("splash_"):
-                        # Read the csv file into a pandas dataframe
-                        df = pd.read_csv(
-                            os.path.join(fit_dir, design_dir, uuid, csv_file)
-                        )
+        # Iterate over the UUIDs
+        for uuid in uuids:
+            # Create a dictionary for the uuid
+            data[design_dir][uuid] = data[design_dir].get(uuid, {})
 
-                        # Add the dataframe to the data dictionary
-                        data[design_dir] = data.get(design_dir, {})
-                        data[design_dir][uuid] = df
+            # Get the path to the csv files in the uuid directory
+            uuid_dir = os.path.join(fit_dir, design_dir, uuid)
+            csv_files = os.listdir(uuid_dir)
+
+            # Iterate over the csv files
+            for csv_file in csv_files:
+                splits = csv_file.split("_")
+                if len(splits) < 2:
+                    continue
+
+                model_name = splits[0]
+                item = splits[1]
+
+                # Read the csv file into a pandas dataframe
+                df = pd.read_csv(os.path.join(fit_dir, design_dir, uuid, csv_file))
+
+                # Add the dataframe to the data dictionary
+                data[design_dir][uuid][model_name] = data[design_dir][uuid].get(
+                    model_name, {}
+                )
+                data[design_dir][uuid][model_name][item] = df
 
     return data
+
 
 def aggregate_to_dataframe(d: dict):
     pass
@@ -80,8 +99,8 @@ def write_table_to_latex(df: pd.DataFrame):
 
 
 def main():
-    create_full_data_dictionary()
+    return create_full_data_dictionary()
 
 
 if __name__ == "__main__":
-    main()
+    data = main()

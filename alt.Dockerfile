@@ -11,6 +11,7 @@ ENV JULIA_DIR=/app/juliaenv
 # Install necessary packages
 RUN apt-get update && \
     apt-get install -y wget && \
+    apt-get install -y gnupg && \
     apt-get install -y uuid-runtime && \
     apt-get install -y locales && \
     sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
@@ -26,7 +27,11 @@ RUN apt-get update && \
 
 # Install R and necessary packages
 # Get newest R version
-RUN echo "deb http://cloud.r-project.org/bin/linux/debian bullseye-cran40/" >> /etc/apt/sources.list 
+# RUN echo "deb http://cloud.r-project.org/bin/linux/debian bullseye-cran40/" >> /etc/apt/sources.list 
+# RUN gpg --keyserver keyserver.ubuntu.com \
+#     --recv-key '95C0FAF38DB3CCAD0C080A7BDC78B2DDEABC47B7'
+# RUN gpg --armor --export '95C0FAF38DB3CCAD0C080A7BDC78B2DDEABC47B7' | \
+#     tee /etc/apt/trusted.gpg.d/cran_debian_key.asc
 RUN apt-get update && \
     apt-get install -y r-base r-base-dev
 

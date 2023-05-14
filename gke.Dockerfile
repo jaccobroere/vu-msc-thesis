@@ -2,7 +2,7 @@
 # Run the following command to run the container and mount the correct folder.
 # docker run -it --rm -v $(pwd):/app/vu-msc-thesis jaccusaurelius/vu-msc-thesis:latest
 # jaccusaurelius/vu-msc-thesis:kube can be used for docker with k8s
-FROM julia:1.9-buster
+FROM julia:1.8-bullseye
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PROJ_DIR=/app/vu-msc-thesis
 ENV ZHU_DIR=/app/admm_src_zhu
@@ -10,10 +10,7 @@ ENV JULIA_DIR=/app/juliaenv
 
 # Install necessary packages
 RUN apt-get update && \
-    apt-get install -y wget && \
-    apt-get install -y gnupg && \
-    apt-get install -y uuid-runtime && \
-    apt-get install -y locales && \
+    apt-get install -y wget gnupg uuid-runtime locales && \
     sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     locale-gen
 
@@ -27,11 +24,11 @@ RUN apt-get update && \
 
 # Install R and necessary packages
 # Get newest R version
-# RUN echo "deb http://cloud.r-project.org/bin/linux/debian bullseye-cran40/" >> /etc/apt/sources.list 
-# RUN gpg --keyserver keyserver.ubuntu.com \
-#     --recv-key '95C0FAF38DB3CCAD0C080A7BDC78B2DDEABC47B7'
-# RUN gpg --armor --export '95C0FAF38DB3CCAD0C080A7BDC78B2DDEABC47B7' | \
-#     tee /etc/apt/trusted.gpg.d/cran_debian_key.asc
+RUN echo "deb http://cloud.r-project.org/bin/linux/debian bullseye-cran40/" >> /etc/apt/sources.list 
+RUN gpg --keyserver keyserver.ubuntu.com \
+    --recv-key '95C0FAF38DB3CCAD0C080A7BDC78B2DDEABC47B7'
+RUN gpg --armor --export '95C0FAF38DB3CCAD0C080A7BDC78B2DDEABC47B7' | \
+    tee /etc/apt/trusted.gpg.d/cran_debian_key.asc
 RUN apt-get update && \
     apt-get install -y r-base r-base-dev
 
@@ -58,7 +55,7 @@ RUN cd /app && Rscript /app/r-requirements.R && cd ..
 # Clone Git repository into container
 RUN apt-get update && \
     apt-get install -y git
-#     git clone https://github.com/jaccobroere/vu-msc-thesis.git /app
+    # git clone https://github.com/jaccobroere/vu-msc-thesis.git /app
 
 # Do this step first because it takes the longest
 COPY admm_src_zhu /app/admm_src_zhu
@@ -67,7 +64,7 @@ COPY splash_1.0.tar.gz /app/splash_1.0.tar.gz
 # Then fix other dependencies
 COPY python-requirements.txt /app/python-requirements.txt
 COPY juliaenv /app/juliaenv
-# Install Python, R and Julia packages
+# # Install Python, R and Julia packages
 RUN pip3 install -r /app/python-requirements.txt
 RUN julia --project=$JULIA_DIR -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
 RUN julia --project=$JULIA_DIR -e 'using Distributed, LoopVectorization, Tables, LinearAlgebra, Random, CSV, StatsBase, DataFrames, Distributions, SparseArrays, Statistics, Graphs, GraphIO, EzXML, MatrixMarket'

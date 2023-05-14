@@ -8,21 +8,26 @@ spec:
   template:
     spec:
       containers:
-      - name: modelfit-cont
-        image: jaccusaurelius/vu-msc-thesis:kube
-        command: ["bash", "scripts/model_fit_montecarlo.sh", "REPLACEME"]
-        resources: 
-          requests:
-            cpu: 1500m 
-            memory: 1500Mi 
-          limits:
-            cpu: 1500m
-            memory: 1900Mi 
-        volumeMounts:
-        - name: pv-out
-          mountPath: /app/vu-msc-thesis/out
+        - name: modelfit-cont
+          image: jaccusaurelius/vu-msc-thesis:kube
+          command: ["bash", "scripts/model_fit_montecarlo.sh", "REPLACEME"]
+          resources: 
+            requests:
+              cpu: 1500m 
+              memory: 1500Mi 
+            limits:
+              cpu: 1500m
+              memory: 1900Mi 
+          volumeMounts:
+            - name: pv-out
+              mountPath: /app/vu-msc-thesis/outa
+            - name: pv-data
+              mountPath: /app/vu-msc-thesis/data
       restartPolicy: Never
       volumes:
-      - name: pv-out
-        persistentVolumeClaim:
-          claimName: pvc-out
+        - name: pv-out
+          persistentVolumeClaim:
+            claimName: pvc-out
+        - name: pv-data
+          persistentVolumeClaim:
+            claimName: pvc-data

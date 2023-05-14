@@ -61,6 +61,10 @@ RUN cd /app/admm_src_zhu && \
 COPY src /app/vu-msc-thesis/src
 COPY scripts /app/vu-msc-thesis/scripts
 
+# Make output and app directory inside the container
+RUN mkdir /app/vu-msc-thesis/data
+RUN mkdir /app/vu-msc-thesis/out
+
 # Set working directory
 WORKDIR /app/vu-msc-thesis
 

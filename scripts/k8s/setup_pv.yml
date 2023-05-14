@@ -10,12 +10,38 @@ spec:
   persistentVolumeReclaimPolicy: Retain 
   storageClassName: manual
   hostPath:
-    path: /Users/jacco/Documents/repos/vu-msc-thesis
+    path: /Users/jacco/Documents/repos/vu-msc-thesis/out
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: pvc-out
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 30Gi
+  storageClassName: manual
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-data
+spec:
+  capacity:
+    storage: 30Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain 
+  storageClassName: manual
+  hostPath:
+    path: /Users/jacco/Documents/repos/vu-msc-thesis/data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-data
 spec:
   accessModes:
     - ReadWriteMany
@@ -33,10 +59,19 @@ spec:
   - name: data-access-cont
     image: jaccusaurelius/vu-msc-thesis:kube
     command: ["sleep", "infinity"]
+    resources:
+      limits:
+        cpu: 500m 
+        memory: 500Mi 
     volumeMounts:
     - name: pv-out
-      mountPath: /app/vu-msc-thesis
+      mountPath: /app/vu-msc-thesis/out
+    - name: pv-data
+      mountPath: /app/vu-msc-thesis/data
   volumes:
     - name: pv-out
       persistentVolumeClaim:
         claimName: pvc-out
+    - name: pv-data
+      persistentVolumeClaim:
+        claimName: pvc-data

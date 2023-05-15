@@ -25,9 +25,11 @@ rm -r $grid_dir/*
 
 # Insert the design ID into the k8s job YML files
 replace_string='s/REPLACEME/'$sim_design_id'/g'
-replace_string_dashes='s/MEREPLACE/'${sim_design_id//_/-}'/g'
-sed -E $replace_string scripts/k8s/determine_lambda_TEMPLATE.yml > scripts/k8s/determine_lambda_REPLACED.yml
-sed -E $replace_string_dashes scripts/k8s/determine_lambda_REPLACED.yml > scripts/k8s/determine_lambda_REPLACED.yml
+sim_design_id_dashes=${sim_design_id//_/-}
+replace_string_dashes='s/MEREPLACE/'${sim_design_id_dashes,,}'/g'
+sed -E $replace_string scripts/k8s/determine_lambda_TEMPLATE.yml > scripts/k8s/determine_lambda_REPLACED.yml.tmp
+sed -E $replace_string_dashes scripts/k8s/determine_lambda_REPLACED.yml.tmp > scripts/k8s/determine_lambda_REPLACED.yml 
+rm scripts/k8s/determine_lambda_REPLACED.yml.tmp
 
 # Update docker image scripts
 # docker build -t jaccusaurelius/vu-msc-thesis:kube .
@@ -37,7 +39,7 @@ kubectl apply -f scripts/k8s/setup_pv.yml
 
 # Run the determine_lambda job
 kubectl apply -f scripts/k8s/determine_lambda_REPLACED.yml
-kubectl wait --for=condition=complete --timeout=5h "job/detlam-${sim_design_id//_/-}"
+kubectl wait --for=condition=complete --timeout=5h "job/detlam-${sim_design_id_dashes,,}"
 
 # Delete the determine_lambda job
 kubectl delete -f scripts/k8s/determine_lambda_REPLACED.yml

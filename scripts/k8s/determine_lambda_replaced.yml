@@ -1,16 +1,16 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: detlam-MEREPLACE
+  name: detlam-designb-t1000-p25
 spec:
   completions: 20
   parallelism: 4
   template:
     spec:
       containers:
-        - name: detlam-cont-MEREPLACE
+        - name: detlam-cont-designb-t1000-p25
           image: jaccusaurelius/vu-msc-thesis:workspace
-          command: ["bash", "scripts/determine_lambda_preliminary.sh", "designB_T2000_p49"]
+          command: ["bash", "scripts/determine_lambda_preliminary.sh", "designB_T1000_p25"]
           resources: 
             requests:
               cpu: 1500m 

@@ -9,13 +9,14 @@ from tabulate import tabulate
 PROJ_DIR = os.environ["PROJ_DIR"]
 os.chdir(PROJ_DIR)
 
+
 def parse_design_id(design_id: str) -> tuple:
     """
     Parse the design ID from the directory name.
-    
+
     Args:
         design_id (str): Directory name.
-    
+
     Returns:
         tuple: Tuple containing design ID, T, and p.
     """
@@ -27,17 +28,19 @@ def parse_design_id(design_id: str) -> tuple:
 
     raise ValueError(f"Invalid design_id: {design_id}")
 
+
 def get_csv_files(directory):
     """
     Get a list of CSV files from a directory.
 
     Args:
         directory (str): Path to the directory.
-    
+
     Returns:
         list: List of CSV file names.
     """
-    return [file for file in os.listdir(directory) if file.endswith('.csv')]
+    return [file for file in os.listdir(directory) if file.endswith(".csv")]
+
 
 def parse_csv_file(file):
     """
@@ -45,13 +48,14 @@ def parse_csv_file(file):
 
     Args:
         file (str): CSV file name.
-    
+
     Returns:
-        tuple: Tuple containing the model name and item. 
+        tuple: Tuple containing the model name and item.
                If item is not present, returns None.
     """
     splits = file.split(".")[0].split("__")
     return splits[0], splits[1] if len(splits) > 1 else None
+
 
 def create_data_from_csv_files(directory):
     """
@@ -59,7 +63,7 @@ def create_data_from_csv_files(directory):
 
     Args:
         directory (str): Path to the directory.
-    
+
     Returns:
         dict: Dictionary containing data from CSV files.
     """
@@ -78,22 +82,23 @@ def create_data_from_csv_files(directory):
 
     return data
 
+
 def create_full_data_dictionary(design: str = "designB", dump: bool = False):
     """
     Create a full data dictionary from a directory structure.
 
     Args:
         design (str, optional): Design name. Defaults to "designB".
-        dump (bool, optional): If True, dumps the data dictionary to a pickle file. 
+        dump (bool, optional): If True, dumps the data dictionary to a pickle file.
                                Defaults to False.
-    
+
     Returns:
         dict: Dictionary containing the full data.
     """
     fit_dir = os.path.join(os.getcwd(), "out/simulation/fit/")
     if not os.path.exists(fit_dir):
         raise FileNotFoundError(f"Directory not found: {fit_dir}")
-    
+
     data = {}
 
     for design_dir in os.listdir(fit_dir):
@@ -114,8 +119,9 @@ def create_full_data_dictionary(design: str = "designB", dump: bool = False):
 
     return data
 
+
 def aggregate_to_dataframe(data: dict):
-    
+    pass
 
 
 def write_table_to_latex(df: pd.DataFrame):

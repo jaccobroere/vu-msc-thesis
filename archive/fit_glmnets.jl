@@ -1,5 +1,5 @@
 using Pkg
-Pkg.activate(joinpath(ENV["PROJ_DIR"], "juliaenv"), io=devnull)
+Pkg.activate(joinpath(ENV["JULIA_DIR"]), io=devnull)
 
 using GLMNet
 using SparseArrays, MatrixMarket
@@ -8,7 +8,7 @@ using RCall
 using CrossValidation
 
 R"""
-source('src/compute/utils.R')
+source('src/compute/R/utils.R')
 """
 
 

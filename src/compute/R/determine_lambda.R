@@ -1,8 +1,8 @@
 # Load all the necessary packages
 PROJ_DIR <- system("echo $PROJ_DIR", intern = TRUE)
 setwd(PROJ_DIR)
-source("src/compute/vhat_sigmahat.R")
-source("src/compute/utils.R")
+source("src/compute/R/vhat_sigmahat.R")
+source("src/compute/R/utils.R")
 setwd(system("echo $ZHU_DIR", intern = TRUE))
 source("R/opt.R")
 source("R/gen_data.R")
@@ -139,6 +139,6 @@ fit_gfsplash.lambda_grid <- function(y, bandwidths, graph, alpha, path, nlambdas
 }
 
 # Fit the grids and save the results
-grid_reg_a05 <- fit_gfsplash.lambda_grid(y, bandwidths, reg_gr, alpha = 0.5, path = file.path(lambdas_dir, "grid_reg_a05.csv"))
-grid_sym_a0 <- fit_gfsplash.lambda_grid(y, bandwidths, sym_gr, alpha = 0, path = file.path(lambdas_dir, "grid_sym_a0.csv"))
-grid_sym_a05 <- fit_gfsplash.lambda_grid(y, bandwidths, sym_gr, alpha = 0.5, path = file.path(lambdas_dir, "grid_sym_a05.csv"))
+grid_gfsplash_a05 <- fit_gfsplash.lambda_grid(y, bandwidths, reg_gr, alpha = 0.5, path = file.path(lambdas_dir, "grid_gfsplash_a05.csv"))
+grid_gfsplash_sym_a0 <- fit_gfsplash.lambda_grid(y, bandwidths, sym_gr, alpha = 0, path = file.path(lambdas_dir, "grid_gfsplash_sym_a0.csv"))
+grid_gfsplash_sym_a05 <- fit_gfsplash.lambda_grid(y, bandwidths, sym_gr, alpha = 0.5, path = file.path(lambdas_dir, "grid_gfsplash_sym_a05.csv"))

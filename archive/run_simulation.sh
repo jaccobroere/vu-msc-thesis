@@ -86,7 +86,7 @@ step1() {
 step2() {
     # Run second Julia script
     echo "Running construct_V_simga.jl..."
-    julia --project=/path/to/juliaenv/ src/compute/construct_V_sigma.jl $file_prefix
+    julia --project=/path/to/juliaenv/ src/compute/jl/construct_V_sigma.jl $file_prefix
     echo "construct_V_simga.jl completed."
 }
 

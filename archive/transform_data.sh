@@ -27,7 +27,7 @@ step1() {
 
   # Run Julia script for step 1
   echo "Running precalculations_and_write.jl.jl ..."
-  julia --project=$JULIA_DIR src/compute/precalculations_and_write.jl.jl $prefix
+  julia --project=$JULIA_DIR src/compute/jl/precalculations_and_write.jl.jl $prefix
   echo "precalculations_and_write.jl.jl completed."
 }
 

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd $PROJ_DIR
+
 # Progress bar
 total_steps=4
 current_step=0
@@ -48,7 +50,7 @@ step_transform () {
     # Run the precalculation script only if it has not been done before for this design
     if [ ! -f "data/simulation/${sim_design_id}/detlam/Dtilde.mtx" ]; then
       echo "Running precalculations_and_write.jl ..."
-      julia --project=$JULIA_DIR src/compute/precalculations_and_write.jl ${sim_design_id}/detlam $uuidtag
+      julia --project=$JULIA_DIR src/compute/jl/precalculations_and_write.jl ${sim_design_id}/detlam $uuidtag
       echo "precalculations_and_write.jl completed."
     else 
       echo "precalculations_and_write.jl already completed at an earlier iteration for ${sim_design_id}."
@@ -60,7 +62,7 @@ step_transform () {
 # Calculate performance for each lambda value once
 step_detlam () {
     echo "Running determine_lambda.R ..."
-    Rscript src/compute/determine_lambda.R ${sim_design_id} $uuidtag > /dev/null 2>&1
+    Rscript src/compute/R/determine_lambda.R ${sim_design_id} $uuidtag > /dev/null 2>&1
     current_step=$((current_step+1))
     print_progress_bar $current_step $total_steps 50
 }

@@ -1,21 +1,33 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: detlam
+  name: detlam-MEREPLACE
 spec:
   completions: 20
-  parallelism: 5
+  parallelism: 4
   template:
     spec:
       containers:
-        - name: detlam-cont
-          image: jaccusaurelius/vu-msc-thesis:kube
+        - name: detlam-cont-MEREPLACE
+          image: jaccusaurelius/vu-msc-thesis:workspace
           command: ["bash", "scripts/determine_lambda_preliminary.sh", "REPLACEME"]
+          resources: 
+            requests:
+              cpu: 1500m 
+              memory: 1500Mi 
+            limits:
+              cpu: 1500m
+              memory: 1900Mi 
           volumeMounts:
             - name: pv-out
               mountPath: /app/vu-msc-thesis/out
+            - name: pv-data
+              mountPath: /app/vu-msc-thesis/data
       restartPolicy: Never
       volumes:
         - name: pv-out
           persistentVolumeClaim:
             claimName: pvc-out
+        - name: pv-data
+          persistentVolumeClaim:
+            claimName: pvc-data

@@ -1,6 +1,6 @@
 setwd(system("echo $PROJ_DIR", intern = TRUE))
-source("src/compute/utils.R")
-source("src/compute/vhat_sigmahat.R")
+source("src/compute/R/utils.R")
+source("src/compute/R/vhat_sigmahat.R")
 setwd(system("echo $ZHU_DIR", intern = TRUE))
 source("R/opt.R")
 source("R/gen_data.R")

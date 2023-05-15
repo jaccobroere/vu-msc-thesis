@@ -1,21 +1,33 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: modelfit
+  name: modelfit-designb-t1000-p25
 spec:
-  completions: 100 
-  parallelism: 10
+  completions: 50 
+  parallelism: 4 
   template:
     spec:
       containers:
-      - name: modelfit-cont
-        image: jaccusaurelius/vu-msc-thesis:kube
-        command: ["bash", "-c", "scripts/model_fit_montecarlo.sh designB_T500_p16"]
-        volumeMounts:
-        - name: pv-out
-          mountPath: /app/vu-msc-thesis/out
+        - name: modelfit-cont-designb-t1000-p25
+          image: jaccusaurelius/vu-msc-thesis:workspace
+          command: ["bash", "scripts/model_fit_montecarlo.sh", "designB_T1000_p25"]
+          resources: 
+            requests:
+              cpu: 1500m 
+              memory: 1500Mi 
+            limits:
+              cpu: 1500m
+              memory: 1900Mi 
+          volumeMounts:
+            - name: pv-out
+              mountPath: /app/vu-msc-thesis/out
+            - name: pv-data
+              mountPath: /app/vu-msc-thesis/data
       restartPolicy: Never
       volumes:
-      - name: pv-out
-        persistentVolumeClaim:
-          claimName: pvc-out
+        - name: pv-out
+          persistentVolumeClaim:
+            claimName: pvc-out
+        - name: pv-data
+          persistentVolumeClaim:
+            claimName: pvc-data

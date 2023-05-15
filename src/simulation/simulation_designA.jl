@@ -2,7 +2,7 @@
 This simulation design replicates the simulation design A from Reuvers and Wijler (2021)
 =#
 using Pkg
-Pkg.activate(joinpath(ENV["PROJ_DIR"], "juliaenv"), io=devnull)
+Pkg.activate(joinpath(ENV["JULIA_DIR"]), io=devnull)
 using LinearAlgebra
 using Distributions
 using Random

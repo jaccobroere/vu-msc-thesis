@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd $PROJ_DIR
+
 # Progress bar
 total_steps=4
 current_step=0
@@ -48,7 +50,7 @@ step_transform () {
     # Run the precalculation script only if it has not been done before for this design 
     if [ ! -f "data/simulation/${sim_design_id}/mc/Dtilde.mtx" ]; then
       echo "Running precalculations_and_write.jl ..."
-      julia --project=$JULIA_DIR src/compute/precalculations_and_write.jl ${sim_design_id}/mc $uuidtag
+      julia --project=$JULIA_DIR src/compute/jl/precalculations_and_write.jl ${sim_design_id}/mc $uuidtag
       echo "precalculations_and_write.jl completed."
     else 
       echo "precalculations_and_write.jl already completed at an earlier iteration for ${sim_design_id}."
@@ -59,12 +61,12 @@ step_transform () {
 
 # Calculate performance for each lambda value once
 step_modelfit () {
-    if [ ! -f "out/simulation/lambdas/${sim_design_id}/grid_reg_a05.csv" ]; then
+    if [ ! -f "out/simulation/lambdas/${sim_design_id}/grid_gfsplash_a05.csv" ]; then
       echo "The the optimal lambda values for the GF-SPLASH models have not been computed yet for ${sim_design_id}."
       echo "Please run the command: 'determine_lambda_preliminary.sh ${sim_design_id}' first."
     else 
       echo "Running model_fitting.R ..."
-      Rscript src/compute/model_fitting.R ${sim_design_id} $uuidtag  # > /dev/null 2>&1
+      Rscript src/compute/R/model_fitting.R ${sim_design_id} $uuidtag  # > /dev/null 2>&1
       echo "model_fitting.R completed."
     fi
     current_step=$((current_step+1))

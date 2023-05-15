@@ -6,7 +6,7 @@ In this simulation design:
 - B is a diagonal matrix
 =#
 using Pkg
-Pkg.activate(joinpath(ENV["PROJ_DIR"], "juliaenv"), io=devnull)
+Pkg.activate(joinpath(ENV["JULIA_DIR"]), io=devnull)
 using LinearAlgebra
 using Distributions
 using Random

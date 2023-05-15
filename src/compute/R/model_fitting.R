@@ -8,6 +8,7 @@ library(tictoc)
 library(matrixStats)
 library(Matrix)
 library(tictoc)
+library(splash)
 setwd(PROJ_DIR)
 
 ################################################################################

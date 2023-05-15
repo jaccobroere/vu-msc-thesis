@@ -31,10 +31,8 @@ RUN apt-get install -y libatlas3-base libopenblas-base
 # Debian binaries for R packages
 RUN apt-get update && \ 
     apt-get install -y r-cran-data.table \
-        r-cran-rcpp \ 
         r-cran-matrixstats \ 
         r-cran-glmnet \ 
-        r-cran-rcpparmadillo \ 
         r-cran-igraph \
         r-cran-matrix
 
@@ -64,14 +62,6 @@ RUN pip3 install -r /app/python-requirements.txt
 RUN julia --project=$JULIA_DIR -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
 RUN julia --project=$JULIA_DIR -e 'using Distributed, LoopVectorization, Tables, LinearAlgebra, Random, CSV, StatsBase, DataFrames, Distributions, SparseArrays, Statistics, Graphs, GraphIO, EzXML, MatrixMarket'
 RUN ln -s /usr/bin/python3 /usr/bin/python
-
-# Install C dependencies for R package from Zhu et al. (2015) and Reuvers and Wijler (2021)
-COPY admm_src_zhu /app/admm_src_zhu
-COPY splash_1.0.tar.gz /app/splash_1.0.tar.gz
-RUN cd /app/admm_src_zhu && \
-    make clean && \
-    make
-RUN Rscript -e 'install.packages("splash_1.0.tar.gz", repos = NULL, type = "source")'
 
 # Copy code to run
 COPY src /app/vu-msc-thesis/src

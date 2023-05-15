@@ -10,7 +10,21 @@ PROJ_DIR = os.environ["PROJ_DIR"]
 os.chdir(PROJ_DIR)
 
 
+import re
+import os
+import pandas as pd
+import pickle
+
 def parse_design_id(design_id: str) -> tuple:
+    """
+    Parse the design ID from the directory name.
+    
+    Args:
+        design_id (str): Directory name.
+    
+    Returns:
+        tuple: Tuple containing design ID, T, and p.
+    """
     match = re.match(r"(\w+)_T(\d+)_p(\d+)", design_id)
     if match:
         design_id = match.group(1)
@@ -19,62 +33,95 @@ def parse_design_id(design_id: str) -> tuple:
 
     raise ValueError(f"Invalid design_id: {design_id}")
 
+def get_csv_files(directory):
+    """
+    Get a list of CSV files from a directory.
 
-# %%
+    Args:
+        directory (str): Path to the directory.
+    
+    Returns:
+        list: List of CSV file names.
+    """
+    return [file for file in os.listdir(directory) if file.endswith('.csv')]
+
+def parse_csv_file(file):
+    """
+    Parse the CSV file name.
+
+    Args:
+        file (str): CSV file name.
+    
+    Returns:
+        tuple: Tuple containing the model name and item. 
+               If item is not present, returns None.
+    """
+    splits = file.split(".")[0].split("__")
+    return splits[0], splits[1] if len(splits) > 1 else None
+
+def create_data_from_csv_files(directory):
+    """
+    Create a dictionary from CSV files in a directory.
+
+    Args:
+        directory (str): Path to the directory.
+    
+    Returns:
+        dict: Dictionary containing data from CSV files.
+    """
+    data = {}
+    csv_files = get_csv_files(directory)
+
+    for csv_file in csv_files:
+        model_name, item = parse_csv_file(csv_file)
+        if item is None:
+            continue
+
+        df = pd.read_csv(os.path.join(directory, csv_file), header=0)
+        if model_name not in data:
+            data[model_name] = {}
+        data[model_name][item] = df
+
+    return data
+
 def create_full_data_dictionary(design: str = "designB", dump: bool = False):
-    # Get the path to the out/simulation/fit/ directory
+    """
+    Create a full data dictionary from a directory structure.
+
+    Args:
+        design (str, optional): Design name. Defaults to "designB".
+        dump (bool, optional): If True, dumps the data dictionary to a pickle file. 
+                               Defaults to False.
+    
+    Returns:
+        dict: Dictionary containing the full data.
+    """
     fit_dir = os.path.join(os.getcwd(), "out/simulation/fit/")
+    if not os.path.exists(fit_dir):
+        raise FileNotFoundError(f"Directory not found: {fit_dir}")
+    
     data = {}
 
-    # Iterate over the directories in the out/simulation/fit/ directory
     for design_dir in os.listdir(fit_dir):
         design_id, T, p = parse_design_id(design_dir)
-        data[design_dir] = data.get(design_id, {})
 
-        # Get the UUIDs of the subdirectories in the design_dir directory
-        uuids = os.listdir(os.path.join(fit_dir, design_dir))
+        if design_id not in data:
+            data[design_id] = {}
 
-        # Iterate over the UUIDs
-        for uuid in uuids:
-            # Create a dictionary for the uuid
-            data[design_dir][uuid] = data[design_dir].get(uuid, {})
+        uuid_dir = os.path.join(fit_dir, design_dir)
 
-            # Get the path to the csv files in the uuid directory
-            uuid_dir = os.path.join(fit_dir, design_dir, uuid)
-            csv_files = os.listdir(uuid_dir)
+        for uuid in os.listdir(uuid_dir):
+            data_dir = os.path.join(uuid_dir, uuid)
+            data[design_id][uuid] = create_data_from_csv_files(data_dir)
 
-            # Iterate over the csv files
-            for csv_file in csv_files:
-                splits = csv_files.split(".")[0].split(
-                    "__"
-                )  # Remove .csv from filename and then split on __
-                if len(splits) < 2:
-                    continue
-
-                model_name = splits[0]
-                item = splits[1]
-
-                # Read the csv file into a pandas dataframe
-                df = pd.read_csv(
-                    os.path.join(fit_dir, design_dir, uuid, csv_file), header=0
-                )
-
-                # Add the dataframe to the data dictionary
-                data[design_dir][uuid][model_name] = data[design_dir][uuid].get(
-                    model_name, {}
-                )
-                data[design_dir][uuid][model_name][item] = df
-
-    # Dump the dictionary to a pickle file
     if dump:
         with open(f"out/simulation/fit/{design}_data.pkl", "wb") as f:
             pickle.dump(data, f)
 
     return data
 
-
-def aggregate_to_dataframe(d: dict):
-    pass
+def aggregate_to_dataframe(data: dict):
+    
 
 
 def write_table_to_latex(df: pd.DataFrame):

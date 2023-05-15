@@ -4,12 +4,12 @@ metadata:
   name: detlam-MEREPLACE
 spec:
   completions: 20
-  parallelism: 4
+  parallelism: 10
   template:
     spec:
       containers:
         - name: detlam-cont-MEREPLACE
-          image: jaccusaurelius/vu-msc-thesis:workspace
+          image: jaccusaurelius/vu-msc-thesis:gke
           command: ["bash", "scripts/determine_lambda_preliminary.sh", "REPLACEME"]
           resources: 
             requests:

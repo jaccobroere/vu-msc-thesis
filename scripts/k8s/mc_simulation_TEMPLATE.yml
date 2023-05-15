@@ -3,21 +3,21 @@ kind: Job
 metadata:
   name: modelfit-MEREPLACE
 spec:
-  completions: 50 
-  parallelism: 4 
+  completions: 50
+  parallelism: 10
   template:
     spec:
       containers:
         - name: modelfit-cont-MEREPLACE
-          image: jaccusaurelius/vu-msc-thesis:workspace
+          image: jaccusaurelius/vu-msc-thesis:gke
           command: ["bash", "scripts/model_fit_montecarlo.sh", "REPLACEME"]
           resources: 
             requests:
               cpu: 1500m 
-              memory: 1500Mi 
+              memory: 2000Mi 
             limits:
               cpu: 1500m
-              memory: 1900Mi 
+              memory: 2000Mi 
           volumeMounts:
             - name: pv-out
               mountPath: /app/vu-msc-thesis/out

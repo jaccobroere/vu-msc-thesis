@@ -9,12 +9,6 @@ from tabulate import tabulate
 PROJ_DIR = os.environ["PROJ_DIR"]
 os.chdir(PROJ_DIR)
 
-
-import re
-import os
-import pandas as pd
-import pickle
-
 def parse_design_id(design_id: str) -> tuple:
     """
     Parse the design ID from the directory name.

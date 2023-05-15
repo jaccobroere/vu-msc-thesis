@@ -1,4 +1,5 @@
 import os
+import pickle
 import re
 
 import pandas as pd
@@ -20,7 +21,7 @@ def parse_design_id(design_id: str) -> tuple:
 
 
 # %%
-def create_full_data_dictionary(design: str = "designB"):
+def create_full_data_dictionary(design: str = "designB", dump: bool = False):
     # Get the path to the out/simulation/fit/ directory
     fit_dir = os.path.join(os.getcwd(), "out/simulation/fit/")
     data = {}
@@ -44,7 +45,9 @@ def create_full_data_dictionary(design: str = "designB"):
 
             # Iterate over the csv files
             for csv_file in csv_files:
-                splits = csv_file.split("_")
+                splits = csv_files.split(".")[0].split(
+                    "__"
+                )  # Remove .csv from filename and then split on __
                 if len(splits) < 2:
                     continue
 
@@ -52,13 +55,20 @@ def create_full_data_dictionary(design: str = "designB"):
                 item = splits[1]
 
                 # Read the csv file into a pandas dataframe
-                df = pd.read_csv(os.path.join(fit_dir, design_dir, uuid, csv_file))
+                df = pd.read_csv(
+                    os.path.join(fit_dir, design_dir, uuid, csv_file), header=0
+                )
 
                 # Add the dataframe to the data dictionary
                 data[design_dir][uuid][model_name] = data[design_dir][uuid].get(
                     model_name, {}
                 )
                 data[design_dir][uuid][model_name][item] = df
+
+    # Dump the dictionary to a pickle file
+    if dump:
+        with open(f"out/simulation/fit/{design}_data.pkl", "wb") as f:
+            pickle.dump(data, f)
 
     return data
 

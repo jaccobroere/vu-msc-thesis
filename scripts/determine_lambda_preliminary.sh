@@ -67,6 +67,12 @@ step_detlam () {
     print_progress_bar $current_step $total_steps 50
 }
 
+# Step copy file contents to local storage and then move it into PV
+step_copy_files () {
+    echo "Moving files from container to local storage"
+    
+}
+
 # Read in the arguments and parse it
 inputarg=$1
 design=$(echo $inputarg | sed -E 's/^([a-zA-Z]+)_T[0-9]+_p[0-9]+$/\1/')

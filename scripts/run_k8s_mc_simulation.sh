@@ -6,13 +6,16 @@ cd $PROJ_DIR
 # Insert the design ID into the k8s job YML files
 sim_design_id=$1
 replace_string='s/REPLACEME/'$sim_design_id'/g'
+replace_string_dashes='s/REPLACEME/'${sim_design_id//_/-}'/g'
 sed -E $replace_string scripts/k8s/mc_simulation_TEMPLATE.yml > scripts/k8s/mc_simulation_REPLACED.yml
+sed -E $replace_string_dashes scripts/k8s/mc_simulation_REPLACED.yml
+
 
 # Start the script
 echo "STARTING: Running MC simulation for design $sim_design_id"
 
 # Update docker image
-docker build --quiet -t jaccusaurelius/vu-msc-thesis:kube .
+# docker build --quiet -t jaccusaurelius/vu-msc-thesis:kube .
 
 # Clear running pods, jobs and delete PVCs
 # kubectl delete pods --all

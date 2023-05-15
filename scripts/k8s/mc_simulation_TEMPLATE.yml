@@ -1,14 +1,14 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: modelfit-REPLACEME
+  name: modelfit-MEREPLACE
 spec:
   completions: 100 
   parallelism: 4 
   template:
     spec:
       containers:
-        - name: modelfit-cont-REPLACEME
+        - name: modelfit-cont-MEREPLACE
           image: jaccusaurelius/vu-msc-thesis:workspace
           command: ["bash", "scripts/model_fit_montecarlo.sh", "REPLACEME"]
           resources: 

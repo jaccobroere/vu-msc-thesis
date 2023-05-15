@@ -1,15 +1,15 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: detlam
+  name: detlam-REPLACEME
 spec:
   completions: 20
   parallelism: 4
   template:
     spec:
       containers:
-        - name: detlam-cont
-          image: jaccusaurelius/vu-msc-thesis:kube
+        - name: detlam-cont-REPLACEME
+          image: jaccusaurelius/vu-msc-thesis:workspace
           command: ["bash", "scripts/determine_lambda_preliminary.sh", "REPLACEME"]
           resources: 
             requests:

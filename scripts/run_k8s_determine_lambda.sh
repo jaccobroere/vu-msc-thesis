@@ -6,7 +6,7 @@ cd $PROJ_DIR
 
 # Insert the design ID into the k8s job YML files
 sim_design_id=$1
-grid_dir="$PROJ_DIR/out/simulation/lambdas/designB_T500_p25"
+grid_dir="$PROJ_DIR/out/simulation/lambdas/${sim_design_id}"
 
 if [ -f "$grid_dir/grid_gfsplash_a05.csv" ]
 then
@@ -31,12 +31,6 @@ sed -E $replace_string scripts/k8s/determine_lambda_TEMPLATE.yml > scripts/k8s/d
 docker build -t jaccusaurelius/vu-msc-thesis:kube .
 
 # Clear running pods and jobs
-# kubectl delete pods --all
-# kubectl delete jobs --all
-
-# # Setup pod to access the data in the PV
-# kubectl apply -f scripts/k8s/data_access.yml
-# kubectl wait --for=condition=ready --timeout=1m pod/data-access
 kubectl apply -f scripts/k8s/setup_pv.yml
 
 # Run the determine_lambda job

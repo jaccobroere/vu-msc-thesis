@@ -3,7 +3,7 @@ kind: Job
 metadata:
   name: modelfit
 spec:
-  completions: 100 
+  completions: 250 
   parallelism: 4 
   template:
     spec:

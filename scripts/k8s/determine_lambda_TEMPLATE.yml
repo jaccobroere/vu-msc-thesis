@@ -9,7 +9,7 @@ spec:
     spec:
       containers:
         - name: detlam-cont-MEREPLACE
-          image: jaccusaurelius/vu-msc-thesis:gke
+          image: eu.gcr.io/vu-msc-thesis/vu-msc-thesis:gke
           command: ["bash", "scripts/determine_lambda_preliminary.sh", "REPLACEME"]
           resources: 
             requests:

@@ -9,7 +9,7 @@ spec:
     spec:
       containers:
         - name: detlam-cont
-          image: jaccusaurelius/vu-msc-thesis:kube
+          image: eu.gcr.io/vu-msc-thesis/vu-msc-thesis:gke
           command:
             ["bash", "scripts/model_fit_montecarlo.sh", "designB_T500_p9"]
           volumeMounts:

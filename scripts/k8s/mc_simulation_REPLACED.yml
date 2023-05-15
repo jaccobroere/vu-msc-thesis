@@ -1,16 +1,16 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: modelfit-designb-t500-p25
+  name: modelfit-designb-t500-p49
 spec:
   completions: 50
   parallelism: 10
   template:
     spec:
       containers:
-        - name: modelfit-cont-designb-t500-p25
+        - name: modelfit-cont-designb-t500-p49
           image: jaccusaurelius/vu-msc-thesis:gke
-          command: ["bash", "scripts/model_fit_montecarlo.sh", "designB_T500_p25"]
+          command: ["bash", "scripts/model_fit_montecarlo.sh", "designB_T500_p49"]
           resources: 
             requests:
               cpu: 1500m 

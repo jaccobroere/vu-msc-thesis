@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
   - name: data-access-cont
-    image: jaccusaurelius/vu-msc-thesis:gke
+    image: eu.gcr.io/vu-msc-thesis/vu-msc-thesis:gke
     command: ["sleep", "infinity"]
     volumeMounts:
     - name: pv-out

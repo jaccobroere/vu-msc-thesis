@@ -18,7 +18,7 @@ metadata:
   name: pvc-out
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: 30Gi
@@ -27,16 +27,16 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: data-access
+  name: data-access-nfs
 spec:
   containers:
-  - name: data-access-cont
+  - name: data-access-nfs-container
     image: eu.gcr.io/vu-msc-thesis/vu-msc-thesis:gke
     command: ["sleep", "infinity"]
     resources:
       limits:
-        cpu: 300m 
-        memory: 400Mi 
+        cpu: 500m 
+        memory: 500Mi
     volumeMounts:
     - name: pv-out
       mountPath: /app/vu-msc-thesis/out

@@ -8,7 +8,7 @@ sim_design_id=$1
 replace_string='s/REPLACEME/'$sim_design_id'/g'
 replace_string_dashes='s/MEREPLACE/'${sim_design_id//_/-}'/g'
 sed -E $replace_string scripts/k8s/mc_simulation_TEMPLATE.yml > scripts/k8s/mc_simulation_REPLACED.yml
-sed -E $replace_string_dashes scripts/k8s/mc_simulation_REPLACED.yml
+sed -E $replace_string_dashes scripts/k8s/mc_simulation_REPLACED.yml > scripts/k8s/mc_simulation_REPLACED.yml
 
 
 # Start the script

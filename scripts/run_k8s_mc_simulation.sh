@@ -29,7 +29,7 @@ kubectl apply -f scripts/k8s/setup_pv.yml
 
 # Run the simulation job
 kubectl apply -f scripts/k8s/mc_simulation_REPLACED.yml
-kubectl wait --for=condition=complete --timeout=12h "job/modelfit-${sim_design_id//_/-}"
+kubectl wait --for=condition=complete --timeout=12h "job/modelfit-${sim_design_id_dashes,,}"
 
 # Delete the modelfit job
 kubectl delete -f scripts/k8s/mc_simulation_REPLACED.yml

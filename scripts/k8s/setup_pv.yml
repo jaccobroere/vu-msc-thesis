@@ -57,7 +57,7 @@ metadata:
 spec:
   containers:
   - name: data-access-cont
-    image: jaccusaurelius/vu-msc-thesis:kube
+    image: jaccusaurelius/vu-msc-thesis:workspace
     command: ["sleep", "infinity"]
     resources:
       limits:

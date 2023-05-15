@@ -6,20 +6,20 @@ cd $PROJ_DIR
 
 # Insert the design ID into the k8s job YML files
 sim_design_id=$1
-SOURCE="data-access-nfs:/app/out/simulation/lambdas/${sim_design_id}/grid_gfsplash_a05.csv"
-DESTINATION="$PROJ_DIR/out/simulation/lookup/${sim_design_id}/grid_gfsplash_a05.csv"
-# Attempt to copy the file
-kubectl cp $SOURCE $DESTINATION 2>/dev/null
-# Check the exit status of the previous command
-if [ $? -eq 0 ]; then
-  echo "STARTING: Running lambda grid search for design $sim_design_id"
-else
-  echo "SKIPPING: Lambda grid search already run for design $sim_design_id"
-  exit 0
-fi
+# SOURCE="data-access:/app/out/simulation/lambdas/${sim_design_id}/grid_gfsplash_a05.csv"
+# DESTINATION="$PROJ_DIR/out/simulation/lookup/${sim_design_id}/grid_gfsplash_a05.csv"
+# # Attempt to copy the file
+# kubectl cp $SOURCE $DESTINATION 2>/dev/null
+# # Check the exit status of the previous command
+# if [ $? -eq 0 ]; then
+#   echo "STARTING: Running lambda grid search for design $sim_design_id"
+# else
+#   echo "SKIPPING: Lambda grid search already run for design $sim_design_id"
+#   exit 0
+# fi
 
 # Remove the files from the directory
-kubectl exec -it data-access-nfs -- bash -c "rm -r /app/out/simulation/lambdas/${sim_design_id}/*"
+# kubectl exec -it data-access -- bash -c "rm -r /app/out/simulation/lambdas/${sim_design_id}/*"
 
 # Insert the design ID into the k8s job YML files
 replace_string='s/REPLACEME/'$sim_design_id'/g'

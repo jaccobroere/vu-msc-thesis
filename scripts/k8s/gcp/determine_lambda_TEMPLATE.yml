@@ -3,8 +3,8 @@ kind: Job
 metadata:
   name: detlam-MEREPLACE
 spec:
-  completions: 20
-  parallelism: 10
+  completions: 25
+  parallelism: 25
   template:
     spec:
       containers:

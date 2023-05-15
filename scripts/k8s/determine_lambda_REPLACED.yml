@@ -1,16 +1,16 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: detlam-designb-t500-p16
+  name: detlam-designb-t500-p25
 spec:
   completions: 20
   parallelism: 10
   template:
     spec:
       containers:
-        - name: detlam-cont-designb-t500-p16
+        - name: detlam-cont-designb-t500-p25
           image: eu.gcr.io/vu-msc-thesis/vu-msc-thesis:gke
-          command: ["bash", "scripts/determine_lambda_preliminary.sh", "designB_T500_p16"]
+          command: ["bash", "scripts/determine_lambda_preliminary.sh", "designB_T500_p25"]
           resources: 
             requests:
               cpu: 1500m 

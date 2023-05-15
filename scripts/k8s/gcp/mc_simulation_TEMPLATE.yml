@@ -4,7 +4,7 @@ metadata:
   name: modelfit-MEREPLACE
 spec:
   completions: 250
-  parallelism: 25
+  parallelism: 5
   template:
     spec:
       containers:

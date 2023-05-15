@@ -35,7 +35,7 @@ rm scripts/k8s/determine_lambda_REPLACED.yml.tmp
 # docker build -t jaccusaurelius/vu-msc-thesis:kube .
 
 # Clear running pods and jobs
-kubectl apply -f scripts/k8s/setup_pv.yml
+# kubectl apply -f scripts/k8s/setup_pv.yml
 
 # Run the determine_lambda job
 kubectl apply -f scripts/k8s/determine_lambda_REPLACED.yml

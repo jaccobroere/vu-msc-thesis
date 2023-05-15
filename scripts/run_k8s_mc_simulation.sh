@@ -25,7 +25,7 @@ echo "STARTING: Running MC simulation for design $sim_design_id"
 # Setup pod to access the data in the PV
 # kubectl apply -f scripts/k8s/data_access.yml
 # kubectl wait --for=condition=ready --timeout=1m pod/data-access
-kubectl apply -f scripts/k8s/setup_pv.yml
+# kubectl apply -f scripts/k8s/setup_pv.yml
 
 # Run the simulation job
 kubectl apply -f scripts/k8s/mc_simulation_REPLACED.yml

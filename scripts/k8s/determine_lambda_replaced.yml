@@ -20,7 +20,7 @@ spec:
               memory: 1900Mi 
           volumeMounts:
             - name: pv-out
-              mountPath: /app/vu-msc-thesis/outa
+              mountPath: /app/vu-msc-thesis/out
             - name: pv-data
               mountPath: /app/vu-msc-thesis/data
       restartPolicy: Never

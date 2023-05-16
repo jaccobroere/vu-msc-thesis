@@ -87,7 +87,9 @@ def create_data_from_csv_files(directory):
 
 def create_full_data_dictionary(design: str = "designB", dump: bool = False):
     """
-        Create a full data dictionary from a directory structure. The returned dictionary looks like this:
+        Create a full data dictionary from a directory structure.
+
+        The returned dictionary looks like this:
 
         {
         'design_id1': {

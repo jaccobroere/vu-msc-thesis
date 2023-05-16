@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-out
+spec:
+  capacity:
+    storage: 40Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /run/desktop/mnt/host/c/Users/jaccobroere/Documents/repos/personal/vu-msc-thesis/out
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-out
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 30Gi
+  storageClassName: manual
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-data
+spec:
+  capacity:
+    storage: 40Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /run/desktop/mnt/host/c/Users/jaccobroere/Documents/repos/personal/vu-msc-thesis/data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-data
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 30Gi
+  storageClassName: manual
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: data-access
+spec:
+  containers:
+    - name: data-access-cont
+      image: jaccusaurelius/vu-msc-thesis:workspace
+      command: ["sleep", "infinity"]
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1000Mi
+      volumeMounts:
+        - name: pv-out
+          mountPath: /app/vu-msc-thesis/out
+        - name: pv-data
+          mountPath: /app/vu-msc-thesis/data
+  volumes:
+    - name: pv-out
+      persistentVolumeClaim:
+        claimName: pvc-out
+    - name: pv-data
+      persistentVolumeClaim:
+        claimName: pvc-data

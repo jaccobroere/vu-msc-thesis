@@ -61,20 +61,27 @@ step_transform () {
 
 # Calculate performance for each lambda value once
 step_modelfit () {
-    if [ ! -f "out/simulation/lambdas/${sim_design_id}/grid_gfsplash_a05.csv" ]; then
-      echo "The the optimal lambda values for the GF-SPLASH models have not been computed yet for ${sim_design_id}."
-      echo "Please run the command: 'determine_lambda_preliminary.sh ${sim_design_id}' first."
-    else 
-      echo "Running model_fitting.R ..."
-      Rscript src/compute/R/model_fitting.R ${sim_design_id} $uuidtag  # > /dev/null 2>&1
-      echo "model_fitting.R completed."
+    if [ "$rungsplash" = "true" ]; then
+        if [ ! -f "out/simulation/lambdas/${sim_design_id}/grid_gfsplash_a05.csv" ]; then
+          echo "The the optimal lambda values for the GF-SPLASH models have not been computed yet for ${sim_design_id}."
+          echo "Please run the command: 'determine_lambda_preliminary.sh ${sim_design_id}' first."
+        else 
+          echo "Running model_fitting.R ..."
+          Rscript src/compute/R/model_fitting.R ${sim_design_id} $uuidtag  # > /dev/null 2>&1
+          echo "model_fitting.R completed."
+        fi
+        current_step=$((current_step+1))
+        print_progress_bar $current_step $total_steps 50
+    else
+      echo "Run only the modelfitting script without GSPLASH models."
+      Rscript src/compute/R/model_fitting_nogsplash.R ${sim_design_id} $uuidtag  # > /dev/null 2>&1
+      echo "model_fitting_nogsplash.R completed."
     fi
-    current_step=$((current_step+1))
-    print_progress_bar $current_step $total_steps 50
 }
 
 # Read in the arguments and parse it
 inputarg=$1
+rungsplash=${2:-true}
 design=$(echo $inputarg | sed -E 's/^([a-zA-Z]+)_T[0-9]+_p[0-9]+$/\1/')
 T=$(echo $inputarg | sed -E 's/^[a-zA-Z]+_T([0-9]+)_p[0-9]+$/\1/')
 p=$(echo $inputarg| sed -E 's/^[a-zA-Z]+_T[0-9]+_p([0-9]+)$/\

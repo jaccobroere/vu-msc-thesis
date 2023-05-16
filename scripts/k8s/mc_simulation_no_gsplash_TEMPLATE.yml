@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: modelfit-MEREPLACE
+spec:
+  completions: 100 
+  parallelism: 6
+  template:
+    spec:
+      containers:
+        - name: modelfit-cont-MEREPLACE
+          image: jaccusaurelius/vu-msc-thesis:workspace
+          command: ["bash", "scripts/model_fit_montecarlo.sh", "REPLACEME", "false"]
+          resources: 
+            requests:
+              cpu: 1000m 
+              memory: 1000Mi 
+            limits:
+              cpu: 1000m
+              memory: 1500Mi 
+          volumeMounts:
+            - name: pv-out
+              mountPath: /app/vu-msc-thesis/out
+            - name: pv-data
+              mountPath: /app/vu-msc-thesis/data
+      restartPolicy: Never
+      volumes:
+        - name: pv-out
+          persistentVolumeClaim:
+            claimName: pvc-out
+        - name: pv-data
+          persistentVolumeClaim:
+            claimName: pvc-data

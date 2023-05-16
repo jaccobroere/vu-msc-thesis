@@ -25,6 +25,32 @@ spec:
   storageClassName: manual
 ---
 apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pvc-data
+spec:
+  capacity:
+    storage: 40Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain 
+  storageClassName: manual
+  hostPath:
+    path: /Users/jacco/Documents/repos/vu-msc-thesis/data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-data
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 30Gi
+  storageClassName: manual
+---
+apiVersion: v1
 kind: Pod
 metadata:
   name: data-access
@@ -40,7 +66,12 @@ spec:
     volumeMounts:
     - name: pv-out
       mountPath: /app/vu-msc-thesis/out
+    - name: pv-data
+      mountPath: /app/vu-msc-thesis/data
   volumes:
     - name: pv-out
       persistentVolumeClaim:
         claimName: pvc-out
+    - name: pv-data
+      persistentVolumeClaim:
+        claimName: pvc-data

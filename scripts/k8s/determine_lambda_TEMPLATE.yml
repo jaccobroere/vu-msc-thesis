@@ -4,7 +4,7 @@ metadata:
   name: detlam-MEREPLACE
 spec:
   completions: 50
-  parallelism: 7 
+  parallelism: 6
   template:
     spec:
       containers:
@@ -21,8 +21,13 @@ spec:
           volumeMounts:
             - name: pv-out
               mountPath: /app/vu-msc-thesis/out
+            - name: pv-data
+              mountPath: /app/vu-msc-thesis/data
       restartPolicy: Never
       volumes:
         - name: pv-out
           persistentVolumeClaim:
             claimName: pvc-out
+        - name: pv-data
+          persistentVolumeClaim:
+            claimName: pvc-data

@@ -81,7 +81,7 @@ step_modelfit () {
 
 # Read in the arguments and parse it
 inputarg=$1
-rungsplash=${2:-true}
+rungsplash=${2:-"true"}
 design=$(echo $inputarg | sed -E 's/^([a-zA-Z]+)_T[0-9]+_p[0-9]+$/\1/')
 T=$(echo $inputarg | sed -E 's/^[a-zA-Z]+_T([0-9]+)_p[0-9]+$/\1/')
 p=$(echo $inputarg| sed -E 's/^[a-zA-Z]+_T[0-9]+_p([0-9]+)$/\

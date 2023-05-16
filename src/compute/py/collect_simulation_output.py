@@ -182,52 +182,142 @@ def collect_rmsfe_data(data: dict):
 
     for design_id in data:
         for uuid in data[design_id]:
+            # Skip if there is no data for a certain UUID
+            if len(data[design_id][uuid]) == 0:
+                continue
+
             # Initialize the dictionary to save RMSFE values in
-            temp_dict = {}
+            temp_dict = {key: [0] for key in columns}
             for model_name, item in data[design_id][uuid].items():
                 # Get the RMSFE value
                 temp_dict[model_name] = item["rmsfe"].to_numpy().flatten()
                 # Assign the design_id to a column to group by later
-                temp_dict["design_id"] = design_id
 
+            temp_dict["design_id"] = design_id
             temp_df = pd.DataFrame(temp_dict)
             df = pd.concat([df, temp_df], ignore_index=True)
 
     return df.groupby("design_id").mean()
 
 
-def write_rmsfe_table_to_latex(df: pd.DataFrame):
+def read_AB_true(design_id: str, uuid: str):
+    A_true = pd.read_csv(
+        os.path.join("out", "simulation", "fit", design_id, uuid, "A_true.csv"),
+        header=0,
+    )
+    B_true = pd.read_csv(
+        os.path.join("out", "simulation", "fit", design_id, uuid, "B_true.csv"),
+        header=0,
+    )
+    return A_true.to_numpy(), B_true.to_numpy()
+
+
+def collect_estimation_error_data(data: dict):
+    columns = [
+        "design_id",
+        "fsplash",
+        "ssfsplash",
+        "gfsplash_a05",
+        "gfsplash_sym_a0",
+        "gfsplash_sym_a05",
+        "splash_a0",
+        "splash_a05",
+        "pvar",
+    ]
+
+    df_A = pd.DataFrame(columns=columns)
+    df_B = pd.DataFrame(columns=columns)
+
+    for design_id in data:
+        for uuid in data[design_id]:
+            # Skip if there is no data for a certain UUID
+            if len(data[design_id][uuid]) == 0:
+                continue
+
+            # Initialize the dictionary to save EE values in
+            temp_dict_A = {key: [0] for key in columns}
+            temp_dict_B = {key: [0] for key in columns}
+            A_true, B_true = read_AB_true(design_id, uuid)
+
+            for model_name, item in data[design_id][uuid].items():
+                temp_dict_A[model_name] = [np.nan]
+                temp_dict_B[model_name] = [np.nan]
+                if model_name == "pvar":
+                    continue
+                # Get the EEA value as the spectral norm of the differences
+                temp_dict_A[model_name] = np.linalg.norm(
+                    A_true - item["estimate_A"].to_numpy(), ord=2
+                )
+                temp_dict_B[model_name] = np.linalg.norm(
+                    B_true - item["estimate_B"].to_numpy(), ord=2
+                )
+                # Assign the design_id to a column to group by later
+
+            temp_dict_A["design_id"] = design_id
+            temp_dict_B["design_id"] = design_id
+            temp_df_A = pd.DataFrame(temp_dict_A)
+            temp_df_B = pd.DataFrame(temp_dict_B)
+            df_A = pd.concat([df_A, temp_df_A], ignore_index=True)
+            df_B = pd.concat([df_B, temp_df_B], ignore_index=True)
+
+    return df_A.groupby("design_id").mean(), df_B.groupby("design_id").mean()
+
+
+def write_table_to_latex(df: pd.DataFrame, filename: str):
     # Define the columns
     columns = [
-        "GF-SPLASH1",
-        "GF-SPLASH2",
-        "GF-SPLASH3",
-        "F-SPLASH",
-        "SSF-SPLASH",
-        "SPLASH1",
-        "SPLASH2",
-        "PVAR",
+        r"F-SPLASH($\lambda$)",
+        r"SSF-SPLASH($\alpha=0.5$, $\lambda$)",
+        r"GF-SPLASH($\alpha=0.5$, $\lambda$, $\sigma=0$)",
+        r"GF-SPLASH($\alpha=0$, $\lambda$, $\sigma=1$)",
+        r"GF-SPLASH($\alpha=0.5$, $\lambda$, $\sigma=1$)",
+        r"SPLASH($0$, $\lambda$)",
+        r"SPLASH($0.5$, $\lambda$)",
+        r"PVAR($\lambda$)",
     ]
 
     # Create an empty DataFrame with the specified columns
-    df = pd.DataFrame(columns=columns)
+    df.columns = columns
 
-    # Add rows to the DataFrame
-    # Here you will replace this with your actual data
-    for i in range(10):  # replace 10 with the number of rows you want
-        df.loc[i] = [0] * len(columns)  # replace [0]*len(columns) with your actual data
+    # Add the T and p values as columns and set as index
+    df["design_id"] = df.index
+    df["T"] = df["design_id"].apply(lambda x: parse_design_id(x)[1])
+    df["p"] = df["design_id"].apply(lambda x: parse_design_id(x)[2])
+    df.drop("design_id", axis=1, inplace=True)
+    df.sort_values(["p", "T"], inplace=True)
+    df = df.loc[:, ["p", "T"] + columns]
+    # df.set_index(["T", "p"], inplace=True)
 
     # Convert the DataFrame to a LaTeX table
-    latex_table = tabulate(df, tablefmt="latex_raw", headers="keys", showindex=False)
+    latex_table = tabulate(
+        df, tablefmt="latex_raw", headers="keys", showindex=False, numalign="center"
+    )
 
     # Write the LaTeX table to a file
-    with open("table.tex", "w") as f:
+    with open(
+        os.path.join(
+            "out",
+            "tables",
+            filename,
+        ),
+        "w",
+    ) as f:
         f.write(latex_table)
 
+    return latex_table
 
-def main():
-    return create_full_data_dictionary()
+
+def main(design: str = "designB"):
+    data = create_full_data_dictionary(design)
+    df_rmsfe = collect_rmsfe_data(data)
+    df_A, df_B = collect_estimation_error_data(data)
+    latex_table_rmsfe = write_table_to_latex(df_rmsfe, f"{design}_rmsfe.tex")
+    latex_table_A = write_table_to_latex(df_A, f"{design}_EEA.tex")
+    latex_table_B = write_table_to_latex(df_B, f"{design}_EEB.tex")
+
+    return latex_table_rmsfe, latex_table_A, latex_table_B
 
 
 if __name__ == "__main__":
-    data = main()
+    design = "designB"
+    main(design)

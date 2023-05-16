@@ -2,6 +2,7 @@ import os
 import pickle
 import re
 
+import numpy as np
 import pandas as pd
 from tabulate import tabulate
 
@@ -26,7 +27,8 @@ def parse_design_id(design_id: str) -> tuple:
         T, p = int(match.group(2)), int(match.group(3))
         return design_id, T, p
 
-    raise ValueError(f"Invalid design_id: {design_id}")
+    print(f"Could not parse design ID: {design_id}")
+    return None, None, None
 
 
 def get_csv_files(directory):
@@ -85,15 +87,53 @@ def create_data_from_csv_files(directory):
 
 def create_full_data_dictionary(design: str = "designB", dump: bool = False):
     """
-    Create a full data dictionary from a directory structure.
+        Create a full data dictionary from a directory structure. The returned dictionary looks like this:
 
-    Args:
-        design (str, optional): Design name. Defaults to "designB".
-        dump (bool, optional): If True, dumps the data dictionary to a pickle file.
-                               Defaults to False.
+        {
+        'design_id1': {
+            'uuid1': {
+                'model_name1': {
+                    'item1': DataFrame1,
+                    'item2': DataFrame2,
+                    ...
+                },
+                'model_name2': {
+                    'item1': DataFrame3,
+                    'item2': DataFrame4,
+                    ...
+                },
+                ...
+            },
+            'uuid2': {
+                'model_name1': {
+                    'item1': DataFrame5,
+                    'item2': DataFrame6,
+                    ...
+                },
+                'model_name2': {
+                    'item1': DataFrame7,
+                    'item2': DataFrame8,
+                    ...
+                },
+                ...
+            },
+            ...
+        },
+        'design_id2': {
+            ...
+        },
+        ...
+    }
 
-    Returns:
-        dict: Dictionary containing the full data.
+
+        Args:
+            design (str, optional): Design name. Defaults to "designB".
+            dump (bool, optional): If True, dumps the data dictionary to a pickle file.
+                                   Defaults to False.
+
+        Returns:
+            dict: Dictionary containing the full data.
+
     """
     fit_dir = os.path.join(os.getcwd(), "out/simulation/fit/")
     if not os.path.exists(fit_dir):
@@ -104,14 +144,19 @@ def create_full_data_dictionary(design: str = "designB", dump: bool = False):
     for design_dir in os.listdir(fit_dir):
         design_id, T, p = parse_design_id(design_dir)
 
-        if design_id not in data:
-            data[design_id] = {}
+        # Check whether the design ID matches the specified design and whether it is a design at all
+        if design_id is None or design_id != design:
+            continue
+
+        # Create dictionary if not present
+        data[design_dir] = data.get(design_dir, {})
 
         uuid_dir = os.path.join(fit_dir, design_dir)
 
+        # Walk through the UUID directories and create data from CSV files
         for uuid in os.listdir(uuid_dir):
             data_dir = os.path.join(uuid_dir, uuid)
-            data[design_id][uuid] = create_data_from_csv_files(data_dir)
+            data[design_dir][uuid] = create_data_from_csv_files(data_dir)
 
     if dump:
         with open(f"out/simulation/fit/{design}_data.pkl", "wb") as f:
@@ -120,15 +165,40 @@ def create_full_data_dictionary(design: str = "designB", dump: bool = False):
     return data
 
 
-def aggregate_to_dataframe(data: dict):
-    pass
+def collect_rmsfe_data(data: dict):
+    columns = [
+        "design_id",
+        "fsplash",
+        "ssfsplash",
+        "gfsplash_a05",
+        "gfsplash_sym_a0",
+        "gfsplash_sym_a05",
+        "splash_a0",
+        "splash_a05",
+        "pvar",
+    ]
+
+    df = pd.DataFrame(columns=columns)
+
+    for design_id in data:
+        for uuid in data[design_id]:
+            # Initialize the dictionary to save RMSFE values in
+            temp_dict = {}
+            for model_name, item in data[design_id][uuid].items():
+                # Get the RMSFE value
+                temp_dict[model_name] = item["rmsfe"].to_numpy().flatten()
+                # Assign the design_id to a column to group by later
+                temp_dict["design_id"] = design_id
+
+            temp_df = pd.DataFrame(temp_dict)
+            df = pd.concat([df, temp_df], ignore_index=True)
+
+    return df.groupby("design_id").mean()
 
 
-def write_table_to_latex(df: pd.DataFrame):
+def write_rmsfe_table_to_latex(df: pd.DataFrame):
     # Define the columns
     columns = [
-        "T",
-        "p",
         "GF-SPLASH1",
         "GF-SPLASH2",
         "GF-SPLASH3",

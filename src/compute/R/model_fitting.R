@@ -100,12 +100,12 @@ y_hat_true <- predict_with_C(C_true, y_train, y_test)
 save_fitting_results <- function(model, prefix, fit_dir, save_AB = TRUE) {
     rmsfe <- calc_rmsfe(y_test[, 1], model$y_pred[, 1], y_hat_true[, 1]) # One step ahead RMSFE
     if (save_AB) {
-        fwrite(data.table(model$A), file = file.path(fit_dir, paste0(prefix, "_estimate_A.csv")))
-        fwrite(data.table(model$B), file = file.path(fit_dir, paste0(prefix, "_estimate_B.csv")))
+        fwrite(data.table(model$A), file = file.path(fit_dir, paste0(prefix, "__estimate_A.csv")))
+        fwrite(data.table(model$B), file = file.path(fit_dir, paste0(prefix, "__estimate_B.csv")))
     }
-    fwrite(data.table(model$C), file = file.path(fit_dir, paste0(prefix, "_estimate_C.csv")))
-    fwrite(data.table(model$y_pred), file = file.path(fit_dir, paste0(prefix, "_y_pred.csv")))
-    fwrite(data.table(rmsfe), file = file.path(fit_dir, paste0(prefix, "_rmsfe.csv")))
+    fwrite(data.table(model$C), file = file.path(fit_dir, paste0(prefix, "__estimate_C.csv")))
+    fwrite(data.table(model$y_pred), file = file.path(fit_dir, paste0(prefix, "__y_pred.csv")))
+    fwrite(data.table(rmsfe), file = file.path(fit_dir, paste0(prefix, "__rmsfe.csv")))
 }
 
 save_fitting_results(model_gfsplash_gfsplash_a05, "gfsplash_a05", fit_dir)

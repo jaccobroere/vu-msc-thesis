@@ -26,15 +26,6 @@ echo "STARTING: Running MC simulation for design $sim_design_id"
 # Update docker image
 # docker build --quiet -t jaccusaurelius/vu-msc-thesis:kube .
 
-# Clear running pods, jobs and delete PVCs
-# kubectl delete pods --all
-# kubectl delete jobs --all
-
-# Setup pod to access the data in the PV
-# kubectl apply -f scripts/k8s/data_access.yml
-# kubectl wait --for=condition=ready --timeout=1m pod/data-access
-# kubectl apply -f scripts/k8s/setup_pv.yml
-
 # Run the simulation job
 kubectl apply -f scripts/k8s/mc_simulation_REPLACED.yml
 kubectl wait --for=condition=complete --timeout=12h "job/modelfit-${sim_design_id_dashes,,}"

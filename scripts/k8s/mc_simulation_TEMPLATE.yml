@@ -3,7 +3,7 @@ kind: Job
 metadata:
   name: modelfit-MEREPLACE
 spec:
-  completions: 100 
+  completions: 150 
   parallelism: 6
   template:
     spec:

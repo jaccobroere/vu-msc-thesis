@@ -10,7 +10,7 @@ replace_string='s/REPLACEME/'$sim_design_id'/g'
 sim_design_id_dashes=${sim_design_id//_/-}
 replace_string_dashes='s/MEREPLACE/'${sim_design_id_dashes,,}'/g'
 
-if [ "rungsplash" = "true" ]; then
+if [ $rungsplash = "true" ]; then
     sed -E $replace_string scripts/k8s/mc_simulation_TEMPLATE.yml > scripts/k8s/mc_simulation_REPLACED.yml.tmp
     sed -E $replace_string_dashes scripts/k8s/mc_simulation_REPLACED.yml.tmp > scripts/k8s/mc_simulation_REPLACED.yml 
     rm scripts/k8s/mc_simulation_REPLACED.yml.tmp

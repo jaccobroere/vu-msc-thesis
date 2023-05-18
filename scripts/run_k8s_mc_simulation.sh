@@ -28,7 +28,7 @@ echo "STARTING: Running MC simulation for design $sim_design_id"
 
 # Run the simulation job
 kubectl apply -f scripts/k8s/mc_simulation_REPLACED.yml
-kubectl wait --for=condition=complete --timeout=12h "job/modelfit-${sim_design_id_dashes,,}"
+kubectl wait --for=condition=complete --timeout=24h "job/modelfit-${sim_design_id_dashes,,}"
 
 # Delete the modelfit job
 kubectl delete -f scripts/k8s/mc_simulation_REPLACED.yml

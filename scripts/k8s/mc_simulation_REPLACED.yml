@@ -1,23 +1,23 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: modelfit-designb-t2000-p25
+  name: modelfit-designa-t1000-p25
 spec:
-  completions: 100 
+  completions: 250 
   parallelism: 6
   template:
     spec:
       containers:
-        - name: modelfit-cont-designb-t2000-p25
+        - name: modelfit-cont-designa-t1000-p25
           image: jaccusaurelius/vu-msc-thesis:workspace
-          command: ["bash", "scripts/model_fit_montecarlo.sh", "designB_T2000_p25", "false"]
+          command: ["bash", "scripts/model_fit_montecarlo.sh", "designA_T1000_p25"]
           resources: 
             requests:
               cpu: 1000m 
               memory: 1000Mi 
             limits:
               cpu: 1000m
-              memory: 1500Mi 
+              memory: 1100Mi 
           volumeMounts:
             - name: pv-out
               mountPath: /app/vu-msc-thesis/out

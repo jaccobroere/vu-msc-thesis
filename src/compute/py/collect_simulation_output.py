@@ -11,6 +11,21 @@ PROJ_DIR = os.environ["PROJ_DIR"]
 os.chdir(PROJ_DIR)
 
 
+def is_uuid(uuid: str) -> bool:
+    """
+    Check whether a string is a UUID.
+
+    Args:
+        uuid (str): String to check.
+
+    Returns:
+        bool: True if the string is a UUID, False otherwise.
+    """
+    return re.match(
+        r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]" r"{4}-[a-f0-9]{12}", uuid
+    )
+
+
 def parse_design_id(design_id: str) -> tuple:
     """
     Parse the design ID from the directory name.
@@ -27,7 +42,7 @@ def parse_design_id(design_id: str) -> tuple:
         T, p = int(match.group(2)), int(match.group(3))
         return design_id, T, p
 
-    print(f"Could not parse design ID: {design_id}")
+    print(f"WARNING: Could not parse design ID: {design_id}")
     return None, None, None
 
 
@@ -157,6 +172,9 @@ def create_full_data_dictionary(design: str = "designB", dump: bool = False):
 
         # Walk through the UUID directories and create data from CSV files
         for uuid in os.listdir(uuid_dir):
+            if not is_uuid(uuid):
+                continue
+
             data_dir = os.path.join(uuid_dir, uuid)
             data[design_dir][uuid] = create_data_from_csv_files(data_dir)
 

@@ -59,22 +59,33 @@ y_test <- y[, (train_idx + 1):dim(y)[2]]
 # MODEL FITTING
 ################################################################################
 # Fit F-SPLASH and SSF-SPLASH models (Uses CV at each iteration)
+
+print("Fitting F-SPLASH and SSF-SPLASH models")
+tic()
 model_fsplash <- fit_fsplash.cv(y, bandwidths, reg_gr, Dtilde_inv, nlambdas = 20, nfolds = 5)
 model_ssfsplash <- fit_ssfsplash.cv(y, bandwidths, reg_gr, Dtilde_SSF_inv, alpha = 0.5, nlambdas = 20, nfolds = 5)
+toc()
 
 # Fit SPLASH model (Uses CV at each iteration)
+print("Fitting SPLASH models")
+tic()
 model_splash_a0 <- fit_splash.cv(y, alpha = 0, nlambdas = 20, nfolds = 5)
 model_splash_a05 <- fit_splash.cv(y, alpha = 0.5, nlambdas = 20, nfolds = 5)
+toc()
 
 # Fit PVAR (Uses CV at each iteration)
+print("Fitting PVAR model")
+tic()
 model_pvar <- fit_pvar.cv(y, nlambdas = 20, nfolds = 5)
-
+toc()
 # Compute the predictions stemming from the true value of C
 y_hat_true <- predict_with_C(C_true, y_train, y_test)
 
 ################################################################################
 # SAVING RESULTS
 ################################################################################
+print("Saving results")
+tic()
 save_fitting_results <- function(model, prefix, fit_dir, save_AB = TRUE) {
     rmsfe <- calc_rmsfe(y_test[, 1], model$y_pred[, 1], y_hat_true[, 1]) # One step ahead RMSFE
     if (save_AB) {
@@ -97,3 +108,4 @@ fwrite(data.table(y_hat_true), file = file.path(fit_dir, "y_hat_true.csv"))
 fwrite(data.table(A_true), file = file.path(fit_dir, "A_true.csv"))
 fwrite(data.table(B_true), file = file.path(fit_dir, "B_true.csv"))
 fwrite(data.table(y), file = file.path(fit_dir, "y_true.csv"))
+toc()

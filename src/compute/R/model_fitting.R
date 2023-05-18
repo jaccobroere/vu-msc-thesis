@@ -16,8 +16,8 @@ setwd(PROJ_DIR)
 ################################################################################
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
-sim_design_id <- ifelse(length(args) < 1, "designB_T500_p16", args[1])
-uuidtag <- ifelse(length(args) < 2, "f8dac225-066f-4fc4-95e8-b3a838dcc96a", args[2])
+sim_design_id <- ifelse(length(args) < 1, "designA_T500_p25", args[1])
+uuidtag <- ifelse(length(args) < 2, "0b0b9184-10b5-40fb-a6a6-7662d37ce6cd", args[2])
 
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
@@ -75,30 +75,42 @@ lam_idx_gfsplash_sym_a05 <- get_best_lam_idx(grid_gfsplash_sym_a05)
 ################################################################################
 # MODEL FITTING
 ################################################################################
-# Fit F-SPLASH and SSF-SPLASH models (Uses CV at each iteration)
+print("Fitting F-SPLASH and SSF-SPLASH models")
+tic()
 model_fsplash <- fit_fsplash.cv(y, bandwidths, reg_gr, Dtilde_inv, nlambdas = 20, nfolds = 5)
 model_ssfsplash <- fit_ssfsplash.cv(y, bandwidths, reg_gr, Dtilde_SSF_inv, alpha = 0.5, nlambdas = 20, nfolds = 5)
+toc()
 
-# Fit SPLASH model (Uses CV at each iteration)
+print("Fitting SPLASH models")
+tic()
 model_splash_a0 <- fit_splash.cv(y, alpha = 0, nlambdas = 20, nfolds = 5)
 model_splash_a05 <- fit_splash.cv(y, alpha = 0.5, nlambdas = 20, nfolds = 5)
+toc()
 
-# Fit GF-SPLASH models (Preliminary CV was employed to find optimal lambda_index)
+print("Fitting GF-SPLASH models")
+tic()
 model_gfsplash_gfsplash_a05 <- fit_gfsplash.on_idx(y, bandwidths, lam_idx_gfsplash_a05, alpha = 0.5, graph = reg_gr, nlambdas = 20)
 model_gfsplash_gfsplash_sym_a0 <- fit_gfsplash.on_idx(y, bandwidths, lam_idx_gfsplash_sym_a0, alpha = 0, graph = sym_gr, nlambdas = 20)
 model_gfsplash_gfsplash_sym_a05 <- fit_gfsplash.on_idx(y, bandwidths, lam_idx_gfsplash_sym_a05, alpha = 0.5, graph = sym_gr, nlambdas = 20)
+toc()
 
-# Fit PVAR (Uses CV at each iteration)
+print("Fitting PVAR model")
+tic()
 model_pvar <- fit_pvar.cv(y, nlambdas = 20, nfolds = 5)
+toc()
 
-# Compute the predictions stemming from the true value of C
+print("Computing predictions based on the true value of C")
+tic()
 y_hat_true <- predict_with_C(C_true, y_train, y_test)
+toc()
 
 ################################################################################
 # SAVING RESULTS
 ################################################################################
+print("Saving results")
+tic()
 save_fitting_results <- function(model, prefix, fit_dir, save_AB = TRUE) {
-    rmsfe <- calc_rmsfe(y_test[, 1], model$y_pred[, 1], y_hat_true[, 1]) # One step ahead RMSFE
+    rmsfe <- calc_rmsfe(y_test[, 1], model$y_pred[, 1], y_hat_true[, 1])
     if (save_AB) {
         fwrite(data.table(model$A), file = file.path(fit_dir, paste0(prefix, "__estimate_A.csv")))
         fwrite(data.table(model$B), file = file.path(fit_dir, paste0(prefix, "__estimate_B.csv")))
@@ -117,8 +129,8 @@ save_fitting_results(model_splash_a0, "splash_a0", fit_dir)
 save_fitting_results(model_splash_a05, "splash_a05", fit_dir)
 save_fitting_results(model_pvar, "pvar", fit_dir, save_AB = FALSE)
 
-# Save true values as well ,y_hat_true are the next time step predictions based on the true C matrix
 fwrite(data.table(y_hat_true), file = file.path(fit_dir, "y_hat_true.csv"))
 fwrite(data.table(A_true), file = file.path(fit_dir, "A_true.csv"))
 fwrite(data.table(B_true), file = file.path(fit_dir, "B_true.csv"))
 fwrite(data.table(y), file = file.path(fit_dir, "y_true.csv"))
+toc()

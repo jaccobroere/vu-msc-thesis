@@ -16,8 +16,8 @@ setwd(PROJ_DIR)
 ################################################################################
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
-sim_design_id <- ifelse(length(args) < 1, "designB_T500_p16", args[1])
-uuidtag <- ifelse(length(args) < 2, "f8dac225-066f-4fc4-95e8-b3a838dcc96a", args[2])
+sim_design_id <- ifelse(length(args) < 1, "designA_T2000_p25", args[1])
+uuidtag <- ifelse(length(args) < 2, "1a311b6b-cb27-445b-ae36-42f111e5981f", args[2])
 
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)

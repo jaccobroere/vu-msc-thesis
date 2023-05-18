@@ -89,7 +89,7 @@ def create_data_from_csv_files(directory):
 
     for csv_file in csv_files:
         model_name, item = parse_csv_file(csv_file)
-        if item is None:
+        if item in [None, "y_pred"]:
             continue
 
         df = pd.read_csv(os.path.join(directory, csv_file), header=0)

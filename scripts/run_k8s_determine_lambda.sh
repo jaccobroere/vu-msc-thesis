@@ -33,7 +33,7 @@ rm scripts/k8s/determine_lambda_REPLACED.yml.tmp
 
 # Run the determine_lambda job
 kubectl apply -f scripts/k8s/determine_lambda_REPLACED.yml
-kubectl wait --for=condition=complete --timeout=5h "job/detlam-${sim_design_id_dashes,,}"
+kubectl wait --for=condition=complete --timeout=24h "job/detlam-${sim_design_id_dashes,,}"
 
 # Delete the determine_lambda job
 kubectl delete -f scripts/k8s/determine_lambda_REPLACED.yml

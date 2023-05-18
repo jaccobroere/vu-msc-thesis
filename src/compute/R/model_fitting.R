@@ -10,14 +10,13 @@ library(Matrix)
 library(tictoc)
 library(splash)
 setwd(PROJ_DIR)
-
 ################################################################################
 # PATHING AND DATA LOADING
 ################################################################################
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
-sim_design_id <- ifelse(length(args) < 1, "designA_T500_p25", args[1])
-uuidtag <- ifelse(length(args) < 2, "0b0b9184-10b5-40fb-a6a6-7662d37ce6cd", args[2])
+sim_design_id <- ifelse(length(args) < 1, "designA_T2000_p16", args[1])
+uuidtag <- ifelse(length(args) < 2, "2e3717ca-d2da-4b27-85c8-4a930626ef6f", args[2])
 
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
@@ -96,7 +95,7 @@ toc()
 
 print("Fitting PVAR model")
 tic()
-model_pvar <- fit_pvar.cv(y, nlambdas = 20, nfolds = 5)
+model_pvar <- fit_pvar.cv(y, nlambdas = 20)
 toc()
 
 print("Computing predictions based on the true value of C")
@@ -134,3 +133,7 @@ fwrite(data.table(A_true), file = file.path(fit_dir, "A_true.csv"))
 fwrite(data.table(B_true), file = file.path(fit_dir, "B_true.csv"))
 fwrite(data.table(y), file = file.path(fit_dir, "y_true.csv"))
 toc()
+
+
+model_pvar <- fit_pvar.cv(y, nlambdas = 20)
+model_pvar$msfe

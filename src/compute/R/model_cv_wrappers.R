@@ -302,7 +302,7 @@ fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambd
     return(output_list)
 }
 
-fit_pvar.cv <- function(y, nlambdas = 20, nfolds = 5, ...) {
+fit_pvar.cv <- function(y, nlambdas = 20, nfolds = 20, ...) {
     # Split y into training and testing sets
     y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
     y_test <- y[, (floor(dim(y)[2] / 5) * 4 + 1):dim(y)[2]]
@@ -319,10 +319,11 @@ fit_pvar.cv <- function(y, nlambdas = 20, nfolds = 5, ...) {
         Y = t(y_train),
         p = 1,
         struct = "Basic",
-        gran = c(20, nlambdas),
+        gran = c(50, nlambdas),
         loss = "L2",
-        T1 = floor(dim(y_train)[2] / 5) * 3,
-        T2 = floor(dim(y_train)[2] / 5) * 4,
+        verbose = FALSE,
+        T1 = dim(y_train)[2] - nfolds - 1,
+        T2 = dim(y_train)[2] - 1,
         window.size = floor(dim(y_train)[2] / 5) * 3, # Use 5-fold cross-validation
         model.controls = list(
             intercept = FALSE,

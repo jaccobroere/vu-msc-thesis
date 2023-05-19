@@ -10,7 +10,7 @@ spec:
       containers:
         - name: modelfit-cont-MEREPLACE
           image: jaccusaurelius/vu-msc-thesis:workspace
-          command: ["bash", "scripts/model_fit_montecarlo.sh", "REPLACEME", "false"]
+          command: ["bash", "scripts/model_fit_montecarlo.sh", "REPLACEME", "nogsplash"]
           resources: 
             requests:
               cpu: 1000m 

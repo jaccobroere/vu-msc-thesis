@@ -27,13 +27,13 @@ rm -r $grid_dir/*
 replace_string='s/REPLACEME/'$sim_design_id'/g'
 sim_design_id_dashes=${sim_design_id//_/-}
 replace_string_dashes='s/MEREPLACE/'${sim_design_id_dashes,,}'/g'
-sed -E $replace_string scripts/k8s/determine_lambda_TEMPLATE.yml > scripts/k8s/determine_lambda_REPLACED.yml.tmp
-sed -E $replace_string_dashes scripts/k8s/determine_lambda_REPLACED.yml.tmp > scripts/k8s/determine_lambda_REPLACED.yml 
-rm scripts/k8s/determine_lambda_REPLACED.yml.tmp
+sed -E $replace_string scripts/k8s/determine_lambda_TEMPLATE.yml > scripts/k8s/falsedetermine_lambda_REPLACED.yml.tmp
+sed -E $replace_string_dashes scripts/k8s/replaced/determine_lambda_REPLACED.yml.tmp > scripts/k8s/replaced/determine_lambda_REPLACED.yml 
+rm scripts/k8s/replaced/determine_lambda_REPLACED.yml.tmp
 
 # Run the determine_lambda job
-kubectl apply -f scripts/k8s/determine_lambda_REPLACED.yml
+kubectl apply -f scripts/k8s/replaced/determine_lambda_REPLACED.yml
 kubectl wait --for=condition=complete --timeout=24h "job/detlam-${sim_design_id_dashes,,}"
 
 # Delete the determine_lambda job
-kubectl delete -f scripts/k8s/determine_lambda_REPLACED.yml
+kubectl delete -f scripts/k8s/replaced/determine_lambda_REPLACED.yml

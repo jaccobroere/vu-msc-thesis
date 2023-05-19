@@ -5,7 +5,9 @@
 cd $PROJ_DIR
 
 # Insert the design ID into the k8s job YML files
-sim_design_id=$1
+# sim_design_id=$1
+sim_design_ids=("designC_T500_p16" "designC_T1000_p16" "designC_T2000_p16" "designC_T500_p25" "designC_T1000_p25" "designC_T2000_p25")
+# rundetlam=${2:-"false"}
 # replace_string='s/REPLACEME/'$sim_design_id'/g'
 # sim_design_id_dashes=${sim_design_id//_/-}
 # replace_string_dashes='s/MEREPLACE/'${sim_design_id_dashes,,}'/g'
@@ -13,17 +15,22 @@ sim_design_id=$1
 # Start the script
 echo "STARTING: Running MC simulation for design $sim_design_id"
 
-# Run the detlam job
-for ((i=1; i<=5; i++))
-do
-    # Task to repeat
-    bash scripts/determine_lambda_preliminary.sh $sim_design_id
-done
+# # Run the detlam job
+# if [ $rundetlam = "true" ]; then
+#     for ((i=1; i<=5; i++))
+#     do
+#         # Task to repeat
+#         bash scripts/determine_lambda_preliminary.sh $sim_design_id
+#     done
+# fi
 
 # Run the simulation job
-for ((i=1; i<=20; i++))
-do
-    # Task to repeat
-    bash scripts/model_fit_montecarlo.sh $sim_design_id
+for sim_design_id in "${sim_design_ids[@]}"; do
+    echo "STARTING: Running MC simulation for design $sim_design_id"
+    for ((i=1; i<=100; i++))
+    do
+        # Task to repeat
+        bash scripts/model_fit_montecarlo.sh $sim_design_id
+    done
 done
 

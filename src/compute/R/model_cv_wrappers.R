@@ -51,7 +51,7 @@ fit_splash.cv <- function(y, alpha, nlambdas = 20, nfolds = 5, ...) {
 
     # Fit the model on the entire training set
     t0 <- Sys.time()
-    model <- splash(t(y_train), alphas = c(alpha), n_lambdas = nlambdas, ...)
+    model <- splash(t(y_train), alphas = c(alpha), n_lambdas = nlambdas, track_progress = FALSE, ...)
     t1 <- Sys.time()
 
     # Extract the model output

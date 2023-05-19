@@ -111,3 +111,16 @@ function parse_sim_design_id(input_string::AbstractString)
     # return the extracted values as a tuple
     return (T, p)
 end
+
+"""
+Check the maximum eigenvalue of a matrix
+"""
+function check_max_eigenvalue(A)
+    # Check if the maximum eigenvalue of A is smaller than 1
+    max_eigenvalue = maximum(abs.(eigvals(A)))
+    println("Maximum eigenvalue of A is $max_eigenvalue")
+    if max_eigenvalue >= 1
+        println("Maximum eigenvalue of A should be smaller than 1")
+    end
+    return max_eigenvalue
+end

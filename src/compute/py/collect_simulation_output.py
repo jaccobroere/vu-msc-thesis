@@ -22,7 +22,8 @@ def is_uuid(uuid: str) -> bool:
         bool: True if the string is a UUID, False otherwise.
     """
     return re.match(
-        r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]" r"{4}-[a-f0-9]{12}", uuid
+        r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]" r"{4}-[a-f0-9]{12}",
+        uuid.lower(),
     )
 
 
@@ -339,5 +340,5 @@ def main(design: str = "designB"):
 
 
 if __name__ == "__main__":
-    design = "designB"
+    design = "designC"
     main(design)

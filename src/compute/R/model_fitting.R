@@ -21,7 +21,6 @@ uuidtag <- ifelse(length(args) < 2, "1AAD5859-5894-44C2-99DC-E087F4F6C676", args
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
 fit_dir <- file.path(PROJ_DIR, "out/simulation/fit", sim_design_id, uuidtag)
-lambdas_dir <- file.path(PROJ_DIR, "out/simulation/lambdas", sim_design_id)
 sim_id_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc")
 
 # Parse paths
@@ -53,23 +52,6 @@ y <- as.matrix(fread(path_y, header = T, skip = 0))
 train_idx <- (floor(dim(y)[2] / 5) * 4)
 y_train <- y[, 1:train_idx]
 y_test <- y[, (train_idx + 1):dim(y)[2]]
-
-################################################################################
-# Load the best lambdas for GF-SPLASH models
-################################################################################
-grid_gfsplash_a05 <- as.data.frame(fread(file.path(lambdas_dir, "grid_gfsplash_a05.csv"), header = T, skip = 0))
-grid_gfsplash_sym_a0 <- as.data.frame(fread(file.path(lambdas_dir, "grid_gfsplash_sym_a0.csv"), header = T, skip = 0))
-grid_gfsplash_sym_a05 <- as.data.frame(fread(file.path(lambdas_dir, "grid_gfsplash_sym_a05.csv"), header = T, skip = 0))
-
-get_best_lam_idx <- function(grid) {
-    # Get the best lambda index
-    best_lam_idx <- which.min(colMeans(grid))
-    return(best_lam_idx)
-}
-
-lam_idx_gfsplash_a05 <- get_best_lam_idx(grid_gfsplash_a05)
-lam_idx_gfsplash_sym_a0 <- get_best_lam_idx(grid_gfsplash_sym_a0)
-lam_idx_gfsplash_sym_a05 <- get_best_lam_idx(grid_gfsplash_sym_a05)
 
 ################################################################################
 # MODEL FITTING

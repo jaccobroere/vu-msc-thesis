@@ -15,8 +15,8 @@ setwd(PROJ_DIR)
 ################################################################################
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
-sim_design_id <- ifelse(length(args) < 1, "designC_T1000_p25", args[1])
-uuidtag <- ifelse(length(args) < 2, "1AAD5859-5894-44C2-99DC-E087F4F6C676", args[2])
+sim_design_id <- ifelse(length(args) < 1, "designC_T500_p16", args[1])
+uuidtag <- ifelse(length(args) < 2, "782fe84f-a5a7-454c-aa35-003d25552e39", args[2])
 
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
@@ -70,9 +70,9 @@ toc()
 
 print("Fitting GF-SPLASH models with CV")
 tic()
-model_gfsplash_a05_cv <- fit_gfsplash.cv(y, bandwidths, graph = reg_gr, alpha = 0.5, nlambdas = 20, nfolds = 3, lambda.min.ratio = 1e-4)
-model_gfsplash_sym_a0_cv <- fit_gfsplash.cv(y, bandwidths, graph = sym_gr, alpha = 0, nlambdas = 20, nfolds = 3)
-model_gfsplash_sym_a05_cv <- fit_gfsplash.cv(y, bandwidths, graph = sym_gr, alpha = 0.5, nlambdas = 20, nfolds = 3)
+model_gfsplash_a05 <- fit_gfsplash.cv(y, bandwidths, graph = reg_gr, alpha = 0.5, nlambdas = 20, nfolds = 3, lambda.min.ratio = 1e-4)
+model_gfsplash_sym_a0 <- fit_gfsplash.cv(y, bandwidths, graph = sym_gr, alpha = 0, nlambdas = 20, nfolds = 3)
+model_gfsplash_sym_a05 <- fit_gfsplash.cv(y, bandwidths, graph = sym_gr, alpha = 0.5, nlambdas = 20, nfolds = 3)
 toc()
 
 print("Fitting PVAR model")

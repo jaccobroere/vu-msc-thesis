@@ -1,4 +1,3 @@
-using Distributions: continuous_distributions
 #=
 This simulation design replicates the simulation design B from Reuvers and Wijler (2021).
 In this simulation design:
@@ -14,19 +13,6 @@ using DataFrames
 
 # Include simulation utils
 include(joinpath(dirname(abspath(@__FILE__)), "simulation_utils.jl"))
-
-function design_B_generate_A(m::Int)::Matrix{Float64}
-    p = m^2
-    A = zeros(p, p)
-    for i in 1:p
-        for j in 1:p
-            if abs(i - j) == 1 || abs(i - j) == m
-                setindex!(A, 0.2, i, j)
-            end
-        end
-    end
-    return A
-end
 
 function design_B_generate_A(m::Int)::Matrix{Float64}
     p = m^2
@@ -50,10 +36,15 @@ function design_B_generate_A(m::Int)::Matrix{Float64}
 end
 
 function design_B_generate_B(m::Int)::Matrix{Float64}
+    B_vals = Dict(
+        4 => 0.28,
+        5 => 0.25,
+        6 => 0.23
+    )
     p = m^2
     B = zeros(p, p)
     for i in 1:p
-        setindex!(B, 0.2, i, i)
+        setindex!(B, B_vals[m], i, i)
     end
     return B
 end
@@ -84,3 +75,21 @@ if abspath(PROGRAM_FILE) == @__FILE__
 end
 
 
+function check_max_eigenvalue(A)
+    # Check if the maximum eigenvalue of A is smaller than 1
+    max_eigenvalue = maximum(abs.(eigvals(A)))
+    println("Maximum eigenvalue of A is $max_eigenvalue")
+    if max_eigenvalue >= 1
+        println("Maximum eigenvalue of A should be smaller than 1")
+    end
+    return max_eigenvalue
+end
+
+m = 4
+A = design_B_generate_A(m)
+B = design_B_generate_B(m)
+C = inv(I - A) * B
+
+heatmap(reverse(A, dims=1))
+
+check_max_eigenvalue(C)

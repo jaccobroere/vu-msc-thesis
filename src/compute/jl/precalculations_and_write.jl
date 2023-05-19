@@ -134,8 +134,8 @@ function bootstrap_estimator_R(y::Matrix{Float64}, q::Int=500)::Tuple{Int,Int}
         bootstrap_Σ0 = bootstrap_estimator_Σj_exp(y, 0)
         bootstrap_Σ1 = bootstrap_estimator_Σj_exp(y, 1)
         for h in 1:(N-1)
-            @inbounds R0[i, h] += norm((band_matrix(bootstrap_Σ0, h) - Σ0), 1) / q
-            @inbounds R1[i, h] += norm((band_matrix(bootstrap_Σ1, h) - Σ1), 1) / q
+            @inbounds R0[i, h] += opnorm((band_matrix(bootstrap_Σ0, h) - Σ0), 1) / q
+            @inbounds R1[i, h] += opnorm((band_matrix(bootstrap_Σ1, h) - Σ1), 1) / q
         end
     end
     return (argmin(vec(sum(R0, dims=1))), argmin(vec(sum(R1, dims=1))))
@@ -194,4 +194,4 @@ if abspath(PROGRAM_FILE) == @__FILE__
     main(sim_design_id, uuidtag)
 end
 # ## TESTING
-# y = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/designB_T1000_p25/mc/D67DFC71-FF34-4731-B009-6C9668E5DA4E", "y.csv"))
+y = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/designC_T1000_p25/mc/0a40fe22-20c4-4a3d-8b1e-d37c25d75948", "y.csv"))

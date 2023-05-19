@@ -1,16 +1,16 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: modelfit-designc-t2000-p25
+  name: modelfit-designc-t500-p16
 spec:
   completions: 100 
   parallelism: 3
   template:
     spec:
       containers:
-        - name: modelfit-cont-designc-t2000-p25
+        - name: modelfit-cont-designc-t500-p16
           image: jaccusaurelius/vu-msc-thesis:workspace
-          command: ["bash", "scripts/model_fit_montecarlo.sh", "designC_T2000_p25", "fullcv"]
+          command: ["bash", "scripts/model_fit_montecarlo.sh", "designC_T500_p16", "fullcv"]
           resources: 
             requests:
               cpu: 2000m 

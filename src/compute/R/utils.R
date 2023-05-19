@@ -130,7 +130,7 @@ rolling_cv <- function(y, nfolds, test_size = 0.2) {
 
     # Calculate the window sizes
     train_window_size <- ncols - (floor(ncols * test_size))
-    test_window_size <- ncols * test_size / nfolds
+    test_window_size <- floor(ncols * test_size / nfolds)
 
     idx <- 1
     for (i in 1:nfolds) {

@@ -73,23 +73,3 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # Run simulation
     run_simulation(p, m, T, sim_design_id, true, uuidtag)
 end
-
-
-function check_max_eigenvalue(A)
-    # Check if the maximum eigenvalue of A is smaller than 1
-    max_eigenvalue = maximum(abs.(eigvals(A)))
-    println("Maximum eigenvalue of A is $max_eigenvalue")
-    if max_eigenvalue >= 1
-        println("Maximum eigenvalue of A should be smaller than 1")
-    end
-    return max_eigenvalue
-end
-
-m = 4
-A = design_B_generate_A(m)
-B = design_B_generate_B(m)
-C = inv(I - A) * B
-
-heatmap(reverse(A, dims=1))
-
-check_max_eigenvalue(C)

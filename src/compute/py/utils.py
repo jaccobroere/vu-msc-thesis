@@ -1,4 +1,6 @@
+import os
 import re
+import uuid
 
 
 def parse_float(s):
@@ -32,3 +34,36 @@ def parse_float(s):
         return float(match.group())
     else:
         return None
+
+
+def rename_files_double_underscore(folder_path: str):
+    for filename in os.listdir(folder_path):
+        print(f"Old filename: {filename}", end=" ")
+        # Check if the file name contains 'estimate', 'rmsfe', or 'y_pred' preceded by an underscore
+        if re.search(r"_estimate|_rmsfe|_y_pred", filename):
+            # Replace the single underscore with a double underscore
+            new_filename = re.sub(r"(_estimate|_rmsfe|_y_pred)", r"_\1", filename)
+            # Rename the file
+            os.rename(
+                os.path.join(folder_path, filename),
+                os.path.join(folder_path, new_filename),
+            )
+        else:
+            print("No match")
+
+
+def walk_and_replace(path: str):
+    for root, dirs, files in os.walk(path):
+        for direc in dirs:
+            if not is_uuid(direc):
+                continue
+            p = os.path.join(root, direc)
+            rename_files_double_underscore(p)
+
+
+def is_uuid(string: str):
+    try:
+        uuid.UUID(string)
+        return True
+    except ValueError:
+        return False

@@ -11,7 +11,7 @@ grid_dir="$PROJ_DIR/out/simulation/lambdas/${sim_design_id}"
 if [ -f "$grid_dir/grid_gfsplash_a05.csv" ]
 then
     nlines_grid=$(wc -l < $grid_dir/grid_gfsplash_a05.csv)
-    if [ "$nlines_grid" -gt 20 ]
+    if [ "$nlines_grid" -gt 50 ]
     then
         echo "SKIPPING: Lambda grid search already run for design $sim_design_id"
         exit 0
@@ -27,19 +27,13 @@ rm -r $grid_dir/*
 replace_string='s/REPLACEME/'$sim_design_id'/g'
 sim_design_id_dashes=${sim_design_id//_/-}
 replace_string_dashes='s/MEREPLACE/'${sim_design_id_dashes,,}'/g'
-sed -E $replace_string scripts/k8s/determine_lambda_TEMPLATE.yml > scripts/k8s/determine_lambda_REPLACED.yml.tmp
-sed -E $replace_string_dashes scripts/k8s/determine_lambda_REPLACED.yml.tmp > scripts/k8s/determine_lambda_REPLACED.yml 
-rm scripts/k8s/determine_lambda_REPLACED.yml.tmp
-
-# Update docker image scripts
-# docker build -t jaccusaurelius/vu-msc-thesis:kube .
-
-# Clear running pods and jobs
-kubectl apply -f scripts/k8s/setup_pv.yml
+sed -E $replace_string scripts/k8s/determine_lambda_TEMPLATE.yml > scripts/k8s/falsedetermine_lambda_REPLACED.yml.tmp
+sed -E $replace_string_dashes scripts/k8s/replaced/determine_lambda_REPLACED.yml.tmp > scripts/k8s/replaced/determine_lambda_REPLACED.yml 
+rm scripts/k8s/replaced/determine_lambda_REPLACED.yml.tmp
 
 # Run the determine_lambda job
-kubectl apply -f scripts/k8s/determine_lambda_REPLACED.yml
-kubectl wait --for=condition=complete --timeout=5h "job/detlam-${sim_design_id_dashes,,}"
+kubectl apply -f scripts/k8s/replaced/determine_lambda_REPLACED.yml
+kubectl wait --for=condition=complete --timeout=24h "job/detlam-${sim_design_id_dashes,,}"
 
 # Delete the determine_lambda job
-kubectl delete -f scripts/k8s/determine_lambda_REPLACED.yml
+kubectl delete -f scripts/k8s/replaced/determine_lambda_REPLACED.yml

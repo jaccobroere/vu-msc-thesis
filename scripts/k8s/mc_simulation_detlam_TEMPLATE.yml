@@ -1,23 +1,23 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: modelfit-designb-t1000-p25
+  name: modelfit-MEREPLACE
 spec:
-  completions: 50 
-  parallelism: 4 
+  completions: 100 
+  parallelism: 3
   template:
     spec:
       containers:
-        - name: modelfit-cont-designb-t1000-p25
+        - name: modelfit-cont-MEREPLACE
           image: jaccusaurelius/vu-msc-thesis:workspace
-          command: ["bash", "scripts/model_fit_montecarlo.sh", "designB_T1000_p25"]
+          command: ["bash", "scripts/model_fit_montecarlo.sh", "REPLACEME", "detlam"]
           resources: 
             requests:
-              cpu: 1500m 
+              cpu: 1000m 
               memory: 1500Mi 
             limits:
-              cpu: 1500m
-              memory: 1900Mi 
+              cpu: 2000m
+              memory: 1500Mi 
           volumeMounts:
             - name: pv-out
               mountPath: /app/vu-msc-thesis/out

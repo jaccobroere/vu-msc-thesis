@@ -4,19 +4,19 @@ metadata:
   name: modelfit-MEREPLACE
 spec:
   completions: 100 
-  parallelism: 3
+  parallelism: 6
   template:
     spec:
       containers:
         - name: modelfit-cont-MEREPLACE
           image: jaccusaurelius/vu-msc-thesis:workspace
-          command: ["bash", "scripts/model_fit_montecarlo.sh", "REPLACEME", "fullcv"]
+          command: ["bash", "scripts/model_fit_montecarlo.sh", "REPLACEME", "nogsplash"]
           resources: 
             requests:
-              cpu: 2000m 
-              memory: 1500Mi 
+              cpu: 1000m 
+              memory: 1000Mi 
             limits:
-              cpu: 2200m
+              cpu: 1000m
               memory: 1500Mi 
           volumeMounts:
             - name: pv-out

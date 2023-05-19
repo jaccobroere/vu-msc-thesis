@@ -4,13 +4,13 @@ metadata:
   name: pv-out
 spec:
   capacity:
-    storage: 30Gi
+    storage: 40Gi
   accessModes:
     - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain 
+  persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   hostPath:
-    path: /Users/jacco/Documents/repos/vu-msc-thesis/out
+    path: /run/desktop/mnt/host/c/Users/jaccobroere/Documents/repos/personal/vu-msc-thesis/out
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -30,13 +30,13 @@ metadata:
   name: pv-data
 spec:
   capacity:
-    storage: 30Gi
+    storage: 40Gi
   accessModes:
     - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain 
+  persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   hostPath:
-    path: /Users/jacco/Documents/repos/vu-msc-thesis/data
+    path: /run/desktop/mnt/host/c/Users/jaccobroere/Documents/repos/personal/vu-msc-thesis/data
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -56,18 +56,18 @@ metadata:
   name: data-access
 spec:
   containers:
-  - name: data-access-cont
-    image: jaccusaurelius/vu-msc-thesis:workspace
-    command: ["sleep", "infinity"]
-    resources:
-      limits:
-        cpu: 500m 
-        memory: 500Mi 
-    volumeMounts:
-    - name: pv-out
-      mountPath: /app/vu-msc-thesis/out
-    - name: pv-data
-      mountPath: /app/vu-msc-thesis/data
+    - name: data-access-cont
+      image: jaccusaurelius/vu-msc-thesis:workspace
+      command: ["sleep", "infinity"]
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1000Mi
+      volumeMounts:
+        - name: pv-out
+          mountPath: /app/vu-msc-thesis/out
+        - name: pv-data
+          mountPath: /app/vu-msc-thesis/data
   volumes:
     - name: pv-out
       persistentVolumeClaim:

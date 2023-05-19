@@ -1,3 +1,4 @@
+using Distributions: continuous_distributions
 #=
 This simulation design replicates the simulation design B from Reuvers and Wijler (2021).
 In this simulation design:
@@ -13,38 +14,26 @@ using DataFrames
 
 # Include simulation utils
 include(joinpath(dirname(abspath(@__FILE__)), "simulation_utils.jl"))
+include(joinpath(dirname(abspath(@__FILE__)), "simulation_designC.jl"))
 
-function design_B_generate_A(m::Int)::Matrix{Float64}
-    p = m^2
-    A = zeros(p, p)
-    for i in 1:p
-        for j in 1:p
-            if abs(i - j) == m
-                setindex!(A, 0.2, i, j)
-            end
-
-            if abs(i - j) == 1 && (((i % m == 0) && ((j - 1) % m == 0)) || ((j % m == 0) && ((i - 1) % m == 0)))
-                continue
-            end
-
-            if abs(i - j) == 1
-                setindex!(A, 0.2, i, j)
+function design_D_generate_A(m::Int)::Matrix{Float64}
+    # Generate spatial matrix with vertical, horizontal, and diagonal neighbour interactions
+    A = generate_spatial_neighbour_matrix(m, true)
+    for i in axes(A, 1)
+        for j in axes(A, 2)
+            if i < j
+                A[i, j] = A[i, j] * 1.5
             end
         end
     end
     return A
 end
 
-function design_B_generate_B(m::Int)::Matrix{Float64}
-    B_vals = Dict(
-        4 => 0.28,
-        5 => 0.25,
-        6 => 0.23
-    )
-    p = m^2
-    B = zeros(p, p)
-    for i in 1:p
-        setindex!(B, B_vals[m], i, i)
+function design_D_generate_B(m::Int)::Matrix{Float64}
+    # Generate diagonal matrix
+    B = zeros(m^2, m^2)
+    for i in axes(B, 1)
+        B[i, i] = 0.2
     end
     return B
 end

@@ -49,10 +49,24 @@ function design_A_generate_B(p::Int, h::Int)::Matrix{Float64}
     return eta * matrix / sqrt(spectral_norm)
 end
 
-function run_simulation(p::Int, T::Int, sim_design_id::String="sim", write::Bool=true, uuidtag::Union{String,Nothing}=nothingtrain_size::Float64 = 0.8, h_A::Int=3, h_B::Int=3)::Matrix{Float64}
-    T = Int(T / train_size)
+function draw_until_valid(p::Int, h_A::Int, h_B::Int)::Tuple{Matrix{Float64},Matrix{Float64}}
+    # First try to draw A and B
     A = design_A_generate_A(p, h_A)
     B = design_A_generate_B(p, h_B)
+
+    #  If the spectral radius of A or B is larger than 1, draw again
+    stability = norm(inv(I - A) * B, 2) <= 0.95
+    while !(stability)
+        A = design_A_generate_A(size(A, 1), h_A)
+        B = design_A_generate_B(size(B, 1), h_B)
+        stability = norm(inv(I - A) * B, 2) <= 0.95
+    end
+    return A, B
+end
+
+function run_simulation(p::Int, T::Int, sim_design_id::String="sim", write::Bool=true, uuidtag::Union{String,Nothing}=nothing, train_size::Float64=0.8, h_A::Int=3, h_B::Int=3)::Matrix{Float64}
+    T = Int(T / train_size)
+    A, B = draw_until_valid(p, h_A, h_B)
     errors = generate_errors_over_time(T, p)
     y = simulate_svar(A, B, errors)
 

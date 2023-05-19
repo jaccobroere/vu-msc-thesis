@@ -13,8 +13,8 @@ setwd(PROJ_DIR)
 
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
-sim_design_id <- ifelse(length(args) < 1, "designB_T500_p25", args[1])
-uuidtag <- ifelse(length(args) < 2, "503FD119-142F-4B9B-AD46-CA0A417B03E6", args[2])
+sim_design_id <- ifelse(length(args) < 1, "designB_T500_p36", args[1])
+uuidtag <- ifelse(length(args) < 2, "A650C52A-1CB2-40C9-A358-D55204F8E54A", args[2])
 
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "detlam", uuidtag)
@@ -86,8 +86,8 @@ fit_gfsplash.cv.iter <- function(y, bandwidths, graph, alpha, nlambdas = 20, lam
         lambda_graph = as.vector(lambda_grid_linreg),
         gamma = gamma,
         p = dim(Vhat_d)[2],
-        m = dim(D)[1]
-        # ...
+        m = dim(D)[1],
+        ...
     )
     t1 <- Sys.time()
 
@@ -131,7 +131,7 @@ fit_gfsplash.lambda_grid <- function(y, bandwidths, graph, alpha, path, nlambdas
         write.table(df_lam, path, row.names = FALSE, col.names = TRUE, append = FALSE, sep = ",")
     }
     # Get the errors per lambda index from the model
-    model_grid <- fit_gfsplash.cv.iter(y, bandwidths, graph, alpha = alpha, nlambdas = nlambdas, lambda.min.ratio = lambda.min.ratio)
+    model_grid <- fit_gfsplash.cv.iter(y, bandwidths, graph, alpha = alpha, nlambdas = nlambdas, lambda.min.ratio = lambda.min.ratio, standard_ADMM = TRUE, max_num_iter = 1e3)
     out <- matrix(data = model_grid$errors, nrow = 1, ncol = nlambdas)
     # Append the results to the table
     write.table(out, path, row.names = FALSE, col.names = FALSE, append = TRUE, sep = ",")

@@ -15,12 +15,13 @@ setwd(PROJ_DIR)
 ################################################################################
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
-sim_design_id <- ifelse(length(args) < 1, "designC_T500_p16", args[1])
-uuidtag <- ifelse(length(args) < 2, "782fe84f-a5a7-454c-aa35-003d25552e39", args[2])
+sim_design_id <- ifelse(length(args) < 1, "designA_T2000_p16", args[1])
+uuidtag <- ifelse(length(args) < 2, "2e3717ca-d2da-4b27-85c8-4a930626ef6f", args[2])
 
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
 fit_dir <- file.path(PROJ_DIR, "out/simulation/fit", sim_design_id, uuidtag)
+lambdas_dir <- file.path(PROJ_DIR, "out/simulation/lambdas", sim_design_id)
 sim_id_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc")
 
 # Parse paths
@@ -54,30 +55,47 @@ y_train <- y[, 1:train_idx]
 y_test <- y[, (train_idx + 1):dim(y)[2]]
 
 ################################################################################
+# Load the best lambdas for GF-SPLASH models
+################################################################################
+grid_gfsplash_a05 <- as.data.frame(fread(file.path(lambdas_dir, "grid_gfsplash_a05.csv"), header = T, skip = 0))
+grid_gfsplash_sym_a0 <- as.data.frame(fread(file.path(lambdas_dir, "grid_gfsplash_sym_a0.csv"), header = T, skip = 0))
+grid_gfsplash_sym_a05 <- as.data.frame(fread(file.path(lambdas_dir, "grid_gfsplash_sym_a05.csv"), header = T, skip = 0))
+
+get_best_lam_idx <- function(grid) {
+    # Get the best lambda index
+    best_lam_idx <- which.min(colMeans(grid))
+    return(best_lam_idx)
+}
+
+lam_idx_gfsplash_a05 <- get_best_lam_idx(grid_gfsplash_a05)
+lam_idx_gfsplash_sym_a0 <- get_best_lam_idx(grid_gfsplash_sym_a0)
+lam_idx_gfsplash_sym_a05 <- get_best_lam_idx(grid_gfsplash_sym_a05)
+
+################################################################################
 # MODEL FITTING
 ################################################################################
 print("Fitting F-SPLASH and SSF-SPLASH models")
 tic()
-model_fsplash <- fit_fsplash.cv(y, bandwidths, reg_gr, Dtilde_inv, nlambdas = 20, nfolds = 3)
-model_ssfsplash <- fit_ssfsplash.cv(y, bandwidths, reg_gr, Dtilde_SSF_inv, alpha = 0.5, nlambdas = 20, nfolds = 3)
+model_fsplash <- fit_fsplash.cv(y, bandwidths, reg_gr, Dtilde_inv, nlambdas = 20, nfolds = 5)
+model_ssfsplash <- fit_ssfsplash.cv(y, bandwidths, reg_gr, Dtilde_SSF_inv, alpha = 0.5, nlambdas = 20, nfolds = 5)
 toc()
 
 print("Fitting SPLASH models")
 tic()
-model_splash_a0 <- fit_splash.cv(y, alpha = 0, nlambdas = 20, nfolds = 3)
-model_splash_a05 <- fit_splash.cv(y, alpha = 0.5, nlambdas = 20, nfolds = 3)
+model_splash_a0 <- fit_splash.cv(y, alpha = 0, nlambdas = 20, nfolds = 5)
+model_splash_a05 <- fit_splash.cv(y, alpha = 0.5, nlambdas = 20, nfolds = 5)
 toc()
 
-print("Fitting GF-SPLASH models with CV")
+print("Fitting GF-SPLASH models")
 tic()
-model_gfsplash_a05 <- fit_gfsplash.cv(y, bandwidths, graph = reg_gr, alpha = 0.5, nlambdas = 20, nfolds = 3, lambda.min.ratio = 1e-4)
-model_gfsplash_sym_a0 <- fit_gfsplash.cv(y, bandwidths, graph = sym_gr, alpha = 0, nlambdas = 20, nfolds = 3)
-model_gfsplash_sym_a05 <- fit_gfsplash.cv(y, bandwidths, graph = sym_gr, alpha = 0.5, nlambdas = 20, nfolds = 3)
+model_gfsplash_gfsplash_a05 <- fit_gfsplash.on_idx(y, bandwidths, lam_idx_gfsplash_a05, alpha = 0.5, graph = reg_gr, nlambdas = 20)
+model_gfsplash_gfsplash_sym_a0 <- fit_gfsplash.on_idx(y, bandwidths, lam_idx_gfsplash_sym_a0, alpha = 0, graph = sym_gr, nlambdas = 20)
+model_gfsplash_gfsplash_sym_a05 <- fit_gfsplash.on_idx(y, bandwidths, lam_idx_gfsplash_sym_a05, alpha = 0.5, graph = sym_gr, nlambdas = 20)
 toc()
 
 print("Fitting PVAR model")
 tic()
-model_pvar <- fit_pvar.cv(y, nlambdas = 20)
+model_pvar <- fit_pvar.cv(y, nlambdas = 20, nfolds = 5)
 toc()
 
 print("Computing predictions based on the true value of C")
@@ -101,9 +119,9 @@ save_fitting_results <- function(model, prefix, fit_dir, save_AB = TRUE) {
     fwrite(data.table(rmsfe), file = file.path(fit_dir, paste0(prefix, "__rmsfe.csv")))
 }
 
-save_fitting_results(model_gfsplash_a05, "gfsplash_a05", fit_dir)
-save_fitting_results(model_gfsplash_sym_a0, "gfsplash_sym_a0", fit_dir)
-save_fitting_results(model_gfsplash_sym_a05, "gfsplash_sym_a05", fit_dir)
+save_fitting_results(model_gfsplash_gfsplash_a05, "gfsplash_a05", fit_dir)
+save_fitting_results(model_gfsplash_gfsplash_sym_a0, "gfsplash_sym_a0", fit_dir)
+save_fitting_results(model_gfsplash_gfsplash_sym_a05, "gfsplash_sym_a05", fit_dir)
 save_fitting_results(model_fsplash, "fsplash", fit_dir)
 save_fitting_results(model_ssfsplash, "ssfsplash", fit_dir)
 save_fitting_results(model_splash_a0, "splash_a0", fit_dir)

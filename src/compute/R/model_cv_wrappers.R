@@ -47,16 +47,16 @@ fit_splash.cv <- function(y, alpha, nlambdas = 20, nfolds = 5, ...) {
         }
     }
     # Get the best lambda value
-    best_lambda <- model_cv$lambda[which.min(colMeans(errors_cv)), 1]
+    best_idx <- which.min(colMeans(errors_cv))
 
     # Fit the model on the entire training set
     t0 <- Sys.time()
-    model <- splash(t(y_train), alphas = c(alpha), lambdas = c(best_lambda), ...)
+    model <- splash(t(y_train), alphas = c(alpha), n_lambdas = nlambdas, track_progress = FALSE, ...)
     t1 <- Sys.time()
 
     # Extract the model output
-    A <- model$AB[, 1:p, ]
-    B <- model$AB[, (p + 1):(2 * p), ]
+    A <- model$AB[, 1:p, best_idx]
+    B <- model$AB[, (p + 1):(2 * p), best_idx]
     C <- AB_to_C(A, B)
     y_pred <- predict_with_C(C, y_train, y_test)
 
@@ -68,7 +68,7 @@ fit_splash.cv <- function(y, alpha, nlambdas = 20, nfolds = 5, ...) {
         y_pred = y_pred,
         errors_cv = errors_cv,
         msfe = calc_msfe(y_test, y_pred),
-        best_lambda = best_lambda,
+        best_lambda = model$lambda[best_idx, 1],
         runtime = difftime(t1, t0, units = "secs")[[1]]
     )
     return(output_list)
@@ -116,15 +116,14 @@ fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, nlambdas = 20, nfol
         X2_plus <- solve((t(X2) %*% X2), t(X2)) # Same as inv(t(X2) %*% X2) %*% t(X2)
 
         # Transform the input to LASSO objective
-        IminP <- diag(nrow(X2)) - X2 %*% X2_plus # Calculate I - P directly, P = X2 %*% X2_plus
+        IminP <- as.matrix(diag(nrow(X2)) - X2 %*% X2_plus) # Calculate I - P directly, P = X2 %*% X2_plus
         ytilde <- as.vector(IminP %*% sigma_hat)
-        Xtilde <- IminP %*% X1
-
+        Xtilde <- IminP %*% as.matrix(X1)
         # Fit the model on the training set
         model_cv <- glmnet(Xtilde, ytilde, nlambda = nlambdas, alpha = 1, intercept = FALSE, lambda.min.ratio = 1e-4, ...)
 
         # Compute the prediction error on the validation set
-        for (j in 1:nlambdas) {
+        for (j in 1:dim(model_cv$beta)[2]) {
             theta1 <- as.vector(model_cv$beta[, j])
             theta2 <- as.vector(X2_plus %*% (sigma_hat - X1 %*% theta1))
             coef_cv <- Dtilde_inv %*% c(theta1, theta2)
@@ -138,7 +137,7 @@ fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, nlambdas = 20, nfol
     }
 
     # Get the best lambda value
-    best_lambda <- model_cv$lambda[which.min(colMeans(errors_cv))]
+    best_idx <- which.min(colMeans(errors_cv))
 
     # Construct Vhat_d and sigma_hat from the training validation
     Sigma0 <- calc_Sigma_j(y_train, 0)
@@ -154,13 +153,13 @@ fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, nlambdas = 20, nfol
     X2_plus <- solve((t(X2) %*% X2), t(X2)) # Same as inv(t(X2) %*% X2) %*% t(X2)
 
     # Transform the input to LASSO objective
-    IminP <- diag(nrow(X2)) - X2 %*% X2_plus # Calculate I - P directly, P = X2 %*% X2_plus
+    IminP <- as.matrix(diag(nrow(X2)) - X2 %*% X2_plus) # Calculate I - P directly, P = X2 %*% X2_plus
     ytilde <- as.vector(IminP %*% sigma_hat)
-    Xtilde <- IminP %*% X1
+    Xtilde <- IminP %*% as.matrix(X1)
 
     # Fit the model on the training set
-    model <- glmnet(Xtilde, ytilde, lambda = best_lambda, alpha = 1, intercept = FALSE, ...)
-    theta1 <- as.vector(model$beta[, 1])
+    model <- glmnet(Xtilde, ytilde, nlambda = nlambdas, alpha = 1, intercept = FALSE, lambda.min.ratio = 1e-4, ...)
+    theta1 <- as.vector(model$beta[, best_idx])
     theta2 <- as.vector(X2_plus %*% (sigma_hat - X1 %*% theta1))
     coef <- Dtilde_inv %*% c(theta1, theta2)
     t1 <- Sys.time()
@@ -180,7 +179,7 @@ fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, nlambdas = 20, nfol
         errors_cv = errors_cv,
         y_pred = y_pred,
         msfe = calc_msfe(y_test, y_pred),
-        best_lambda = best_lambda,
+        best_lambda = model$lambda[best_idx],
         runtime = difftime(t1, t0, units = "secs")[[1]]
     )
     return(output_list)
@@ -247,7 +246,7 @@ fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambd
 
         # Compute the prediction error on the validation set
 
-        for (j in 1:nlambdas) {
+        for (j in 1:dim(model_cv$beta)[2]) {
             theta <- as.vector(model_cv$beta[, j])
             coef_cv <- Dtilde_SSF_inv_gamma %*% theta
             AB <- coef_to_AB(coef_cv, p)
@@ -260,7 +259,7 @@ fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambd
     }
 
     # Get the best lambda value
-    best_lambda <- model_cv$lambda[which.min(colMeans(errors_cv))]
+    best_idx <- which.min(colMeans(errors_cv))
 
     # Construct Vhat_d and sigma_hat from the training validation
     Sigma0 <- calc_Sigma_j(y_train, 0)
@@ -276,8 +275,8 @@ fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambd
     XD1 <- Vhat_d %*% Dtilde_SSF_inv_gamma # Same as Vhat_d * inv(Dtilde)
 
     # Fit the model on the entire training set
-    model <- glmnet(XD1, sigma_hat, lambda = best_lambda, alpha = 1, intercept = FALSE, ...)
-    theta <- as.vector(model$beta[, 1])
+    model <- glmnet(XD1, sigma_hat, n_lambdas = nlambdas, alpha = 1, intercept = FALSE, ...)
+    theta <- as.vector(model$beta[, best_idx])
     coef <- Dtilde_SSF_inv_gamma %*% theta
     t1 <- Sys.time()
 
@@ -296,13 +295,13 @@ fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambd
         errors_cv = errors_cv,
         y_pred = y_pred,
         msfe = calc_msfe(y_test, y_pred),
-        best_lambda = best_lambda,
+        best_lambda = model$lambda[best_idx],
         runtime = difftime(t1, t0, units = "secs")[[1]]
     )
     return(output_list)
 }
 
-fit_pvar.cv <- function(y, nlambdas = 20, nfolds = 5, ...) {
+fit_pvar.cv <- function(y, nlambdas = 20, nfolds = 20, ...) {
     # Split y into training and testing sets
     y_train <- y[, 1:(floor(dim(y)[2] / 5) * 4)]
     y_test <- y[, (floor(dim(y)[2] / 5) * 4 + 1):dim(y)[2]]
@@ -316,14 +315,15 @@ fit_pvar.cv <- function(y, nlambdas = 20, nfolds = 5, ...) {
 
     # Perform cross-validation for the selection of the penalty parameter
     model_setup <- constructModel(
-        Y = t(y),
+        Y = t(y_train),
         p = 1,
         struct = "Basic",
         gran = c(50, nlambdas),
         loss = "L2",
-        T1 = floor(dim(y_train)[2] / 5) * 4 + 1,
-        T2 = dim(y_train)[2],
-        window.size = floor(dim(y_train)[2] / 5), # Use 5-fold cross-validation
+        verbose = FALSE,
+        T1 = dim(y_train)[2] - nfolds - 1,
+        T2 = dim(y_train)[2] - 1,
+        window.size = floor(dim(y_train)[2] / 5) * 3, # Use 5-fold cross-validation
         model.controls = list(
             intercept = FALSE,
             loss = "L2"
@@ -422,7 +422,129 @@ fit_gfsplash.on_idx <- function(y, bandwidths, lam_idx, alpha, graph, nlambdas =
         B = B,
         C = C,
         y_pred = y_pred,
+        best_lambda = lambda_selected,
         msfe = calc_msfe(y_test, y_pred),
         runtime = difftime(t1, t0, units = "secs")[[1]]
     )
+}
+
+
+fit_gfsplash.cv <- function(y, bandwidths, graph, alpha, nlambdas = 20, nfolds = 5, lambda.min.ratio = 1e-4, ...) {
+    # Read problem dimensionality
+    p <- dim(y)[1]
+    m <- ecount(graph)
+    k <- vcount(graph)
+    h <- floor(p / 4) # Bandwidth for the A and B matrix
+
+    # Parse bandwidths
+    h0 <- bandwidths[1]
+    h1 <- bandwidths[2]
+
+    # Construct the D matrix from the penalty graph
+    D <- as(getDgSparse(graph = graph), "TsparseMatrix")
+
+    # Reparameterize the lambda and alpha for the linreg_path_v2 function, see paper Zhu 2017 Augmented ADMM
+    gamma <- alpha / (1 - alpha)
+
+    # Split y into training and testing sets
+    train_idx <- (floor(dim(y)[2] / 5) * 4)
+    y_train <- y[, 1:train_idx]
+    y_test <- y[, ((floor(dim(y)[2] / 5) * 4) + 1):dim(y)[2]]
+
+    Sigma0 <- calc_Sigma_j(y_train, 0)
+    Sigma1 <- calc_Sigma_j(y_train, 1)
+    Vhat <- construct_Vhat(Sigma0, Sigma1, h0, h1)
+    sigma_hat <- construct_sigma_hat(Sigma1, h1)
+    Vhat_d <- as.matrix(construct_Vhat_d(Vhat))
+
+    # Calculate lambda_0 and construct lambda grid accordingly
+    lambda_0 <- calc_lambda_0_gfsplash(sigma_hat, Vhat_d, graph, alpha) # This gives lambda_0 in the (lambda, alpha) parametrization
+    lambda_grid_linreg <- as.vector(rev(lambda_0 * 10^seq(log10(lambda.min.ratio), 0, length.out = nlambdas)) / (1 + gamma))
+
+    # Create cross-validation folds
+    folds <- rolling_cv(y_train, nfolds = nfolds)
+
+    # Fit the model on each fold and save the results
+    C_cv <- array(NA, dim = c(p, p, nlambdas))
+    A_cv <- array(NA, dim = c(p, p, nlambdas))
+    B_cv <- array(NA, dim = c(p, p, nlambdas))
+    y_pred_cv <- array(NA, dim = c(p, length(folds[[1]]$test), nlambdas))
+    errors_cv <- array(NA, dim = c(nfolds, nlambdas))
+    for (i in 1:nfolds) {
+        # Split the data into training and validation sets
+        y_train_cv <- y_train[, folds[[i]]$train]
+        y_val_cv <- y_train[, folds[[i]]$test]
+
+        # Construct Vhat_d and sigma_hat from the training validation
+        Sigma0_cv <- calc_Sigma_j(y_train_cv, 0)
+        Sigma1_cv <- calc_Sigma_j(y_train_cv, 1)
+        Vhat_cv <- construct_Vhat(Sigma0_cv, Sigma1_cv, h0, h1)
+        sigma_hat_cv <- construct_sigma_hat(Sigma1_cv, h1)
+        Vhat_d_cv <- construct_Vhat_d(Vhat_cv)
+
+        # Fit the model on the training set
+        model_cv <- linreg_path_v2(
+            Y = as.vector(sigma_hat_cv),
+            X = as.matrix(Vhat_d_cv),
+            val = D@x,
+            idx = D@i + 1,
+            jdx = D@j + 1,
+            lambda_graph = lambda_grid_linreg,
+            gamma = gamma,
+            p = dim(Vhat_d)[2],
+            m = dim(D)[1],
+            ...
+        )
+
+        # Compute the prediction error on the validation set
+        for (j in 1:dim(model_cv$beta)[2]) {
+            coef_cv <- as.vector(model_cv$beta_path[, j])
+            AB <- coef_to_AB(coef_cv, p)
+            A_cv[, , j] <- AB$A
+            B_cv[, , j] <- AB$B
+            C_cv[, , j] <- AB_to_C(AB$A, AB$B)
+            y_pred_cv[, , j] <- predict_with_C(C_cv[, , j], y_train_cv, y_val_cv)
+            errors_cv[i, j] <- calc_msfe(y_pred_cv[, , j], y_val_cv)
+        }
+    }
+
+    # Get the best lambda value
+    best_idx <- which.min(colMeans(errors_cv))
+    best_lambda <- lambda_grid_linreg[best_idx]
+    t0 <- Sys.time()
+    # Fit the model on the training set
+    model <- linreg_path_v2(
+        Y = as.vector(sigma_hat),
+        X = as.matrix(Vhat_d),
+        val = D@x,
+        idx = D@i + 1,
+        jdx = D@j + 1,
+        lambda_graph = best_lambda,
+        gamma = gamma,
+        p = dim(Vhat_d)[2],
+        m = dim(D)[1],
+        ...
+    )
+    coef <- as.vector(model$beta_path[, 1])
+    t1 <- Sys.time()
+
+    # Extract the model output
+    AB <- coef_to_AB(coef, p)
+    A <- AB$A
+    B <- AB$B
+    C <- AB_to_C(A, B)
+    y_pred <- predict_with_C(C, y_train, y_test)
+
+    output_list <- list(
+        model = model,
+        A = A,
+        B = B,
+        C = C,
+        errors_cv = errors_cv,
+        y_pred = y_pred,
+        msfe = calc_msfe(y_test, y_pred),
+        best_lambda = best_lambda,
+        runtime = difftime(t1, t0, units = "secs")[[1]]
+    )
+    return(output_list)
 }

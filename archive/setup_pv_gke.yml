@@ -4,7 +4,7 @@ metadata:
   name: pv-out
 spec:
   capacity:
-    storage: 25Gi
+    storage: 40Gi
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain 
@@ -22,5 +22,5 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 25Gi
+      storage: 40Gi
   storageClassName: standard 

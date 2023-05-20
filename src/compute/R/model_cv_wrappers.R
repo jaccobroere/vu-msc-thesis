@@ -312,7 +312,7 @@ fit_pvar.cv <- function(y, nlambdas = 20, nfolds = 20, ...) {
 
     # Create cross-validation folds
     folds <- rolling_cv(y_train, nfolds = nfolds)
-    t1 <- Sys.time()
+    t0 <- Sys.time()
     # Perform cross-validation for the selection of the penalty parameter
     model_setup <- constructModel(
         Y = t(y_train),
@@ -330,7 +330,7 @@ fit_pvar.cv <- function(y, nlambdas = 20, nfolds = 20, ...) {
         )
     )
     model_cv <- cv.BigVAR(model_setup)
-    t2 <- Sys.time()
+    t1 <- Sys.time()
     # Fit PVAR(1) using the optimal value for lambda
     model <- BigVAR.fit(
         Y = t(y_train), # Take transpose becasue BigVAR.fit expects a matrix with rows as observations and columns as variables

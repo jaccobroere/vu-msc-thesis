@@ -16,7 +16,7 @@ setwd(PROJ_DIR)
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
 sim_design_id <- ifelse(length(args) < 1, "designC_T500_p16", args[1])
-uuidtag <- ifelse(length(args) < 2, "782fe84f-a5a7-454c-aa35-003d25552e39", args[2])
+uuidtag <- ifelse(length(args) < 2, "0c29052c-b0fe-4a8d-af7e-b5ea6b3358e9", args[2])
 
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
@@ -99,6 +99,8 @@ save_fitting_results <- function(model, prefix, fit_dir, save_AB = TRUE) {
     fwrite(data.table(model$C), file = file.path(fit_dir, paste0(prefix, "__estimate_C.csv")))
     fwrite(data.table(model$y_pred), file = file.path(fit_dir, paste0(prefix, "__y_pred.csv")))
     fwrite(data.table(rmsfe), file = file.path(fit_dir, paste0(prefix, "__rmsfe.csv")))
+    fwrite(data.table(model$runtime), file = file.path(fit_dir, paste0(prefix, "__runtime.csv")))
+    fwrite(data.table(model$best_lambda), file = file.path(fit_dir, paste0(prefix, "__best_lambda.csv")))
 }
 
 save_fitting_results(model_gfsplash_a05, "gfsplash_a05", fit_dir)

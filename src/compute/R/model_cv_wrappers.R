@@ -35,7 +35,7 @@ fit_splash.cv <- function(y, alpha, nlambdas = 20, nfolds = 5, ...) {
         y_val_cv <- y_train[, folds[[i]]$test]
 
         # Fit the model on the training set
-        model_cv <- splash(t(y_train_cv), alphas = c(alpha), n_lambdas = nlambdas, track_progress = FALSE)
+        model_cv <- splash(t(y_train_cv), alphas = c(alpha), n_lambdas = nlambdas, track_progress = FALSE, ...)
 
         # Compute the prediction error on the validation set
         for (j in 1:nlambdas) {
@@ -138,7 +138,7 @@ fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, nlambdas = 20, nfol
 
     # Get the best lambda value
     best_idx <- which.min(colMeans(errors_cv))
-    
+
     t0 <- Sys.time()
     # Construct Vhat_d and sigma_hat from the training validation
     Sigma0 <- calc_Sigma_j(y_train, 0)

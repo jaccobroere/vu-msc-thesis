@@ -64,8 +64,9 @@ toc()
 
 print("Fitting SPLASH models")
 tic()
-model_splash_a0 <- fit_splash.cv(y, alpha = 0, nlambdas = 20, nfolds = 3)
-model_splash_a05 <- fit_splash.cv(y, alpha = 0.5, nlambdas = 20, nfolds = 3)
+symmetric_diags <- ifelse(strsplit(sim_design_id, "_")[[1]][1] == "designD", FALSE, TRUE) # If design D, then the diagonals are not symmetric, so take this into account
+model_splash_a0 <- fit_splash.cv(y, alpha = 0, nlambdas = 20, nfolds = 3, symmetric_diags = symmetric_diags)
+model_splash_a05 <- fit_splash.cv(y, alpha = 0.5, nlambdas = 20, nfolds = 3, symmetric_diags = symmetric_diags)
 toc()
 
 print("Fitting GF-SPLASH models with CV")

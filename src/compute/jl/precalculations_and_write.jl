@@ -193,5 +193,3 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # Run main function
     main(sim_design_id, uuidtag)
 end
-# ## TESTING
-y = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/designC_T1000_p25/mc/0a40fe22-20c4-4a3d-8b1e-d37c25d75948", "y.csv"))

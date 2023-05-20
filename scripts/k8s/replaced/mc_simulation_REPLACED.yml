@@ -3,8 +3,8 @@ kind: Job
 metadata:
   name: modelfit-designc-t1000-p25
 spec:
-  completions: 100 
-  parallelism: 3
+  completions: 2
+  parallelism: 2
   template:
     spec:
       containers:

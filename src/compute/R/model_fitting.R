@@ -70,7 +70,7 @@ toc()
 
 print("Fitting GF-SPLASH models with CV")
 tic()
-model_gfsplash_a05 <- fit_gfsplash.cv(y, bandwidths, graph = reg_gr, alpha = 0.5, nlambdas = 20, nfolds = 3, lambda.min.ratio = 1e-4)
+model_gfsplash_a05 <- fit_gfsplash.cv(y, bandwidths, graph = reg_gr, alpha = 0.5, nlambdas = 20, nfolds = 3)
 model_gfsplash_sym_a0 <- fit_gfsplash.cv(y, bandwidths, graph = sym_gr, alpha = 0, nlambdas = 20, nfolds = 3)
 model_gfsplash_sym_a05 <- fit_gfsplash.cv(y, bandwidths, graph = sym_gr, alpha = 0.5, nlambdas = 20, nfolds = 3)
 toc()

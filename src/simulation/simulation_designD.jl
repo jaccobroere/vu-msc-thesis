@@ -99,8 +99,8 @@ end
 
 function run_simulation(p::Int, m::Int, T::Int, sim_design_id::String="sim", write::Bool=true, uuidtag::Union{String,Nothing}=nothing, train_size::Float64=0.8, h_A::Int=3, h_B::Int=3)::Matrix{Float64}
     T = Int(T / train_size)
-    A = design_B_generate_A(m)
-    B = design_B_generate_B(m)
+    A = design_D_generate_A(m)
+    B = design_D_generate_B(m)
     errors = generate_errors_over_time(T, p)
     y = simulate_svar(A, B, errors)
 

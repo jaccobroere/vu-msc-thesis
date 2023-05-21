@@ -284,7 +284,9 @@ def collect_estimation_error_data(data: dict):
     return df_A.groupby("design_id").mean(), df_B.groupby("design_id").mean()
 
 
-def write_table_to_latex(df: pd.DataFrame, filename: str):
+def write_table_to_latex(df: pd.DataFrame, filename: str = None):
+    temp = df.copy()
+
     # Define the columns
     columns = [
         r"F-SPLASH($\lambda$)",
@@ -298,32 +300,43 @@ def write_table_to_latex(df: pd.DataFrame, filename: str):
     ]
 
     # Create an empty DataFrame with the specified columns
-    df.columns = columns
+    temp.columns = columns
+
+    # Find the element that is the mininum of each row
+    argmin = temp.loc[:, columns].idxmin(axis=1)
 
     # Add the T and p values as columns and set as index
-    df["design_id"] = df.index
-    df["T"] = df["design_id"].apply(lambda x: parse_design_id(x)[1])
-    df["p"] = df["design_id"].apply(lambda x: parse_design_id(x)[2])
-    df.drop("design_id", axis=1, inplace=True)
-    df.sort_values(["p", "T"], inplace=True)
-    df = df.loc[:, ["p", "T"] + columns]
-    # df.set_index(["T", "p"], inplace=True)
+    temp["design_id"] = temp.index
+    temp["T"] = temp["design_id"].apply(lambda x: parse_design_id(x)[1])
+    temp["p"] = temp["design_id"].apply(lambda x: parse_design_id(x)[2])
+    temp.drop("design_id", axis=1, inplace=True)
+    temp.sort_values(["p", "T"], inplace=True)
+    temp = temp.loc[:, ["p", "T"] + columns]
+    # temp.set_index(["T", "p"], inplace=True)
+
+    # Round to three decimals and convert to string type
+    temp = temp.round(3).applymap("{:.3f}".format)
+
+    # Make the argmin value bold
+    for i, row in temp.iterrows():
+        temp.loc[i, argmin[i]] = r"\textbf{" + temp.loc[i, argmin[i]] + "}"
 
     # Convert the DataFrame to a LaTeX table
     latex_table = tabulate(
-        df, tablefmt="latex_raw", headers="keys", showindex=False, numalign="center"
+        temp, tablefmt="latex_raw", headers="keys", showindex=False, numalign="center"
     )
 
     # Write the LaTeX table to a file
-    with open(
-        os.path.join(
-            "out",
-            "tables",
-            filename,
-        ),
-        "w",
-    ) as f:
-        f.write(latex_table)
+    if filename is not None:
+        with open(
+            os.path.join(
+                "out",
+                "tables",
+                filename,
+            ),
+            "w",
+        ) as f:
+            f.write(latex_table)
 
     return latex_table
 
@@ -340,5 +353,6 @@ def main(design: str = "designB"):
 
 
 if __name__ == "__main__":
-    design = "designD"
-    main(design)
+    designs = ["designA", "designB", "designC", "designD"]
+    for design in designs:
+        main(design)

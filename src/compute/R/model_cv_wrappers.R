@@ -541,6 +541,7 @@ fit_gfsplash.cv <- function(y, bandwidths, graph, alpha, nlambdas = 20, nfolds =
         y_pred = y_pred,
         msfe = calc_msfe(y_test, y_pred),
         best_lambda = best_lambda,
+        lambda_grid = lambda_grid_linreg,
         runtime = difftime(t1, t0, units = "secs")[[1]]
     )
     return(output_list)

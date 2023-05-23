@@ -355,6 +355,7 @@ def main(design: str = "designB"):
 
 
 if __name__ == "__main__":
-    designs = ["designA", "designB", "designC", "designD"]
+    # designs = ["designA", "designB", "designC", "designD"]
+    designs = ["designC"]
     for design in designs:
         main(design)

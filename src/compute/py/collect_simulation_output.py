@@ -312,10 +312,12 @@ def write_table_to_latex(df: pd.DataFrame, filename: str = None):
     temp.drop("design_id", axis=1, inplace=True)
     temp.sort_values(["p", "T"], inplace=True)
     temp = temp.loc[:, ["p", "T"] + columns]
-    # temp.set_index(["T", "p"], inplace=True)
 
     # Round to three decimals and convert to string type
     temp = temp.round(3).applymap("{:.3f}".format)
+
+    # Replace nan values with a dash for formatting
+    temp.replace("nan", "-", inplace=True)
 
     # Make the argmin value bold
     for i, row in temp.iterrows():

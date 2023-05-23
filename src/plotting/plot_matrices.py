@@ -106,4 +106,6 @@ def save_figure(fig, filename):
 
 p = 9
 h = p // 4
+# h = 8
 plot_side_by_side_matrices(p, h)
+# p * (4 * h + 1) - 2 * (h**2 + h)

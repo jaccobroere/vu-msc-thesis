@@ -190,7 +190,7 @@ fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambd
     p <- dim(y)[1]
     m <- ecount(graph)
     k <- vcount(graph)
-    h <- floor(p / 4) # Bandwidth for the A and B matrix
+    h <- floor((p - 1) / 4) # Bandwidth for the A and B matrix
 
     # Parse bandwidths
     h0 <- bandwidths[1]
@@ -362,7 +362,7 @@ fit_gfsplash.on_idx <- function(y, bandwidths, lam_idx, alpha, graph, nlambdas =
     p <- dim(y)[1]
     m <- ecount(graph)
     k <- vcount(graph)
-    h <- floor(p / 4) # Bandwidth for the A and B matrix
+    h <- floor((p - 1) / 4) # Bandwidth for the A and B matrix
 
     # Parse bandwidths
     h0 <- bandwidths[1]
@@ -432,7 +432,7 @@ fit_gfsplash.cv <- function(y, bandwidths, graph, alpha, nlambdas = 20, nfolds =
     p <- dim(y)[1]
     m <- ecount(graph)
     k <- vcount(graph)
-    h <- floor(p / 4) # Bandwidth for the A and B matrix
+    h <- floor((p - 1) / 4) # Bandwidth for the A and B matrix
 
     # Parse bandwidths
     h0 <- bandwidths[1]

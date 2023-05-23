@@ -60,6 +60,64 @@ active_cols <- function(p, bandwidth = 0) {
     return(active_set)
 }
 
+active_cols_alt <- function(p, m, type = "diamond") {
+    active_set_A <- matrix(FALSE, p, p * 2)
+    active_set_B <- matrix(FALSE, p, p * 2)
+
+    for (i in 1:p) {
+        for (j in 1:p) {
+            # Vertical neighbours
+            if (abs(i - j) == m) {
+                active_set_A[i, j] <- TRUE
+                active_set_B[i, j] <- TRUE
+            }
+
+            # Conditions
+            not_side_edge <- !((i %% m == 0 && (j - 1) %% m == 0) || ((i - 1) %% m == 0 && j %% m == 0))
+            not_top_edge <- (i > m) && (j > m)
+            not_bottom_edge <- (i <= (p - m)) && (j <= (m * (m - 1)))
+
+            # Horizontal neighbours
+            if (abs(i - j) == 1 && not_side_edge) {
+                active_set_A[i, j] <- TRUE
+                active_set_B[i, j] <- TRUE
+            }
+
+            # Bottom right diagonal neighbour
+            if (not_side_edge && not_bottom_edge && abs(i - j) == (m + 1)) {
+                active_set_A[i, j] <- TRUE
+                active_set_B[i, j] <- TRUE
+            }
+
+            # Top right diagonal neighbour
+            if (not_side_edge && not_top_edge && abs(i - j) == (m - 1)) {
+                active_set_A[i, j] <- TRUE
+                active_set_B[i, j] <- TRUE
+            }
+
+            # Bottom left diagonal neighbour
+            if (not_bottom_edge && not_side_edge && abs(i - j) == (m - 1)) {
+                active_set_A[i, j] <- TRUE
+                active_set_B[i, j] <- TRUE
+            }
+
+            # Top left diagonal neighbour
+            if (not_top_edge && not_side_edge && abs(i - j) == (m + 1)) {
+                active_set_A[i, j] <- TRUE
+                active_set_B[i, j] <- TRUE
+            }
+
+            # Zero diagonal for A
+            if (i == j) {
+                active_set_A[i, j] <- FALSE
+            }
+        }
+    }
+    active_set <- cbind(active_set_A, active_set_B)
+
+    return(active_set)
+}
+
 construct_Vhat_d <- function(V, bandwidth = 0) {
     p <- nrow(V)
     active <- active_cols(p, bandwidth)

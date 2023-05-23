@@ -193,3 +193,14 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # Run main function
     main(sim_design_id, uuidtag)
 end
+
+pwd()
+path = "data/simulation/designC_T500_p16/mc/1fb07945-0cff-4c1a-8f56-17aa1cd528c3"
+y = read_data(joinpath(path, "y.csv"))
+
+
+y
+Σ1 = calc_Σj(y, 1)
+Σ0 = calc_Σj(y, 0)
+V = constr_Vhat(Σ0, Σ1, 16, 16)
+Vhat_d = constr_Vhat_d(V, 4)

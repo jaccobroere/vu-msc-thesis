@@ -42,7 +42,7 @@ construct_sigma_hat <- function(Sigma1, h1 = 0) {
 
 active_cols <- function(p, bandwidth = 0) {
     if (bandwidth == 0) {
-        bandwidth <- floor(p / 4)
+        bandwidth <- floor((p - 1) / 4)
     }
 
     active_set <- matrix(FALSE, p, p * 2)

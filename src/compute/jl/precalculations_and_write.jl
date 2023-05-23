@@ -157,7 +157,7 @@ function main(sim_design_id, uuidtag)
         # Read data 
         y_read = read_data(joinpath(path, "y.csv"))
         p = size(y_read, 1)
-        h = div(p, 4)
+        h = div((p - 1), 4)
         # Subset the first 80% of the data
         y = y_read[:, 1:div(size(y_read, 2), 5)*4]
         # Bootstrap the bandwidth
@@ -193,14 +193,3 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # Run main function
     main(sim_design_id, uuidtag)
 end
-
-pwd()
-path = "data/simulation/designC_T500_p16/mc/1fb07945-0cff-4c1a-8f56-17aa1cd528c3"
-y = read_data(joinpath(path, "y.csv"))
-
-
-y
-Σ1 = calc_Σj(y, 1)
-Σ0 = calc_Σj(y, 0)
-V = constr_Vhat(Σ0, Σ1, 16, 16)
-Vhat_d = constr_Vhat_d(V, 4)

@@ -106,7 +106,7 @@ SimpleGraphs.SimpleGraph{Int}: A G-SPLASH graph representing the system of equat
 """
 function create_gsplash_graph(p::Int, h::Int=0; symmetric::Bool=false)::SimpleGraph{Int}
     if h == 0
-        h = div(p, 4)
+        h = div((p - 1), 4)
     end
 
     # Define the maximum numbers of vertices
@@ -177,7 +177,7 @@ end
 if abspath(PROGRAM_FILE) == @__FILE__
     p = parse(Int, ARGS[1])
     file_prefix = ARGS[2]
-    h = div(p, 4)
+    h = div((p - 1), 4)
     graph = create_gsplash_graph(p, h)
     save_graph_as_gml(graph, file_prefix)
 end

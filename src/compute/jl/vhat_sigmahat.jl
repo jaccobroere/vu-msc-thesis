@@ -93,7 +93,7 @@ Calculate the active column indices for the matrix V_h^(d).
 """
 function active_cols(p::Int, bandwidth::Int=0)::Vector{Vector{Bool}}
     if bandwidth == 0
-        bandwidth = div(p, 4)
+        bandwidth = div((p - 1), 4)
     end
 
     active_set = [zeros(Bool, p * 2) for _ in 1:p]

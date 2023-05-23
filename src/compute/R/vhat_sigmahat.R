@@ -53,6 +53,8 @@ active_cols <- function(p, bandwidth = 0) {
         selection <- c(full_a, full_b)
 
         active_set[i, selection] <- TRUE
+
+        # Diagonal elements of A are set to FALSE
         active_set[i, i] <- FALSE
     }
     return(active_set)

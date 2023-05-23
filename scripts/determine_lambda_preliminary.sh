@@ -29,7 +29,7 @@ print_progress_bar() {
 
 step_create_directories () {
   # If folder structure is not present yet, create it
-  echo "Creating directories ..."
+  echo "Creating directories UUID ${uuidtag} ..."
   mkdir -p out/simulation/lambdas/${sim_design_id}/${uuidtag}
   mkdir -p data/simulation/${sim_design_id}/detlam/${uuidtag}
   current_step=$((current_step+1))

@@ -32,13 +32,13 @@ def generate_matrices(p: int, h: int) -> tuple:
             if i == j:
                 matrix_1[i, j] = 0.15
             elif abs(i - j) <= h:
-                matrix_1[i, j] = 0.75 + abs(i - j) * 0.05
+                matrix_1[i, j] = 0.75 + abs(i - j) * 0.07
             else:
                 matrix_1[i, j] = 0.15
 
         for j in range(p):
             if abs(i - j) <= h:
-                matrix_2[i, j] = 0.75 + abs(i - j) * 0.05
+                matrix_2[i, j] = 0.75 + abs(i - j) * 0.07
             else:
                 matrix_2[i, j] = 0.15
 

@@ -154,7 +154,7 @@ def create_full_data_dictionary(design: str = "designB", dump: bool = False):
             dict: Dictionary containing the full data.
 
     """
-    fit_dir = os.path.join(os.getcwd(), "out/simulation/fit/")
+    fit_dir = os.path.join(os.getcwd(), "out/simulation/final/")
     if not os.path.exists(fit_dir):
         raise FileNotFoundError(f"Directory not found: {fit_dir}")
 
@@ -181,7 +181,7 @@ def create_full_data_dictionary(design: str = "designB", dump: bool = False):
             data[design_dir][uuid] = create_data_from_csv_files(data_dir)
 
     if dump:
-        with open(f"out/simulation/fit/{design}_data.pkl", "wb") as f:
+        with open(f"out/simulation/final/{design}_data.pkl", "wb") as f:
             pickle.dump(data, f)
 
     return data
@@ -225,13 +225,15 @@ def collect_rmsfe_data(data: dict):
                 continue
 
             y_true = pd.read_csv(
-                os.path.join("out", "simulation", "fit", design_id, uuid, "y_true.csv"),
+                os.path.join(
+                    "out", "simulation", "final", design_id, uuid, "y_true.csv"
+                ),
                 header=0,
             ).to_numpy()
             y_test = y_true[:, int(np.floor(y_true.shape[1] * 0.8)) :]
             y_hat_true = pd.read_csv(
                 os.path.join(
-                    "out", "simulation", "fit", design_id, uuid, "y_hat_true.csv"
+                    "out", "simulation", "final", design_id, uuid, "y_hat_true.csv"
                 ),
                 header=0,
             ).to_numpy()
@@ -264,11 +266,11 @@ def collect_rmsfe_data(data: dict):
 
 def read_AB_true(design_id: str, uuid: str):
     A_true = pd.read_csv(
-        os.path.join("out", "simulation", "fit", design_id, uuid, "A_true.csv"),
+        os.path.join("out", "simulation", "final", design_id, uuid, "A_true.csv"),
         header=0,
     )
     B_true = pd.read_csv(
-        os.path.join("out", "simulation", "fit", design_id, uuid, "B_true.csv"),
+        os.path.join("out", "simulation", "final", design_id, uuid, "B_true.csv"),
         header=0,
     )
     return A_true.to_numpy(), B_true.to_numpy()
@@ -400,6 +402,6 @@ def main(design: str = "designB"):
 
 if __name__ == "__main__":
     # designs = ["designA", "designB", "designC", "designD"]
-    designs = ["designC"]
+    designs = ["designB", "designC"]
     for design in designs:
         main(design)

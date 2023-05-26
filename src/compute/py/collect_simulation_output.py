@@ -386,6 +386,61 @@ def write_table_to_latex(df: pd.DataFrame, filename: str = None):
     return latex_table
 
 
+def combine_tables(tables, design="designB", filename: str = None):
+    spl = design[:-1], design[-1]
+    design_cap, letter = spl[0].capitalize(), spl[1]
+    header = f"""
+        \\begin{{landscape}}
+        \\bgroup
+        \\def\\arraystretch{{1.3}}
+        \\begin{{table}}[!h]
+        \\footnotesize
+        \\centering
+        \\caption{{Simulation results for {design_cap} {letter}}}
+        \\label{{tab:results_{design}}}
+        \\begin{{tabular}}{{cccccccccc}}    
+        \\hline \\hline
+        $p$  &  $T$   &  F-SPLASH  &  SSF-SPLASH(0.5)  &  GF-SPLASH(0.5)  &  $\\text{{GF-SPLASH}}_\\sigma(0)$  &  $\\text{{GF-SPLASH}}_\\sigma$(0.5)  &  SPLASH($0$)  &  SPLASH($0.5$)  &  PVAR  \\\\
+        \\hline
+        \\multicolumn{{10}}{{l}}{{\\textbf{{RMSFE}}}} \\\\
+    """
+
+    subheaders = [
+        "\\multicolumn{{10}}{{l}}{{\\textbf{{RMSFE}}}} \\\\",
+        "\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_A}}$}} \\\\",
+        "\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_B}}$}}} \\\\",
+    ]
+
+    for i, table in enumerate(tables):
+        lines = table.split("\n")
+        header += subheaders[i] + "\n"
+        for line in lines[3:-1]:
+            header += line + "\n"
+
+    tail = """
+        \\hline \\hline
+        \\multicolumn{{10}}{{l}}{{\\textbf{{Note:}} Simulation results are based on $N_\\text{{sim}} = 100$ Monte Carlo simulations}}
+        \\end{{tabular}}
+        \\end{{table}}
+        \\egroup
+    \\end{{landscape}}
+    """
+    header += tail
+
+    if filename is not None:
+        with open(
+            os.path.join(
+                "out",
+                "tables",
+                filename,
+            ),
+            "w",
+        ) as f:
+            f.write(header)
+
+    return header
+
+
 def main(design: str = "designB"):
     data = create_full_data_dictionary(design)
     df_rmsfe_h1, df_rmsfe_long = collect_rmsfe_data(data)
@@ -396,8 +451,17 @@ def main(design: str = "designB"):
     )
     latex_table_A = write_table_to_latex(df_A, f"{design}_EEA.tex")
     latex_table_B = write_table_to_latex(df_B, f"{design}_EEB.tex")
+    full_table = combine_tables(
+        [latex_table_rmsfe, latex_table_A, latex_table_B], design, f"{design}_full.tex"
+    )
 
-    return latex_table_rmsfe, latex_table_rmsfe_long, latex_table_A, latex_table_B
+    return (
+        full_table,
+        latex_table_rmsfe,
+        latex_table_rmsfe_long,
+        latex_table_A,
+        latex_table_B,
+    )
 
 
 if __name__ == "__main__":

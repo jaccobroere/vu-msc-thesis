@@ -390,23 +390,23 @@ def combine_tables(tables, design="designB", filename: str = None):
     spl = design[:-1], design[-1]
     design_cap, letter = spl[0].capitalize(), spl[1]
     header = f"""\\begin{{landscape}}
-        \\bgroup
-        \\def\\arraystretch{{1.3}}
-        \\begin{{table}}[!h]
-        \\footnotesize
-        \\centering
-        \\caption{{Simulation results for {design_cap} {letter}}}
-        \\label{{tab:results_{design}}}
-        \\begin{{tabular}}{{cccccccccc}}    
-        \\hline \\hline
-        $p$  &  $T$   &  F-SPLASH  &  SSF-SPLASH(0.5)  &  GF-SPLASH(0.5)  &  $\\text{{GF-SPLASH}}_\\sigma(0)$  &  $\\text{{GF-SPLASH}}_\\sigma$(0.5)  &  SPLASH($0$)  &  SPLASH($0.5$)  &  PVAR  \\\\
-        \\hline
+    \\bgroup
+    \\def\\arraystretch{{1.3}}
+    \\begin{{table}}[!h]
+    \\footnotesize
+    \\centering
+    \\caption{{Simulation results for {design_cap} {letter}}}
+    \\label{{tab:results_{design}}}
+    \\begin{{tabular}}{{cccccccccc}}    
+    \\hline \\hline
+    $p$  &  $T$   &  F-SPLASH  &  SSF-SPLASH(0.5)  &  GF-SPLASH(0.5)  &  $\\text{{GF-SPLASH}}_\\sigma(0)$  &  $\\text{{GF-SPLASH}}_\\sigma$(0.5)  &  SPLASH($0$)  &  SPLASH($0.5$)  &  PVAR  \\\\
+    \\hline
     """
 
     subheaders = [
-        "\t\\multicolumn{{10}}{{l}}{{\\textbf{{RMSFE}}}} \\\\",
-        "\t\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_A}}$}} \\\\",
-        "\t\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_B}}$}}} \\\\",
+        f"\\multicolumn{{10}}{{l}}{{\\textbf{{RMSFE}}}} \\\\",
+        f"\t\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_A}}$}} \\\\",
+        f"\t\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_B}}$}} \\\\",
     ]
 
     for i, table in enumerate(tables):
@@ -416,11 +416,11 @@ def combine_tables(tables, design="designB", filename: str = None):
             header += "\t" + line + "\n"
 
     tail = f"""\t\\hline
-        \\multicolumn{{10}}{{l}}{{\\textbf{{Note:}} Simulation results are based on $N_\\text{{sim}} = 200$ Monte Carlo simulations}}
-        \\end{{tabular}}
-        \\end{{table}}
-        \\egroup
-    \\end{{landscape}}
+    \\multicolumn{{10}}{{l}}{{\\textbf{{Note:}} Simulation results are based on $N_\\text{{sim}} = 200$ Monte Carlo simulations}}
+    \\end{{tabular}}
+    \\end{{table}}
+    \\egroup
+\\end{{landscape}}
     """
     header += tail
 
@@ -449,7 +449,9 @@ def main(design: str = "designB"):
     latex_table_A = write_table_to_latex(df_A, f"{design}_EEA.tex")
     latex_table_B = write_table_to_latex(df_B, f"{design}_EEB.tex")
     full_table = combine_tables(
-        [latex_table_rmsfe, latex_table_A, latex_table_B], design, f"{design}_full.tex"
+        [latex_table_rmsfe, latex_table_A, latex_table_B],
+        design,
+        f"results_{design}.tex",
     )
 
     return (
@@ -462,7 +464,6 @@ def main(design: str = "designB"):
 
 
 if __name__ == "__main__":
-    # designs = ["designA", "designB", "designC", "designD"]
-    designs = ["designA"]
+    designs = ["designA", "designB", "designC"]
     for design in designs:
         main(design)

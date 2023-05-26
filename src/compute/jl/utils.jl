@@ -1,9 +1,9 @@
 using Pkg
 Pkg.activate(joinpath(ENV["JULIA_DIR"]), io=devnull)
-using Base: SimpleLogger
 using SparseArrays
 using LinearAlgebra
 using DataFrames, CSV
+using Graphs
 
 
 """
@@ -120,7 +120,7 @@ which are the number of elements that come after this element in the (p -h)th ro
 """
 function n_elements_to_first_skip(p::Int, h::Int)::Int
     if h == 0
-        h = div(p, 4)
+        h = div((p - 1), 4)
     end
     return (-5h^2 - 2h + 4h * p + p) - (2h + 1)
 end

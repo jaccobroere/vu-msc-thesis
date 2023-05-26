@@ -3,8 +3,8 @@ kind: Job
 metadata:
   name: modelfit-MEREPLACE
 spec:
-  completions: 100 
-  parallelism: 3
+  completions: 100
+  parallelism: 3 
   template:
     spec:
       containers:
@@ -16,8 +16,8 @@ spec:
               cpu: 2000m 
               memory: 1500Mi 
             limits:
-              cpu: 2200m
-              memory: 1500Mi 
+              # cpu: 2200m
+              # memory: 1500Mi 
           volumeMounts:
             - name: pv-out
               mountPath: /app/vu-msc-thesis/out

@@ -1,7 +1,7 @@
 library(Matrix)
 
 coef_to_AB <- function(coef, p) {
-    bandwidth <- p %/% 4
+    bandwidth <- (p - 1) %/% 4
     AB <- matrix(0, nrow = p, ncol = 2 * p)
     cnt <- 1
     for (i in 1:p) {
@@ -24,7 +24,7 @@ coef_to_AB <- function(coef, p) {
 }
 
 AB_to_coef <- function(AB, p) {
-    bandwidth <- p %/% 4
+    bandwidth <- (p - 1) %/% 4
     coef <- rep(0, p * (4 * bandwidth + 1) - 2 * (bandwidth^2 + bandwidth))
     cnt <- 1
     for (i in 1:p) {

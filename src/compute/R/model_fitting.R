@@ -15,8 +15,8 @@ setwd(PROJ_DIR)
 ################################################################################
 # Read CLI arguments
 args <- commandArgs(trailingOnly = TRUE)
-sim_design_id <- ifelse(length(args) < 1, "designC_T500_p16", args[1])
-uuidtag <- ifelse(length(args) < 2, "782fe84f-a5a7-454c-aa35-003d25552e39", args[2])
+sim_design_id <- ifelse(length(args) < 1, "designC_T1000_p36", args[1])
+uuidtag <- ifelse(length(args) < 2, "54D4ECEB-0F52-4F01-83BB-2A7B9F5D8BC4", args[2])
 
 # Set up directories
 data_dir <- file.path(PROJ_DIR, "data/simulation", sim_design_id, "mc", uuidtag)
@@ -64,13 +64,14 @@ toc()
 
 print("Fitting SPLASH models")
 tic()
-model_splash_a0 <- fit_splash.cv(y, alpha = 0, nlambdas = 20, nfolds = 3)
-model_splash_a05 <- fit_splash.cv(y, alpha = 0.5, nlambdas = 20, nfolds = 3)
+symmetric_diags <- ifelse(strsplit(sim_design_id, "_")[[1]][1] == "designD", FALSE, TRUE) # If design D, then the diagonals are not symmetric, so take this into account
+model_splash_a0 <- fit_splash.cv(y, alpha = 0, nlambdas = 20, nfolds = 3, symmetric_diags = symmetric_diags)
+model_splash_a05 <- fit_splash.cv(y, alpha = 0.5, nlambdas = 20, nfolds = 3, symmetric_diags = symmetric_diags)
 toc()
 
 print("Fitting GF-SPLASH models with CV")
 tic()
-model_gfsplash_a05 <- fit_gfsplash.cv(y, bandwidths, graph = reg_gr, alpha = 0.5, nlambdas = 20, nfolds = 3, lambda.min.ratio = 1e-4)
+model_gfsplash_a05 <- fit_gfsplash.cv(y, bandwidths, graph = reg_gr, alpha = 0.5, nlambdas = 20, nfolds = 3)
 model_gfsplash_sym_a0 <- fit_gfsplash.cv(y, bandwidths, graph = sym_gr, alpha = 0, nlambdas = 20, nfolds = 3)
 model_gfsplash_sym_a05 <- fit_gfsplash.cv(y, bandwidths, graph = sym_gr, alpha = 0.5, nlambdas = 20, nfolds = 3)
 toc()
@@ -99,6 +100,8 @@ save_fitting_results <- function(model, prefix, fit_dir, save_AB = TRUE) {
     fwrite(data.table(model$C), file = file.path(fit_dir, paste0(prefix, "__estimate_C.csv")))
     fwrite(data.table(model$y_pred), file = file.path(fit_dir, paste0(prefix, "__y_pred.csv")))
     fwrite(data.table(rmsfe), file = file.path(fit_dir, paste0(prefix, "__rmsfe.csv")))
+    fwrite(data.table(model$runtime), file = file.path(fit_dir, paste0(prefix, "__runtime.csv")))
+    fwrite(data.table(model$best_lambda), file = file.path(fit_dir, paste0(prefix, "__best_lambda.csv")))
 }
 
 save_fitting_results(model_gfsplash_a05, "gfsplash_a05", fit_dir)

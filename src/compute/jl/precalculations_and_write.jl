@@ -134,8 +134,8 @@ function bootstrap_estimator_R(y::Matrix{Float64}, q::Int=500)::Tuple{Int,Int}
         bootstrap_Σ0 = bootstrap_estimator_Σj_exp(y, 0)
         bootstrap_Σ1 = bootstrap_estimator_Σj_exp(y, 1)
         for h in 1:(N-1)
-            @inbounds R0[i, h] += norm((band_matrix(bootstrap_Σ0, h) - Σ0), 1) / q
-            @inbounds R1[i, h] += norm((band_matrix(bootstrap_Σ1, h) - Σ1), 1) / q
+            @inbounds R0[i, h] += opnorm((band_matrix(bootstrap_Σ0, h) - Σ0), 1) / q
+            @inbounds R1[i, h] += opnorm((band_matrix(bootstrap_Σ1, h) - Σ1), 1) / q
         end
     end
     return (argmin(vec(sum(R0, dims=1))), argmin(vec(sum(R1, dims=1))))
@@ -157,7 +157,7 @@ function main(sim_design_id, uuidtag)
         # Read data 
         y_read = read_data(joinpath(path, "y.csv"))
         p = size(y_read, 1)
-        h = div(p, 4)
+        h = div((p - 1), 4)
         # Subset the first 80% of the data
         y = y_read[:, 1:div(size(y_read, 2), 5)*4]
         # Bootstrap the bandwidth
@@ -193,5 +193,3 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # Run main function
     main(sim_design_id, uuidtag)
 end
-# ## TESTING
-# y = read_data(joinpath("/Users/jacco/Documents/repos/vu-msc-thesis/data/simulation/designB_T1000_p25/mc/D67DFC71-FF34-4731-B009-6C9668E5DA4E", "y.csv"))

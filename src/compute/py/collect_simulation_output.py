@@ -389,8 +389,7 @@ def write_table_to_latex(df: pd.DataFrame, filename: str = None):
 def combine_tables(tables, design="designB", filename: str = None):
     spl = design[:-1], design[-1]
     design_cap, letter = spl[0].capitalize(), spl[1]
-    header = f"""
-        \\begin{{landscape}}
+    header = f"""\\begin{{landscape}}
         \\bgroup
         \\def\\arraystretch{{1.3}}
         \\begin{{table}}[!h]
@@ -402,24 +401,22 @@ def combine_tables(tables, design="designB", filename: str = None):
         \\hline \\hline
         $p$  &  $T$   &  F-SPLASH  &  SSF-SPLASH(0.5)  &  GF-SPLASH(0.5)  &  $\\text{{GF-SPLASH}}_\\sigma(0)$  &  $\\text{{GF-SPLASH}}_\\sigma$(0.5)  &  SPLASH($0$)  &  SPLASH($0.5$)  &  PVAR  \\\\
         \\hline
-        \\multicolumn{{10}}{{l}}{{\\textbf{{RMSFE}}}} \\\\
     """
 
     subheaders = [
-        "\\multicolumn{{10}}{{l}}{{\\textbf{{RMSFE}}}} \\\\",
-        "\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_A}}$}} \\\\",
-        "\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_B}}$}}} \\\\",
+        "\t\\multicolumn{{10}}{{l}}{{\\textbf{{RMSFE}}}} \\\\",
+        "\t\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_A}}$}} \\\\",
+        "\t\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_B}}$}}} \\\\",
     ]
 
     for i, table in enumerate(tables):
         lines = table.split("\n")
         header += subheaders[i] + "\n"
         for line in lines[3:-1]:
-            header += line + "\n"
+            header += "\t" + line + "\n"
 
-    tail = """
-        \\hline \\hline
-        \\multicolumn{{10}}{{l}}{{\\textbf{{Note:}} Simulation results are based on $N_\\text{{sim}} = 100$ Monte Carlo simulations}}
+    tail = f"""\t\\hline
+        \\multicolumn{{10}}{{l}}{{\\textbf{{Note:}} Simulation results are based on $N_\\text{{sim}} = 200$ Monte Carlo simulations}}
         \\end{{tabular}}
         \\end{{table}}
         \\egroup
@@ -466,6 +463,6 @@ def main(design: str = "designB"):
 
 if __name__ == "__main__":
     # designs = ["designA", "designB", "designC", "designD"]
-    designs = ["designB", "designC"]
+    designs = ["designA"]
     for design in designs:
         main(design)

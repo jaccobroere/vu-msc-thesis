@@ -392,7 +392,7 @@ def combine_tables(tables, design="designB", filename: str = None):
     header = f"""\\begin{{landscape}}
     \\bgroup
     \\def\\arraystretch{{1.3}}
-    \\begin{{table}}[!h]
+    \\begin{{table}}[p]
     \\footnotesize
     \\centering
     \\caption{{Simulation results for {design_cap} {letter}}}
@@ -412,8 +412,12 @@ def combine_tables(tables, design="designB", filename: str = None):
     for i, table in enumerate(tables):
         lines = table.split("\n")
         header += subheaders[i] + "\n"
-        for line in lines[3:-1]:
-            header += "\t" + line + "\n"
+        header += "\t" + r"\hline" + "\n"
+
+        for line in lines[4:-2]:
+            header += "\t" + line + r" \hdashline" + "\n"
+
+        header += "\t" + r"\hline" + "\n"
 
     tail = f"""\t\\hline
     \\multicolumn{{10}}{{l}}{{\\textbf{{Note:}} Simulation results are based on $N_\\text{{sim}} = 200$ Monte Carlo simulations}}

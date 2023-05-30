@@ -420,7 +420,7 @@ def combine_tables(tables, design="designB", filename: str = None):
         header += "\t" + r"\hline" + "\n"
 
     tail = f"""\t\\hline
-    \\multicolumn{{10}}{{l}}{{\\textbf{{Note:}} Simulation results are based on $N_\\text{{sim}} = 200$ Monte Carlo simulations}}
+    \\multicolumn{{10}}{{l}}{{\\textbf{{Note:}} Simulation results are based on $N_\\text{{sim}} = 250$ Monte Carlo simulations}}
     \\end{{tabular}}
     \\end{{table}}
     \\egroup

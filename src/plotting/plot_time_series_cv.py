@@ -50,7 +50,7 @@ def plot_side_by_side_matrices() -> None:
     """
     matrix = generate_matrices()
 
-    fig, ax = plt.subplots(1, 1, figsize=(5, 9))
+    fig, ax = plt.subplots(1, 1, figsize=(9, 5))
     ax.matshow(
         matrix,
         cmap="coolwarm",

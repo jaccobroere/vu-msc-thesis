@@ -414,8 +414,11 @@ def combine_tables(tables, design="designB", filename: str = None):
         header += subheaders[i] + "\n"
         header += "\t" + r"\hline" + "\n"
 
-        for line in lines[4:-2]:
-            header += "\t" + line + r" \hdashline" + "\n"
+        for j, line in enumerate(lines[4:-2]):
+            if j == len(lines[4:-2]) - 1:
+                header += "\t" + line + "\n"
+            else:
+                header += "\t" + line + r" \hdashline" + "\n"
 
         header += "\t" + r"\hline" + "\n"
 

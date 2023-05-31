@@ -23,11 +23,11 @@ def generate_matrices() -> tuple:
         A tuple of two matrices of size p x p.
 
     """
-    matrix = np.full((5, 9), 0.5, dtype=float)
+    matrix = np.full((5, 15), 0.5, dtype=float)
 
     for i in range(5):
-        matrix[i, i : i + 4] = 0.15
-        matrix[i, i + 4] = 0.85
+        matrix[i, i : i + 10] = 0.15
+        matrix[i, i + 10] = 0.85
 
     return matrix
 
@@ -50,7 +50,7 @@ def plot_side_by_side_matrices() -> None:
     """
     matrix = generate_matrices()
 
-    fig, ax = plt.subplots(1, 1, figsize=(9, 5))
+    fig, ax = plt.subplots(1, 1, figsize=(15, 5))
     ax.matshow(
         matrix,
         cmap="coolwarm",
@@ -61,7 +61,7 @@ def plot_side_by_side_matrices() -> None:
     for i in range(5):
         ax.axhline(i - 0.5, linestyle="-", color="k", linewidth=0.5)
 
-    for i in range(9):
+    for i in range(15):
         ax.axvline(i - 0.5, linestyle="-", color="k", linewidth=0.5)
 
     # for j in range(9):

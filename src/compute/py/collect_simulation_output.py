@@ -332,13 +332,13 @@ def write_table_to_latex(df: pd.DataFrame, filename: str = None):
 
     # Define the columns
     columns = [
-        r"F-SPLASH($\lambda$)",
-        r"SSF-SPLASH($\alpha=0.5$, $\lambda$)",
-        r"GF-SPLASH($\alpha=0.5$, $\lambda$, $\sigma=0$)",
-        r"GF-SPLASH($\alpha=0$, $\lambda$, $\sigma=1$)",
-        r"GF-SPLASH($\alpha=0.5$, $\lambda$, $\sigma=1$)",
-        r"SPLASH($0$, $\lambda$)",
-        r"SPLASH($0.5$, $\lambda$)",
+        r"F-SPL($\lambda$)",
+        r"SSF-SPL($0.5, \lambda$)",
+        r"GF-SPL($0.5, 0, \lambda$)",
+        r"GF-SPL($0, 1, \lambda$)",
+        r"GF-SPL($0.5, 1, \lambda$)",
+        r"SPLASH($0, \lambda$)",
+        r"SPLASH($0.5, \lambda$)",
         r"PVAR($\lambda$)",
     ]
 
@@ -399,7 +399,7 @@ def combine_tables(tables, design="designB", filename: str = None):
     \\label{{tab:results_{design}}}
     \\begin{{tabular}}{{cccccccccc}}    
     \\hline \\hline
-    $p$  &  $T$   &  F-SPLASH  &  SSF-SPLASH(0.5)  &  GF-SPLASH(0.5)  &  $\\text{{GF-SPLASH}}_\\sigma(0)$  &  $\\text{{GF-SPLASH}}_\\sigma$(0.5)  &  SPLASH($0$)  &  SPLASH($0.5$)  &  PVAR  \\\\
+    $p$  &  $T$   &  F-SPL($\lambda$)  & SSF-SPL($0.5, \lambda$)  &  GF-SPL($0.5, 0, \lambda$)  &  GF-SPL($0, 1, \lambda$)  &  GF-SPL($0.5, 1, \lambda$)  &  SPLASH($0, \lambda$)  &  SPLASH($0.5, \lambda$)  &  PVAR($\lambda$)  \\\\
     \\hline
     """
 
@@ -423,6 +423,7 @@ def combine_tables(tables, design="designB", filename: str = None):
         header += "\t" + r"\hline" + "\n"
 
     tail = f"""\t\\hline
+    \\multicolumn{{10}}{{l}}{{\\textbf{{Note:}} Numbers in \\textbf{bold} inidicate best performance for each combination of $p$ and $T$}} \\\\
     \\multicolumn{{10}}{{l}}{{\\textbf{{Note:}} Simulation results are based on $N_\\text{{sim}} = 250$ Monte Carlo simulations}}
     \\end{{tabular}}
     \\end{{table}}

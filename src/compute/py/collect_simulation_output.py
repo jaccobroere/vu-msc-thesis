@@ -423,7 +423,7 @@ def combine_tables(tables, design="designB", filename: str = None):
         header += "\t" + r"\hline" + "\n"
 
     tail = f"""\t\\hline
-    \\multicolumn{{10}}{{l}}{{\\textbf{{Note:}} Numbers in \\textbf{bold} inidicate best performance for each combination of $p$ and $T$}} \\\\
+    \\multicolumn{{10}}{{l}}{{\\textbf{{Note:}} Numbers in \\textbf{{bold}} inidicate best performance for each combination of $p$ and $T$}} \\\\
     \\multicolumn{{10}}{{l}}{{\\textbf{{Note:}} Simulation results are based on $N_\\text{{sim}} = 250$ Monte Carlo simulations}}
     \\end{{tabular}}
     \\end{{table}}

@@ -2,8 +2,11 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scienceplots
 
-plt.rcParams["mathtext.fontset"] = "dejavuserif"
+plt.style.use(["science"])
+plt.rc("text", usetex=True)
+plt.rcParams["text.latex.preamble"] = r"\usepackage{bm}"
 
 
 # %%
@@ -62,9 +65,8 @@ def plot_side_by_side_matrices(p: int, h: int) -> None:
 
     """
     matrix_1, matrix_2 = generate_matrices(p, h)
-    print(matrix_1)
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(2 * max(5, p // 2), max(5, p // 2)))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6, 3))
     ax1.matshow(
         matrix_1,
         cmap="coolwarm",
@@ -125,7 +127,10 @@ def plot_side_by_side_matrices(p: int, h: int) -> None:
             ax.set_xticks([])
             ax.set_yticks([])
 
-    plt.tight_layout(pad=2.5)
+    ax1.set_title(r"$\bm{A}$", fontsize=12)
+    ax2.set_title(r"$\bm{B}$", fontsize=12)
+
+    plt.tight_layout(pad=1.5)
     plt.show()
 
     return fig, (ax1, ax2)

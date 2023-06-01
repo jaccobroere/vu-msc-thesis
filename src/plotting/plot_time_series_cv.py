@@ -2,8 +2,10 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scienceplots
 
-plt.rcParams["mathtext.fontset"] = "dejavuserif"
+plt.style.use(["science"])
+plt.rc("text", usetex=True)
 
 
 def generate_matrices() -> tuple:
@@ -50,7 +52,7 @@ def plot_side_by_side_matrices() -> None:
     """
     matrix = generate_matrices()
 
-    fig, ax = plt.subplots(1, 1, figsize=(15, 5))
+    fig, ax = plt.subplots(1, 1, figsize=(6, 2))
     ax.matshow(
         matrix,
         cmap="coolwarm",
@@ -70,6 +72,8 @@ def plot_side_by_side_matrices() -> None:
 
     ax.set_xticks([])
     ax.set_yticks([])
+    ax.set_xlabel("Time")
+    ax.set_ylabel("Folds")
 
     plt.tight_layout()
     plt.show()

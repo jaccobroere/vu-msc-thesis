@@ -167,27 +167,29 @@ function inv_Dtilde_SSF_sparse(graph::SimpleGraph, h::Int=0)::SparseMatrixCSC{Fl
     return sparse(inv(lu(Dtilde)))
 end
 
-function generate_diagonal_collection(p::Int, bandwidth::Int)::Dict{Tuple{Int,Char},Vector{Int}}
-    diagonal_collection = Dict{Tuple{Int,Char},Vector{Int}}()
+function generate_diagonal_collection(p::Int, bandwidth::Int)::Dict{Tuple{Char,Int},Vector{Int}}
+    diagonal_collection = Dict{Tuple{Char,Int},Vector{Int}}()
     idx = 1
     for i = 1:p
         for j = 1:2p
+            diffA = i - j
+            diffB = i - abs(j - p)
             if j <= p # Belongs to A
-                if abs(i - j) <= bandwidth && i != j
+                if abs(diffA) <= bandwidth && i != j
                     try
-                        push!(diagonal_collection[(i - j, 'A')], idx)
+                        push!(diagonal_collection[('A', diffA)], idx)
                     catch
-                        diagonal_collection[(i - j, 'A')] = [idx]
+                        diagonal_collection[('A', diffA)] = [idx]
                     end
                     idx += 1
                     continue
                 end
             else # Belongs to B
-                if abs(i - abs(j - p)) <= bandwidth
+                if abs(diffB) <= bandwidth
                     try
-                        push!(diagonal_collection[(i - j, 'B')], idx)
+                        push!(diagonal_collection[('B', diffB)], idx)
                     catch
-                        diagonal_collection[(i - j, 'B')] = [idx]
+                        diagonal_collection[('B', diffB)] = [idx]
                     end
                     idx += 1
                     continue
@@ -198,11 +200,13 @@ function generate_diagonal_collection(p::Int, bandwidth::Int)::Dict{Tuple{Int,Ch
     return diagonal_collection
 end
 
-function entire_diagonal_penalties(D::Matrix{Int64}, p::Int, h::Int)::Matrix{Int}
+function entire_diagonal_penalties(D::SparseMatrixCSC, p::Int, h::Int)::Matrix{Int}
     n_diagonals = 4h + 1
     diagonal_collection = generate_diagonal_collection(p, h)
     penalties = spzeros(Int, n_diagonals, size(D, 2))
-    for (i, (key, value)) in enumerate(diagonal_collection)
+    sorted_keys = sort(collect(keys(diagonal_collection)))
+    for (i, key) in enumerate(sorted_keys)
+        value = diagonal_collection[key]
         setindex!(penalties, ones(Int, length(value)), i, value)
     end
 
@@ -210,7 +214,7 @@ function entire_diagonal_penalties(D::Matrix{Int64}, p::Int, h::Int)::Matrix{Int
 end
 
 function calc_Dtilde_SDF_sparse(graph::SimpleGraph, p::Int, h::Int=0)::SparseMatrixCSC{Float64}
-    D = sparse(incidence_matrix(graph, oriented=true))' # Incidence matrix needs to be transposed before obtaining D^(G)
+    D = sparse(incidence_matrix(graph, oriented=true)') # Incidence matrix needs to be transposed before obtaining D^(G)
     EX = entire_diagonal_penalties(D, p, h)
     return vcat(D, EX)
 end
@@ -224,3 +228,14 @@ function save_bandwiths_bootstrap(path::String, h0, h1)
     df = DataFrame(h0=[h0], h1=[h1])
     CSV.write(path, df)
 end
+
+d = generate_diagonal_collection(9, 2)
+
+
+
+sort(collect(keys(d)))
+
+graph = create_gsplash_graph(9, 2)
+
+Matrix(calc_Dtilde_SDF_sparse(graph, 9, 2))
+inv_Dtilde_SDF_sparse(graph, 9, 2)

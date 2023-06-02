@@ -13,11 +13,11 @@ replace_string_dashes='s/MEREPLACE/'${sim_design_id_dashes,,}'/g'
 if [ $rundetlam = "detlam" ]; then
     sed -E $replace_string scripts/k8s/mc_simulation_detlam_TEMPLATE.yml > scripts/k8s/replaced/mc_simulation_REPLACED.yml.tmp
     sed -E $replace_string_dashes scripts/k8s/replaced/mc_simulation_REPLACED.yml.tmp > scripts/k8s/replaced/mc_simulation_REPLACED.yml 
-    rm scripts/k8s/mc_simulation_REPLACED.yml.tmp
+    rm scripts/k8s/replaced/mc_simulation_REPLACED.yml.tmp
 elif [ $rundetlam = "nogsplash" ]; then
     sed -E $replace_string scripts/k8s/mc_simulation_no_gsplash_TEMPLATE.yml > scripts/k8s/replaced/mc_simulation_REPLACED.yml.tmp
     sed -E $replace_string_dashes scripts/k8s/replaced/mc_simulation_REPLACED.yml.tmp > scripts/k8s/replaced/mc_simulation_REPLACED.yml 
-    rm scripts/k8s/mc_simulation_REPLACED.yml.tmp
+    rm scripts/k8s/replaced/mc_simulation_REPLACED.yml.tmp
 else
     sed -E $replace_string scripts/k8s/mc_simulation_TEMPLATE.yml > scripts/k8s/replaced/mc_simulation_REPLACED.yml.tmp
     sed -E $replace_string_dashes scripts/k8s/replaced/mc_simulation_REPLACED.yml.tmp > scripts/k8s/replaced/mc_simulation_REPLACED.yml 

@@ -5,7 +5,6 @@ using LinearAlgebra
 using DataFrames, CSV
 using Graphs
 
-
 """
 Calculates the amount of active elemements, i.e. the number of columns of Vhat_d, or the number of elements in vec(C')
 """
@@ -229,13 +228,4 @@ function save_bandwiths_bootstrap(path::String, h0, h1)
     CSV.write(path, df)
 end
 
-d = generate_diagonal_collection(9, 2)
 
-
-
-sort(collect(keys(d)))
-
-graph = create_gsplash_graph(9, 2)
-
-Matrix(calc_Dtilde_SDF_sparse(graph, 9, 2))
-inv_Dtilde_SDF_sparse(graph, 9, 2)

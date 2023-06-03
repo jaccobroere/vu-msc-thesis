@@ -1,3 +1,4 @@
+using Base: end_base_include
 #=
 This simulation design replicates the simulation design B from Reuvers and Wijler (2021).
 In this simulation design:
@@ -36,34 +37,34 @@ function generate_spatial_neighbour_matrix(m::Int, zero_diagonal::Bool)::Matrix{
             end
 
             # Diagonal neighbours
-            # First create reusable conditions 
-            not_top_edge = (i > m) && (j > m)
-            not_bottom_edge = (i <= (p - m)) && (j <= (p - m))
-            diag_value = 0.15
-            # Bottom right diagonal neighbour
-            if (not_side_edge && not_bottom_edge)
-                if abs(i - j) == (m + 1)
-                    setindex!(A, diag_value, i, j)
-                end
-            end
-            # Top right diagonal neighbour
-            if (not_side_edge && not_top_edge)
-                if abs(i - j) == (m - 1)
-                    setindex!(A, diag_value, i, j)
-                end
-            end
-            # Bottom left diagonal neighbour
-            if (not_bottom_edge && not_side_edge)
-                if abs(i - j) == (m - 1)
-                    setindex!(A, diag_value, i, j)
-                end
-            end
-            # Top left diagonal neighbour
-            if (not_top_edge && not_side_edge)
-                if abs(i - j) == (m + 1)
-                    setindex!(A, diag_value, i, j)
-                end
-            end
+            # # First create reusable conditions 
+            # not_top_edge = (i > m) && (j > m)
+            # not_bottom_edge = (i <= (p - m)) && (j <= (p - m))
+            # diag_value = 0.15
+            # # Bottom right diagonal neighbour
+            # if (not_side_edge && not_bottom_edge)
+            #     if abs(i - j) == (m + 1)
+            #         setindex!(A, diag_value, i, j)
+            #     end
+            # end
+            # # Top right diagonal neighbour
+            # if (not_side_edge && not_top_edge)
+            #     if abs(i - j) == (m - 1)
+            #         setindex!(A, diag_value, i, j)
+            #     end
+            # end
+            # # Bottom left diagonal neighbour
+            # if (not_bottom_edge && not_side_edge)
+            #     if abs(i - j) == (m - 1)
+            #         setindex!(A, diag_value, i, j)
+            #     end
+            # end
+            # # Top left diagonal neighbour
+            # if (not_top_edge && not_side_edge)
+            #     if abs(i - j) == (m + 1)
+            #         setindex!(A, diag_value, i, j)
+            #     end
+            # end
         end
     end
     return A
@@ -75,7 +76,7 @@ function design_D_generate_A(m::Int)::Matrix{Float64}
     for i in axes(A, 1)
         for j in axes(A, 2)
             if i < j
-                A[i, j] = A[i, j] / 3
+                A[i, j] = A[i, j] * 0.75
             end
         end
     end
@@ -85,8 +86,8 @@ end
 function design_D_generate_B(m::Int)::Matrix{Float64}
     B_vals = Dict(
         4 => 0.3,
-        5 => 0.25,
-        6 => 0.22,
+        5 => 0.3,
+        6 => 0.28,
     )
     p = m^2
     # Generate diagonal matrix

@@ -12,7 +12,7 @@ plt.rcParams["text.latex.preamble"] = r"\usepackage{bm}"
 
 # %%
 def my_cmap():
-    colors = ["lightgrey", "red", "green", "blue"]
+    colors = ["gainsboro", "red", "green", "blue"]
     cmap = ListedColormap(colors)
     return cmap
 

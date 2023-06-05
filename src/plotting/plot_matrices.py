@@ -132,7 +132,7 @@ def plot_side_by_side_matrices(p: int, h: int) -> None:
                 ax1.text(
                     j,
                     i,
-                    f"$c_{{{matrix_1[i, j]}}}$",
+                    f"$\\phi_{{{matrix_1[i, j]}}}$",
                     ha="center",
                     va="center",
                     color="k",
@@ -142,7 +142,7 @@ def plot_side_by_side_matrices(p: int, h: int) -> None:
                 ax2.text(
                     j,
                     i,
-                    f"$c_{{{matrix_2[i, j]}}}$",
+                    f"$\\phi_{{{matrix_2[i, j]}}}$",
                     ha="center",
                     va="center",
                     color="k",

@@ -3,6 +3,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import scienceplots
+from matplotlib.colors import ListedColormap
 
 plt.style.use(["science"])
 plt.rc("text", usetex=True)
@@ -10,6 +11,12 @@ plt.rcParams["text.latex.preamble"] = r"\usepackage{bm}"
 
 
 # %%
+def my_cmap():
+    colors = ["lightgrey", "red", "green", "blue"]
+    cmap = ListedColormap(colors)
+    return cmap
+
+
 def generate_matrix_1_color(m: int):
     """
     Generate two matrices of size p x p where each element is either an integer or 0.
@@ -27,7 +34,7 @@ def generate_matrix_1_color(m: int):
         A tuple of two matrices of size p x p.
 
     """
-    matrix_1 = np.full(shape=(m, m), fill_value=20, dtype=float)
+    matrix_1 = np.full(shape=(m, m), fill_value=0, dtype=float)
 
     return matrix_1
 
@@ -45,7 +52,7 @@ def generate_matrix_1_text(m: int):
 
 def generate_matrix_2_color(m: int):
     p = m**2
-    matrix_2_color = np.full(shape=(p, p), fill_value=20, dtype=float)
+    matrix_2_color = np.full(shape=(p, p), fill_value=0, dtype=float)
 
     for i in range(1, p + 1):
         for j in range(1, p + 1):
@@ -54,7 +61,7 @@ def generate_matrix_2_color(m: int):
 
             # Vertical neighbours
             if abs(i - j) == m:
-                matrix_2_color[i - 1, j - 1] = 5
+                matrix_2_color[i - 1, j - 1] = 1
 
             # Horizontal neighbours
             not_side_edge = not (
@@ -63,12 +70,12 @@ def generate_matrix_2_color(m: int):
                 or ((j % m == 0) and ((i - 1) % m == 0))
             )
             if abs(i - j) == 1 and not_side_edge:
-                matrix_2_color[i - 1, j - 1] = 1
+                matrix_2_color[i - 1, j - 1] = 3
 
             # Diagonal neighbours
             not_top_edge = (i > m) and (j > m)
             not_bottom_edge = (i <= (p - m)) and (j <= (p - m))
-            diag_value = 10
+            diag_value = 2
 
             # Bottom right diagonal neighbour
             if not_side_edge and not_bottom_edge:
@@ -93,6 +100,133 @@ def generate_matrix_2_color(m: int):
     return matrix_2_color
 
 
+def draw_arrows_for_matrix_1(ax: plt.Axes):
+    opts = dict(
+        width=0.01,
+        headwidth=3,
+        headlength=3,
+        headaxislength=3,
+        alpha=1,
+        zorder=10,
+        angles="xy",
+        scale_units="xy",
+        scale=1,
+    )
+    # Plot arrows for matrix 1
+    # Horizontal arrows
+    ax.quiver(
+        (0.25),
+        (0),
+        (0.5),
+        (0),
+        color="blue",
+        **opts,
+    )
+
+    # Vertical arrows
+    ax.quiver(
+        (0),
+        (0.25),
+        (0),
+        (0.5),
+        color="red",
+        **opts,
+    )
+    # Diagonal arrows
+    ax.quiver(
+        (0.25),
+        (0.25),
+        (0.5),
+        (0.5),
+        color="green",
+        **opts,
+    )
+
+    # Arrows for bottom right corner
+    ax.quiver(
+        (3.25),
+        (3),
+        (0.5),
+        (0),
+        color="blue",
+        **opts,
+    )
+
+    ax.quiver(
+        (2.75),
+        (3),
+        (-0.5),
+        (0),
+        color="blue",
+        **opts,
+    )
+
+    ax.quiver(
+        (3),
+        (3.25),
+        (0),
+        (0.5),
+        color="red",
+        **opts,
+    )
+
+    ax.quiver(
+        (3),
+        (2.75),
+        (0),
+        (-0.5),
+        color="red",
+        **opts,
+    )
+
+    ax.quiver(
+        (3.25),
+        (3.25),
+        (0.5),
+        (0.5),
+        color="green",
+        **opts,
+    )
+
+    ax.quiver(
+        (2.75),
+        (3.25),
+        (-0.5),
+        (0.5),
+        color="green",
+        **opts,
+    )
+
+    ax.quiver(
+        (2.75),
+        (2.75),
+        (-0.5),
+        (-0.5),
+        color="green",
+        **opts,
+    )
+
+    ax.quiver(
+        (3.25),
+        (2.75),
+        (0.5),
+        (-0.5),
+        color="green",
+        **opts,
+    )
+
+    ax.quiver(
+        (3.25),
+        (3),
+        (0.5),
+        (0),
+        color="blue",
+        **opts,
+    )
+
+    return None
+
+
 def plot_side_by_side_matrices(m: int, p: int, h: int) -> None:
     """
     Create a plot showing two matrices side by side with the non-zero elements numbered.
@@ -115,19 +249,19 @@ def plot_side_by_side_matrices(m: int, p: int, h: int) -> None:
     # matrix_color_1, matrix_color_2 = np.where(matrix_1 == 0, 0.15, 0.85), np.where(
     #     matrix_2 == 0, 0.15, 0.85
     # )
-
+    cmap = my_cmap()
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6, 3))
     ax1.matshow(
         matrix_1_color,
-        cmap="tab20c",
-        vmin=1,
-        vmax=20,
+        cmap=cmap,
+        vmin=0,
+        vmax=3,
     )
     ax2.matshow(
         matrix_2_color,
-        cmap="tab20c",
-        vmin=1,
-        vmax=20,
+        cmap=cmap,
+        vmin=0,
+        vmax=3,
     )
     for i in range(m):
         for j in range(m):
@@ -163,6 +297,9 @@ def plot_side_by_side_matrices(m: int, p: int, h: int) -> None:
 
     # ax1.set_title(r"$\bm{A}$", fontsize=12)
     # ax2.set_title(r"$\bm{B}$", fontsize=12)
+
+    # Plot the arrows on matrix 1
+    draw_arrows_for_matrix_1(ax1)
 
     plt.tight_layout(pad=1.5)
     plt.show()

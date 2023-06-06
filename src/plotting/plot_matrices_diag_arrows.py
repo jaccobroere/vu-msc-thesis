@@ -99,6 +99,8 @@ def plot_side_by_side_matrices(p: int, h: int) -> None:
                         zorder=5,
                         width=0.005,
                         headwidth=5,
+                        headlength=5,
+                        headaxislength=5,
                     )
 
                 if matrix_2[i, j] > 0.5:
@@ -116,6 +118,8 @@ def plot_side_by_side_matrices(p: int, h: int) -> None:
                         zorder=5,
                         width=0.005,
                         headwidth=5,
+                        headlength=5,
+                        headaxislength=5,
                     )
 
         for ax in (ax1, ax2):
@@ -151,7 +155,7 @@ def save_figure(fig, filename):
     -------
     None
     """
-    fig.savefig(filename)
+    fig.savefig(filename, dpi=1000)
 
 
 if __name__ == "__main__":

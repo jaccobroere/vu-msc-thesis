@@ -182,7 +182,7 @@ def save_figure(fig, filename):
     -------
     None
     """
-    fig.savefig(filename)
+    fig.savefig(filename, dpi=1000)
 
 
 if __name__ == "__main__":

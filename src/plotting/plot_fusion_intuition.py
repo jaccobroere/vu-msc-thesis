@@ -102,10 +102,10 @@ def generate_matrix_2_color(m: int):
 
 def draw_arrows_for_matrix_1(ax: plt.Axes):
     opts = dict(
-        width=0.01,
-        headwidth=3,
-        headlength=3,
-        headaxislength=3,
+        width=0.005,
+        headwidth=5,
+        headlength=5,
+        headaxislength=5,
         alpha=1,
         zorder=10,
         angles="xy",
@@ -322,7 +322,7 @@ def save_figure(fig, filename):
     -------
     None
     """
-    fig.savefig(filename)
+    fig.savefig(filename, dpi=1000)
 
 
 if __name__ == "__main__":

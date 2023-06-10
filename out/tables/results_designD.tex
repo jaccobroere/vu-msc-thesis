@@ -1,0 +1,47 @@
+\begin{landscape}
+    \bgroup
+    \def\arraystretch{1.3}
+    \begin{table}[p]
+    \footnotesize
+    \centering
+    \caption{Simulation results for Design D}
+    \label{tab:results_designD}
+    \begin{tabular}{cccccccccc}    
+    \hline \hline
+    $p$  &  $T$   &  F-SPL($\lambda$)  & SSF-SPL($0.5, \lambda$)  &  GF-SPL($0.5, 0, \lambda$)  &  GF-SPL($0, 1, \lambda$)  &  GF-SPL($0.5, 1, \lambda$)  &  SPLASH($0, \lambda$)  &  SPLASH($0.5, \lambda$)  &  PVAR($\lambda$)  \\
+    \hline
+    \multicolumn{10}{l}{\textbf{RMSFE}} \\
+	\hline
+	 25  & 500  &       1.006        &           1.072           &            1.011            & \textbf{1.004}            & 1.008                       &         1.009          & 1.009                    &       1.019       \\ \hdashline
+	 25  & 1000 &       1.006        &           1.049           &            1.006            & 1.005                     & \textbf{1.004}              &         1.006          & 1.007                    &       1.013       \\ \hdashline
+	 25  & 2000 &       1.004        &           1.056           &            1.003            & 1.002                     & 1.002                       &         1.002          & \textbf{1.002}           &       1.008       \\ \hdashline
+	 36  & 500  &       1.004        &           1.063           &            1.013            & \textbf{1.002}            & 1.009                       &          1.01          & 1.013                    &       1.026       \\ \hdashline
+	 36  & 1000 &       1.008        &           1.054           &            1.009            & \textbf{1.007}            & 1.007                       &         1.008          & 1.009                    &       1.016       \\ \hdashline
+	 36  & 2000 &       1.006        &           1.062           &            1.008            & \textbf{1.005}            & 1.007                       &         1.006          & 1.007                    &       1.013       \\
+	\hline
+	\multicolumn{10}{l}{$\mathbf{EE_A}$} \\
+	\hline
+	 25  & 500  &       0.604        &            0.6            &            0.606            &           0.581           &            0.606            & \textbf{0.377}         &          0.412           & -                 \\ \hdashline
+	 25  & 1000 &       0.543        &           0.577           &            0.606            &           0.519           &            0.605            & \textbf{0.291}         &          0.328           & -                 \\ \hdashline
+	 25  & 2000 &       0.494        &           0.53            &            0.599            &           0.458           &            0.603            & \textbf{0.218}         &          0.247           & -                 \\ \hdashline
+	 36  & 500  &       0.604        &           0.63            &            0.631            &           0.595           &            0.63             & \textbf{0.499}         &          0.524           & -                 \\ \hdashline
+	 36  & 1000 &       0.569        &           0.622           &            0.631            &           0.556           &            0.631            & \textbf{0.400}         &          0.423           & -                 \\ \hdashline
+	 36  & 2000 &       0.497        &           0.583           &            0.629            &           0.485           &            0.63             & \textbf{0.302}         &          0.332           & -                 \\
+	\hline
+	\multicolumn{10}{l}{$\mathbf{EE_B}$} \\
+	\hline
+	 25  & 500  &       0.276        & \textbf{0.101}            &            0.324            &           0.264           &            0.324            & 0.106                  &          0.121           & -                 \\ \hdashline
+	 25  & 1000 &       0.203        & 0.094                     &            0.35             &           0.189           &            0.348            & \textbf{0.077}         &          0.089           & -                 \\ \hdashline
+	 25  & 2000 &        0.16        & 0.086                     &            0.371            &           0.144           &            0.365            & \textbf{0.054}         &          0.062           & -                 \\ \hdashline
+	 36  & 500  &       0.281        & \textbf{0.092}            &            0.328            &           0.273           &            0.328            & 0.116                  &          0.129           & -                 \\ \hdashline
+	 36  & 1000 &       0.234        & \textbf{0.084}            &            0.347            &           0.22            &            0.347            & 0.089                  &          0.094           & -                 \\ \hdashline
+	 36  & 2000 &       0.163        & 0.080                     &            0.375            &           0.155           &            0.366            & \textbf{0.064}         &          0.067           & -                 \\
+	\hline
+	\hline
+    \multicolumn{10}{l}{\textbf{Note:} Numbers in \textbf{bold} inidicate best performance for each combination of $p$ and $T$} \\
+    \multicolumn{10}{l}{\textbf{Note:} Simulation results are based on $N_\text{sim} = 250$ Monte Carlo simulations}
+    \end{tabular}
+    \end{table}
+    \egroup
+\end{landscape}
+    

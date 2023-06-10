@@ -393,7 +393,7 @@ def combine_tables(tables, design="designB", filename: str = None):
     \\bgroup
     \\def\\arraystretch{{1.3}}
     \\begin{{table}}[p]
-    \\footnotesize
+    \\small
     \\centering
     \\caption{{Simulation results for {design_cap} {letter}}}
     \\label{{tab:results_{design}}}
@@ -472,6 +472,6 @@ def main(design: str = "designB"):
 
 
 if __name__ == "__main__":
-    designs = ["designA", "designB", "designC"]
+    designs = ["designA", "designB", "designC", "designD"]
     for design in designs:
         main(design)

@@ -291,6 +291,7 @@ def collect_estimation_error_data(data: dict):
 
     df_A = pd.DataFrame(columns=columns)
     df_B = pd.DataFrame(columns=columns)
+    df_C = pd.DataFrame(columns=columns)
 
     for design_id in data:
         for uuid in data[design_id]:
@@ -301,13 +302,21 @@ def collect_estimation_error_data(data: dict):
             # Initialize the dictionary to save EE values in
             temp_dict_A = {key: [0] for key in columns}
             temp_dict_B = {key: [0] for key in columns}
+            temp_dict_C = {key: [0] for key in columns}
             A_true, B_true = read_AB_true(design_id, uuid)
 
             for model_name, item in data[design_id][uuid].items():
                 temp_dict_A[model_name] = [np.nan]
                 temp_dict_B[model_name] = [np.nan]
+                temp_dict_C[model_name] = [np.nan]
+
                 if model_name == "pvar":
                     continue
+
+                C_true = np.hstack((A_true, B_true))
+                C_est = np.hstack(
+                    (item["estimate_A"].to_numpy(), item["estimate_B"].to_numpy())
+                )
                 # Get the EEA value as the spectral norm of the differences
                 temp_dict_A[model_name] = np.linalg.norm(
                     A_true - item["estimate_A"].to_numpy(), ord=2
@@ -315,16 +324,24 @@ def collect_estimation_error_data(data: dict):
                 temp_dict_B[model_name] = np.linalg.norm(
                     B_true - item["estimate_B"].to_numpy(), ord=2
                 )
+                temp_dict_C[model_name] = np.linalg.norm(C_true - C_est, ord=2)
                 # Assign the design_id to a column to group by later
 
             temp_dict_A["design_id"] = design_id
             temp_dict_B["design_id"] = design_id
+            temp_dict_C["design_id"] = design_id
             temp_df_A = pd.DataFrame(temp_dict_A)
             temp_df_B = pd.DataFrame(temp_dict_B)
+            temp_df_C = pd.DataFrame(temp_dict_C)
             df_A = pd.concat([df_A, temp_df_A], ignore_index=True)
             df_B = pd.concat([df_B, temp_df_B], ignore_index=True)
+            df_C = pd.concat([df_C, temp_df_C], ignore_index=True)
 
-    return df_A.groupby("design_id").mean(), df_B.groupby("design_id").mean()
+    return (
+        df_A.groupby("design_id").mean(),
+        df_B.groupby("design_id").mean(),
+        df_C.groupby("design_id").mean(),
+    )
 
 
 def write_table_to_latex(df: pd.DataFrame, filename: str = None):
@@ -403,10 +420,14 @@ def combine_tables(tables, design="designB", filename: str = None):
     \\hline
     """
 
+    # subheaders = [
+    #     f"\\multicolumn{{10}}{{l}}{{\\textbf{{RMSFE}}}} \\\\",
+    #     f"\t\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_A}}$}} \\\\",
+    #     f"\t\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_B}}$}} \\\\",
+    # ]
     subheaders = [
         f"\\multicolumn{{10}}{{l}}{{\\textbf{{RMSFE}}}} \\\\",
-        f"\t\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_A}}$}} \\\\",
-        f"\t\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_B}}$}} \\\\",
+        f"\t\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE}}$}} \\\\",
     ]
 
     for i, table in enumerate(tables):
@@ -449,15 +470,16 @@ def combine_tables(tables, design="designB", filename: str = None):
 def main(design: str = "designB"):
     data = create_full_data_dictionary(design)
     df_rmsfe_h1, df_rmsfe_long = collect_rmsfe_data(data)
-    df_A, df_B = collect_estimation_error_data(data)
+    df_A, df_B, df_C = collect_estimation_error_data(data)
     latex_table_rmsfe = write_table_to_latex(df_rmsfe_h1, f"{design}_rmsfe.tex")
     latex_table_rmsfe_long = write_table_to_latex(
         df_rmsfe_long, f"{design}_rmsfe_long.tex"
     )
     latex_table_A = write_table_to_latex(df_A, f"{design}_EEA.tex")
     latex_table_B = write_table_to_latex(df_B, f"{design}_EEB.tex")
+    latex_table_C = write_table_to_latex(df_C, f"{design}_EEC.tex")
     full_table = combine_tables(
-        [latex_table_rmsfe, latex_table_A, latex_table_B],
+        [latex_table_rmsfe, latex_table_C],
         design,
         f"results_{design}.tex",
     )
@@ -472,6 +494,6 @@ def main(design: str = "designB"):
 
 
 if __name__ == "__main__":
-    designs = ["designA", "designB", "designC", "designD"]
+    designs = ["designB", "designC", "designD"]
     for design in designs:
         main(design)

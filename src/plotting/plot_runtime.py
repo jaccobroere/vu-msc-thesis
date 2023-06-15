@@ -51,11 +51,7 @@ def plot_runtimes_linegraph():
 
     # Add a line for each model
     for col in df_mean.iloc[:, :-1]:
-        ax.plot(
-            df_mean.index,
-            df_mean[col],
-            label=col,
-        )
+        ax.plot(df_mean.index, df_mean[col], marker="o", label=col, markersize=2.5)
 
     # Add a legend
     ax.legend()

@@ -5,13 +5,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scienceplots
+from matplotlib.ticker import MultipleLocator
 
 # Change to project directory
 PROJ_DIR = os.environ["PROJ_DIR"]
 os.chdir(PROJ_DIR)
 
 # Set plotting style to academic
-plt.style.use(["science"])
+plt.style.use(["science", "ieee"])
 plt.rc("text", usetex=True)
 
 
@@ -49,7 +50,7 @@ def plot_runtimes_linegraph():
     fig, ax = plt.subplots(figsize=(6, 3))
 
     # Add a line for each model
-    for col in df_mean.iloc[:, 1:-1]:
+    for col in df_mean.iloc[:, :-1]:
         ax.plot(
             df_mean.index,
             df_mean[col],
@@ -59,14 +60,12 @@ def plot_runtimes_linegraph():
     # Add a legend
     ax.legend()
 
+    # Set axis labels
+    ax.set_xlabel(r"Problem dimension $p$")
+    ax.set_ylabel(r"Runtime (s)")
+
     # Show plot
     plt.tight_layout()
     plt.show()
 
     return None
-
-
-plot_runtimes_linegraph()
-
-df_mean, df_std = load_data()
-df_mean

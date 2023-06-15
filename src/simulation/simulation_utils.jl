@@ -52,14 +52,15 @@ function simulate_svar(A::Matrix{Float64}, B::Matrix{Float64}, errors::Array{Arr
     p = size(A, 1)
     T = length(errors)
     y = zeros(p, T)
-    C = inv(I - A) * B
+    D = inv(I - A)
+    C = D * B
     for t in 1:T
         if t == 1
             y[:, t] = errors[t]
             continue
         end
 
-        y[:, t] = C * y[:, t-1] + errors[t]
+        y[:, t] = C * y[:, t-1] + D * errors[t]
     end
 
     return y

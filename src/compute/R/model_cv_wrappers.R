@@ -116,7 +116,7 @@ fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, nlambdas = 20, nfol
         X2_plus <- solve((t(X2) %*% X2), t(X2)) # Same as inv(t(X2) %*% X2) %*% t(X2)
 
         # Transform the input to LASSO objective
-        IminP <- as.matrix(diag(nrow(X2)) - X2 %*% X2_plus) # Calculate I - P directly, P = X2 %*% X2_plus
+        IminP <- as.matrix(diag(nrow(X2)) - as.matrix(X2) %*% as.matrix(X2_plus)) # Calculate I - P directly, P = X2 %*% X2_plus
         ytilde <- as.vector(IminP %*% sigma_hat)
         Xtilde <- IminP %*% as.matrix(X1)
         # Fit the model on the training set

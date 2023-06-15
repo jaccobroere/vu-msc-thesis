@@ -47,7 +47,7 @@ def plot_runtimes_linegraph():
     df_mean, df_std = load_data()
 
     # Set up the figure
-    fig, ax = plt.subplots(figsize=(6, 3))
+    fig, ax = plt.subplots(figsize=(4, 3))
 
     # Add a line for each model
     for col in df_mean.iloc[:, :-1]:
@@ -68,4 +68,27 @@ def plot_runtimes_linegraph():
     plt.tight_layout()
     plt.show()
 
-    return None
+    return fig, ax
+
+
+def save_figure(fig, filename):
+    """
+    Save a figure to a file.
+
+    Parameters
+    ----------
+    fig : matplotlib.figure.Figure
+        The figure to save.
+    filename : str
+        The name of the file to save the figure to.
+
+    Returns
+    -------
+    None
+    """
+    fig.savefig(filename, dpi=1000)
+
+
+if __name__ == "__main__":
+    fig, ax = plot_runtimes_linegraph()
+    save_figure(fig, os.path.join("out", "figures", "runtime_linegraph.eps"))

@@ -65,6 +65,7 @@ def plot_side_by_side_matrices(p: int, h: int) -> None:
 
     """
     matrix_1, matrix_2 = generate_matrices(p, h)
+    print(matrix_1)
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6, 3))
     ax1.matshow(
@@ -82,13 +83,13 @@ def plot_side_by_side_matrices(p: int, h: int) -> None:
 
     for i in range(p):
         for j in range(p):
-            if matrix_1[i, j] > 0.5:
-                if j < i:
-                    direction_y = i - j
-                    direction_x = j - i
+            if i != p - 1 and j != p - 1:
+                if matrix_1[i, j] > 0.5:
+                    direction_y = 0.7
+                    direction_x = 0.7
                     ax1.quiver(
-                        (i),
-                        (j),
+                        (i + 0.15),
+                        (j + 0.15),
                         direction_x,
                         direction_y,
                         angles="xy",
@@ -102,13 +103,12 @@ def plot_side_by_side_matrices(p: int, h: int) -> None:
                         headaxislength=5,
                     )
 
-            if matrix_2[i, j] > 0.5:
-                if j < i:
-                    direction_y = i - j
-                    direction_x = j - i
+                if matrix_2[i, j] > 0.5:
+                    direction_y = 0.7
+                    direction_x = 0.7
                     ax2.quiver(
-                        (i),
-                        (j),
+                        (i + 0.15),
+                        (j + 0.15),
                         direction_x,
                         direction_y,
                         angles="xy",
@@ -162,4 +162,4 @@ if __name__ == "__main__":
     p = 9
     h = (p - 1) // 4
     fig, (ax1, ax2) = plot_side_by_side_matrices(p, h)
-    save_figure(fig, os.path.join("out", "figures", "symmetric_arrows_AB.eps"))
+    save_figure(fig, os.path.join("out", "figures", "diagonal_arrows_AB.eps"))

@@ -2,10 +2,14 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scienceplots
 
-plt.rcParams["mathtext.fontset"] = "dejavuserif"
+plt.style.use(["science"])
+plt.rc("text", usetex=True)
+plt.rcParams["text.latex.preamble"] = r"\usepackage{bm}"
 
 
+# %%
 def generate_matrices(p: int, h: int) -> tuple:
     """
     Generate two matrices of size p x p where each element is either an integer or 0.
@@ -108,7 +112,7 @@ def plot_side_by_side_matrices(p: int, h: int) -> None:
     # )
     matrix_color_1, matrix_color_2 = generate_matrices_color(p, h)
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(2 * max(5, p // 2), max(5, p // 2)))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6, 3))
     ax1.matshow(
         matrix_color_1,
         cmap="coolwarm",
@@ -128,21 +132,21 @@ def plot_side_by_side_matrices(p: int, h: int) -> None:
                 ax1.text(
                     j,
                     i,
-                    f"$c_{{{matrix_1[i, j]}}}$",
+                    f"$\\phi_{{{matrix_1[i, j]}}}$",
                     ha="center",
                     va="center",
                     color="k",
-                    fontsize=12,
+                    fontsize=10,
                 )
             if matrix_2[i, j] != 0:
                 ax2.text(
                     j,
                     i,
-                    f"$c_{{{matrix_2[i, j]}}}$",
+                    f"$\\phi_{{{matrix_2[i, j]}}}$",
                     ha="center",
                     va="center",
                     color="k",
-                    fontsize=12,
+                    fontsize=10,
                 )
 
         for ax in (ax1, ax2):
@@ -154,7 +158,10 @@ def plot_side_by_side_matrices(p: int, h: int) -> None:
             ax.set_xticks([])
             ax.set_yticks([])
 
-    plt.tight_layout(pad=2.5)
+    ax1.set_title(r"$\bm{A}$", fontsize=12)
+    ax2.set_title(r"$\bm{B}$", fontsize=12)
+
+    plt.tight_layout(pad=1.5)
     plt.show()
 
     return fig, (ax1, ax2)
@@ -175,7 +182,7 @@ def save_figure(fig, filename):
     -------
     None
     """
-    fig.savefig(filename)
+    fig.savefig(filename, dpi=1000)
 
 
 if __name__ == "__main__":

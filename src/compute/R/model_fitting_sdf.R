@@ -74,6 +74,13 @@ model_splash_a0 <- fit_splash.cv(y, alpha = 0, nlambdas = 20, nfolds = 3, symmet
 model_splash_a05 <- fit_splash.cv(y, alpha = 0.5, nlambdas = 20, nfolds = 3, symmetric_diags = symmetric_diags)
 toc()
 
+# print("Fitting GF-SPLASH models with CV")
+# tic()
+# model_gfsplash_a05 <- fit_gfsplash.cv(y, bandwidths, graph = reg_gr, alpha = 0.5, nlambdas = 20, nfolds = 3)
+# model_gfsplash_sym_a0 <- fit_gfsplash.cv(y, bandwidths, graph = sym_gr, alpha = 0, nlambdas = 20, nfolds = 3)
+# model_gfsplash_sym_a05 <- fit_gfsplash.cv(y, bandwidths, graph = sym_gr, alpha = 0.5, nlambdas = 20, nfolds = 3)
+# toc()
+
 print("Fitting PVAR model")
 tic()
 model_pvar <- fit_pvar.cv(y, nlambdas = 20)
@@ -102,6 +109,9 @@ save_fitting_results <- function(model, prefix, fit_dir, save_AB = TRUE) {
     fwrite(data.table(model$best_lambda), file = file.path(fit_dir, paste0(prefix, "__best_lambda.csv")))
 }
 
+# save_fitting_results(model_gfsplash_a05, "gfsplash_a05", fit_dir)
+# save_fitting_results(model_gfsplash_sym_a0, "gfsplash_sym_a0", fit_dir)
+# save_fitting_results(model_gfsplash_sym_a05, "gfsplash_sym_a05", fit_dir)
 save_fitting_results(model_fsplash, "fsplash", fit_dir)
 save_fitting_results(model_ssfsplash, "ssfsplash", fit_dir)
 save_fitting_results(model_sdfsplash, "sdfsplash", fit_dir)

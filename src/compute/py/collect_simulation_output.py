@@ -291,6 +291,7 @@ def collect_estimation_error_data(data: dict):
 
     df_A = pd.DataFrame(columns=columns)
     df_B = pd.DataFrame(columns=columns)
+    df_C = pd.DataFrame(columns=columns)
 
     for design_id in data:
         for uuid in data[design_id]:
@@ -301,13 +302,21 @@ def collect_estimation_error_data(data: dict):
             # Initialize the dictionary to save EE values in
             temp_dict_A = {key: [0] for key in columns}
             temp_dict_B = {key: [0] for key in columns}
+            temp_dict_C = {key: [0] for key in columns}
             A_true, B_true = read_AB_true(design_id, uuid)
 
             for model_name, item in data[design_id][uuid].items():
                 temp_dict_A[model_name] = [np.nan]
                 temp_dict_B[model_name] = [np.nan]
+                temp_dict_C[model_name] = [np.nan]
+
                 if model_name == "pvar":
                     continue
+
+                C_true = np.hstack((A_true, B_true))
+                C_est = np.hstack(
+                    (item["estimate_A"].to_numpy(), item["estimate_B"].to_numpy())
+                )
                 # Get the EEA value as the spectral norm of the differences
                 temp_dict_A[model_name] = np.linalg.norm(
                     A_true - item["estimate_A"].to_numpy(), ord=2
@@ -315,16 +324,24 @@ def collect_estimation_error_data(data: dict):
                 temp_dict_B[model_name] = np.linalg.norm(
                     B_true - item["estimate_B"].to_numpy(), ord=2
                 )
+                temp_dict_C[model_name] = np.linalg.norm(C_true - C_est, ord=2)
                 # Assign the design_id to a column to group by later
 
             temp_dict_A["design_id"] = design_id
             temp_dict_B["design_id"] = design_id
+            temp_dict_C["design_id"] = design_id
             temp_df_A = pd.DataFrame(temp_dict_A)
             temp_df_B = pd.DataFrame(temp_dict_B)
+            temp_df_C = pd.DataFrame(temp_dict_C)
             df_A = pd.concat([df_A, temp_df_A], ignore_index=True)
             df_B = pd.concat([df_B, temp_df_B], ignore_index=True)
+            df_C = pd.concat([df_C, temp_df_C], ignore_index=True)
 
-    return df_A.groupby("design_id").mean(), df_B.groupby("design_id").mean()
+    return (
+        df_A.groupby("design_id").mean(),
+        df_B.groupby("design_id").mean(),
+        df_C.groupby("design_id").mean(),
+    )
 
 
 def write_table_to_latex(df: pd.DataFrame, filename: str = None):
@@ -332,13 +349,13 @@ def write_table_to_latex(df: pd.DataFrame, filename: str = None):
 
     # Define the columns
     columns = [
-        r"F-SPLASH($\lambda$)",
-        r"SSF-SPLASH($\alpha=0.5$, $\lambda$)",
-        r"GF-SPLASH($\alpha=0.5$, $\lambda$, $\sigma=0$)",
-        r"GF-SPLASH($\alpha=0$, $\lambda$, $\sigma=1$)",
-        r"GF-SPLASH($\alpha=0.5$, $\lambda$, $\sigma=1$)",
-        r"SPLASH($0$, $\lambda$)",
-        r"SPLASH($0.5$, $\lambda$)",
+        r"F-SPL($\lambda$)",
+        r"SSF-SPL($0.5, \lambda$)",
+        r"GF-SPL($0.5, 0, \lambda$)",
+        r"GF-SPL($0, 1, \lambda$)",
+        r"GF-SPL($0.5, 1, \lambda$)",
+        r"SPLASH($0, \lambda$)",
+        r"SPLASH($0.5, \lambda$)",
         r"PVAR($\lambda$)",
     ]
 
@@ -392,31 +409,43 @@ def combine_tables(tables, design="designB", filename: str = None):
     header = f"""\\begin{{landscape}}
     \\bgroup
     \\def\\arraystretch{{1.3}}
-    \\begin{{table}}[!h]
-    \\footnotesize
+    \\begin{{table}}[p]
+    \\small
     \\centering
     \\caption{{Simulation results for {design_cap} {letter}}}
     \\label{{tab:results_{design}}}
     \\begin{{tabular}}{{cccccccccc}}    
     \\hline \\hline
-    $p$  &  $T$   &  F-SPLASH  &  SSF-SPLASH(0.5)  &  GF-SPLASH(0.5)  &  $\\text{{GF-SPLASH}}_\\sigma(0)$  &  $\\text{{GF-SPLASH}}_\\sigma$(0.5)  &  SPLASH($0$)  &  SPLASH($0.5$)  &  PVAR  \\\\
+    $p$  &  $T$   &  F-SPL($\lambda$)  & SSF-SPL($0.5, \lambda$)  &  GF-SPL($0.5, 0, \lambda$)  &  GF-SPL($0, 1, \lambda$)  &  GF-SPL($0.5, 1, \lambda$)  &  SPLASH($0, \lambda$)  &  SPLASH($0.5, \lambda$)  &  PVAR($\lambda$)  \\\\
     \\hline
     """
 
+    # subheaders = [
+    #     f"\\multicolumn{{10}}{{l}}{{\\textbf{{RMSFE}}}} \\\\",
+    #     f"\t\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_A}}$}} \\\\",
+    #     f"\t\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_B}}$}} \\\\",
+    # ]
     subheaders = [
         f"\\multicolumn{{10}}{{l}}{{\\textbf{{RMSFE}}}} \\\\",
-        f"\t\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_A}}$}} \\\\",
-        f"\t\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE_B}}$}} \\\\",
+        f"\t\\multicolumn{{10}}{{l}}{{$\\mathbf{{EE}}$}} \\\\",
     ]
 
     for i, table in enumerate(tables):
         lines = table.split("\n")
         header += subheaders[i] + "\n"
-        for line in lines[3:-1]:
-            header += "\t" + line + "\n"
+        header += "\t" + r"\hline" + "\n"
+
+        for j, line in enumerate(lines[4:-2]):
+            if j == len(lines[4:-2]) - 1:
+                header += "\t" + line + "\n"
+            else:
+                header += "\t" + line + r" \hdashline" + "\n"
+
+        header += "\t" + r"\hline" + "\n"
 
     tail = f"""\t\\hline
-    \\multicolumn{{10}}{{l}}{{\\textbf{{Note:}} Simulation results are based on $N_\\text{{sim}} = 200$ Monte Carlo simulations}}
+    \\multicolumn{{10}}{{l}}{{\\textbf{{Note:}} Numbers in \\textbf{{bold}} inidicate best performance for each combination of $p$ and $T$}} \\\\
+    \\multicolumn{{10}}{{l}}{{\\textbf{{Note:}} Simulation results are based on $N_\\text{{sim}} = 250$ Monte Carlo simulations}}
     \\end{{tabular}}
     \\end{{table}}
     \\egroup
@@ -441,15 +470,16 @@ def combine_tables(tables, design="designB", filename: str = None):
 def main(design: str = "designB"):
     data = create_full_data_dictionary(design)
     df_rmsfe_h1, df_rmsfe_long = collect_rmsfe_data(data)
-    df_A, df_B = collect_estimation_error_data(data)
+    df_A, df_B, df_C = collect_estimation_error_data(data)
     latex_table_rmsfe = write_table_to_latex(df_rmsfe_h1, f"{design}_rmsfe.tex")
     latex_table_rmsfe_long = write_table_to_latex(
         df_rmsfe_long, f"{design}_rmsfe_long.tex"
     )
     latex_table_A = write_table_to_latex(df_A, f"{design}_EEA.tex")
     latex_table_B = write_table_to_latex(df_B, f"{design}_EEB.tex")
+    latex_table_C = write_table_to_latex(df_C, f"{design}_EEC.tex")
     full_table = combine_tables(
-        [latex_table_rmsfe, latex_table_A, latex_table_B],
+        [latex_table_rmsfe, latex_table_C],
         design,
         f"results_{design}.tex",
     )
@@ -464,6 +494,6 @@ def main(design: str = "designB"):
 
 
 if __name__ == "__main__":
-    designs = ["designA", "designB", "designC"]
+    designs = ["designB", "designC", "designD"]
     for design in designs:
         main(design)

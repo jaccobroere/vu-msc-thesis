@@ -91,3 +91,14 @@ model <- fit_fast_fusion(sigma_hat, Vhat_d, reg_gr, lambda)
 
 model
 model$coef
+
+
+
+# Attempt lambda max calculation
+mysd <- function(y) sqrt(sum((y - mean(y))^2) / (length(y)))
+sx <- scale(Xtilde, scale = apply(Xtilde, 2, mysd))
+sx <- scale(Xtilde)
+l_max <- norm(t(sx) %*% ytilde, type = "I") / (nrow(Xtilde))
+print(l_max)
+
+model_cv$lambda[1]

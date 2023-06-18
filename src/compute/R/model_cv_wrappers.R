@@ -239,10 +239,11 @@ fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambd
         Dtilde_SSF_inv_gamma <- Dtilde_SSF_inv %*% M_inv
 
         # Transform the input to LASSO objective (see Tibshirani and Taylor, 2011)
-        XD1 <- Vhat_d %*% Dtilde_SSF_inv_gamma # Same as Vhat_d * inv(Dtilde)
+        XD1 <- as.matrix(Vhat_d %*% Dtilde_SSF_inv_gamma) # Same as Vhat_d * inv(Dtilde)
 
         # Fit the model on the training set
-        model_cv <- glmnet(XD1, sigma_hat, nlambda = nlambdas, alpha = 1, intercept = FALSE, lambda.min.ratio = 1e-4, ...)
+        # model_cv <- glmnet(XD1, sigma_hat, nlambda = nlambdas, alpha = 1, intercept = FALSE, lambda.min.ratio = 1e-4, ...)
+        model_cv <- glmnet(as.matrix(XD1), sigma_hat, nlambda = nlambdas, alpha = 1, intercept = FALSE, lambda.min.ratio = 1e-4)
 
         # Compute the prediction error on the validation set
 
@@ -275,7 +276,7 @@ fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambd
     XD1 <- Vhat_d %*% Dtilde_SSF_inv_gamma # Same as Vhat_d * inv(Dtilde)
 
     # Fit the model on the entire training set
-    model <- glmnet(XD1, sigma_hat, n_lambdas = nlambdas, alpha = 1, intercept = FALSE, lambda.min.ratio = 1e-4, ...)
+    model <- glmnet(as.matrix(XD1), sigma_hat, n_lambdas = nlambdas, alpha = 1, intercept = FALSE, lambda.min.ratio = 1e-4)
     theta <- as.vector(model$beta[, best_idx])
     coef <- Dtilde_SSF_inv_gamma %*% theta
     t1 <- Sys.time()

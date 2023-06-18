@@ -10,7 +10,9 @@ library(splash)
 library(BigVAR)
 library(glmnet)
 library(Matrix)
+library(Rcpp)
 setwd(system("echo $PROJ_DIR", intern = TRUE))
+Rcpp::sourceCpp("src/compute/R/Rcpp/cpp_utils.cpp")
 
 fit_splash.cv <- function(y, alpha, nlambdas = 20, nfolds = 5, ...) {
     # Read problem dimensionality
@@ -74,7 +76,7 @@ fit_splash.cv <- function(y, alpha, nlambdas = 20, nfolds = 5, ...) {
     return(output_list)
 }
 
-fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, nlambdas = 20, nfolds = 5, ...) {
+fit_fsplash.cv.rcpp <- function(y, bandwidths, graph, Dtilde_inv, nlambdas = 20, nfolds = 5, ...) {
     # Read problem dimensionality
     p <- dim(y)[1]
     m <- ecount(graph)
@@ -110,22 +112,15 @@ fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, nlambdas = 20, nfol
         Vhat_d <- construct_Vhat_d(Vhat)
 
         # Transform Generalized Lasso problem into LASSO problem
-        XD1 <- Vhat_d %*% Dtilde_inv # Same as Vhat_d * inv(Dtilde)
-        X1 <- XD1[, 1:m]
-        X2 <- XD1[, (m + 1):dim(XD1)[2]]
-        X2_plus <- solve((t(X2) %*% X2), t(X2)) # Same as inv(t(X2) %*% X2) %*% t(X2)
+        res <- fastComputation(Vhat_d, Dtilde_inv, sigma_hat, m)
 
-        # Transform the input to LASSO objective
-        IminP <- as.matrix(diag(nrow(X2)) - as.matrix(X2) %*% as.matrix(X2_plus)) # Calculate I - P directly, P = X2 %*% X2_plus
-        ytilde <- as.vector(IminP %*% sigma_hat)
-        Xtilde <- IminP %*% as.matrix(X1)
         # Fit the model on the training set
-        model_cv <- glmnet(Xtilde, ytilde, nlambda = nlambdas, alpha = 1, intercept = FALSE, lambda.min.ratio = 1e-4, ...)
+        model_cv <- glmnet(res$Xtilde, res$ytilde, nlambda = nlambdas, alpha = 1, intercept = FALSE, lambda.min.ratio = 1e-4)
 
         # Compute the prediction error on the validation set
         for (j in 1:dim(model_cv$beta)[2]) {
             theta1 <- as.vector(model_cv$beta[, j])
-            theta2 <- as.vector(X2_plus %*% (sigma_hat - X1 %*% theta1))
+            theta2 <- as.vector(res$X2_plus %*% (sigma_hat - res$X1 %*% theta1))
             coef_cv <- Dtilde_inv %*% c(theta1, theta2)
             AB <- coef_to_AB(coef_cv, p)
             A_cv[, , j] <- AB$A
@@ -135,7 +130,6 @@ fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, nlambdas = 20, nfol
             errors_cv[i, j] <- calc_msfe(y_pred_cv[, , j], y_val_cv)
         }
     }
-
     # Get the best lambda value
     best_idx <- which.min(colMeans(errors_cv))
 
@@ -147,23 +141,17 @@ fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, nlambdas = 20, nfol
     sigma_hat <- construct_sigma_hat(Sigma1, h1)
     Vhat_d <- construct_Vhat_d(Vhat)
 
-    XD1 <- Vhat_d %*% Dtilde_inv # Same as Vhat_d * inv(Dtilde)
-    X1 <- XD1[, 1:m]
-    X2 <- XD1[, (m + 1):dim(XD1)[2]]
-    X2_plus <- solve((t(X2) %*% X2), t(X2)) # Same as inv(t(X2) %*% X2) %*% t(X2)
-
-    # Transform the input to LASSO objective
-    IminP <- as.matrix(diag(nrow(X2)) - X2 %*% X2_plus) # Calculate I - P directly, P = X2 %*% X2_plus
-    ytilde <- as.vector(IminP %*% sigma_hat)
-    Xtilde <- IminP %*% as.matrix(X1)
+    # Transform Generalized Lasso problem into LASSO problem
+    res <- fastComputation(Vhat_d, Dtilde_inv, sigma_hat, m)
 
     # Fit the model on the training set
-    model <- glmnet(Xtilde, ytilde, nlambda = nlambdas, alpha = 1, intercept = FALSE, lambda.min.ratio = 1e-4, ...)
+    # model <- glmnet(res$Xtilde, res$ytilde, nlambda = nlambdas, alpha = 1, intercept = FALSE, lambda.min.ratio = 1e-4, ...)
+    model <- glmnet(res$Xtilde, res$ytilde, nlambda = nlambdas, alpha = 1, intercept = FALSE, lambda.min.ratio = 1e-4)
     theta1 <- as.vector(model$beta[, best_idx])
-    theta2 <- as.vector(X2_plus %*% (sigma_hat - X1 %*% theta1))
+    theta2 <- as.vector(res$X2_plus %*% (sigma_hat - res$X1 %*% theta1))
     coef <- Dtilde_inv %*% c(theta1, theta2)
     t1 <- Sys.time()
-
+    toc()
     # Extract the model output
     AB <- coef_to_AB(coef, p)
     A <- AB$A
@@ -261,7 +249,7 @@ fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambd
 
     # Get the best lambda value
     best_idx <- which.min(colMeans(errors_cv))
-
+    tic()
     t0 <- Sys.time()
     # Construct Vhat_d and sigma_hat from the training validation
     Sigma0 <- calc_Sigma_j(y_train, 0)
@@ -276,11 +264,11 @@ fit_ssfsplash.cv <- function(y, bandwidths, graph, Dtilde_SSF_inv, alpha, nlambd
     XD1 <- Vhat_d %*% Dtilde_SSF_inv_gamma # Same as Vhat_d * inv(Dtilde)
 
     # Fit the model on the entire training set
-    model <- glmnet(as.matrix(XD1), sigma_hat, n_lambdas = nlambdas, alpha = 1, intercept = FALSE, lambda.min.ratio = 1e-4)
+    model <- glmnet(as.matrix(XD1), sigma_hat, n_lambdas = 20, alpha = 1, intercept = FALSE, lambda.min.ratio = 1e-8)
     theta <- as.vector(model$beta[, best_idx])
     coef <- Dtilde_SSF_inv_gamma %*% theta
     t1 <- Sys.time()
-
+    toc()
     # Extract the model output
     AB <- coef_to_AB(coef, p)
     A <- AB$A

@@ -76,7 +76,7 @@ fit_splash.cv <- function(y, alpha, nlambdas = 20, nfolds = 5, ...) {
     return(output_list)
 }
 
-fit_fsplash.cv.rcpp <- function(y, bandwidths, graph, Dtilde_inv, nlambdas = 20, nfolds = 5, ...) {
+fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, nlambdas = 20, nfolds = 5, ...) {
     # Read problem dimensionality
     p <- dim(y)[1]
     m <- ecount(graph)

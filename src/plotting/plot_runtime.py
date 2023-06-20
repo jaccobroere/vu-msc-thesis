@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scienceplots
-from matplotlib.ticker import MultipleLocator
+from matplotlib.ticker import MultipleLocator, NullLocator
 
 # Change to project directory
 PROJ_DIR = os.environ["PROJ_DIR"]
@@ -56,6 +56,9 @@ def plot_runtimes_linegraph():
     # Change y-axis to log scale
     ax.set_yscale("log")
     ax.grid(True)
+
+    # Remove x-axis minor ticks
+    ax.xaxis.set_minor_locator(NullLocator())
 
     # Add a legend
     ax.legend()

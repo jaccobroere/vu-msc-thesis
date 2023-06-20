@@ -55,6 +55,7 @@ def plot_runtimes_linegraph():
 
     # Change y-axis to log scale
     ax.set_yscale("log")
+    ax.grid(True)
 
     # Add a legend
     ax.legend()

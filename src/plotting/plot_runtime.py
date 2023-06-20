@@ -47,11 +47,14 @@ def plot_runtimes_linegraph():
     df_mean, df_std = load_data()
 
     # Set up the figure
-    fig, ax = plt.subplots(figsize=(4, 3))
+    fig, ax = plt.subplots(figsize=(5, 3))
 
     # Add a line for each model
     for col in df_mean.iloc[:, :-1]:
         ax.plot(df_mean.index, df_mean[col], marker="o", label=col, markersize=2.5)
+
+    # Change y-axis to log scale
+    ax.set_yscale("log")
 
     # Add a legend
     ax.legend()

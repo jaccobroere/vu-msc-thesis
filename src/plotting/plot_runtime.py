@@ -60,8 +60,8 @@ def plot_runtimes_linegraph():
     ax.legend()
 
     # Set axis labels
-    ax.set_xlabel(r"Problem dimension $p$")
-    ax.set_ylabel(r"Runtime (s)")
+    ax.set_xlabel(r"Problem dimension ($p$)")
+    ax.set_ylabel(r"Runtime ($s$)")
 
     # Show plot
     plt.tight_layout()

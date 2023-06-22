@@ -23,7 +23,7 @@ Moreover, Note that many of the scripts import some sort of utils function at th
 This folder is used to store the output of the estimated models, tables, figures, plots etc. Essentially, it covers all output of models.
 
 ### 1.3 `data/`
-The `data/` folder is meant to store the data related to simulation, and it will also contain the precalculated matrices, such as the the penalty matrix $\tilde{\bm{D}}$, its inverse and the graphs pertaining to the different simulation designs.
+The `data/` folder is meant to store the data related to simulation, and it will also contain the precalculated matrices, such as the the penalty matrix, its inverse and the graphs pertaining to the different simulation designs.
 
 ### 1.4 `scripts/`
 The `scripts/` folder contains all the bash scripts, and Kubernetes (k8s) configuration files that can be used to run the models and pipelines in succession for multiple designs in succession. The k8s files can be used to parallellize the computation of the simulation study over multiple cores or machines. This especially beneficial on strong machines or in the cloud (AWS, GCP, Azure etc.).

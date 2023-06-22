@@ -1,6 +1,6 @@
 # This Dockerfile is meant to build the image for working and running code related to my MSc thesis.
 # Run the following command to run the container and mount the correct folder.
-# docker run -it --rm -v $(pwd):/app/vu-msc-thesis jaccusaurelius/vu-msc-thesis:latest
+# docker run -it --rm -v $(pwd):/app/vu-msc-thesis jaccusaurelius/vu-msc-thesis:workspace
 # jaccusaurelius/vu-msc-thesis:kube can be used for docker with k8s
 FROM julia:1.9-bullseye
 ENV DEBIAN_FRONTEND=noninteractive
@@ -31,10 +31,10 @@ RUN apt-get install -y libatlas3-base libopenblas-base
 # Debian binaries for R packages
 RUN apt-get update && \ 
     apt-get install -y r-cran-data.table \
-        r-cran-matrixstats \ 
-        r-cran-glmnet \ 
-        r-cran-igraph \
-        r-cran-matrix
+    r-cran-matrixstats \ 
+    r-cran-glmnet \ 
+    r-cran-igraph \
+    r-cran-matrix
 
 # Install build tools for R packages
 RUN apt-get update && \
@@ -52,7 +52,7 @@ RUN cd /app/admm_src_zhu && \
 # Clone Git repository into container
 RUN apt-get update && \
     apt-get install -y git
-    # git clone https://github.com/jaccobroere/vu-msc-thesis.git /app
+# git clone https://github.com/jaccobroere/vu-msc-thesis.git /app
 
 # Then fix other dependencies
 COPY python-requirements.txt /app/python-requirements.txt

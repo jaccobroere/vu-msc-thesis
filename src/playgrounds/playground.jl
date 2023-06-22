@@ -42,6 +42,39 @@ function nonzero_elements_per_equation(i::Int, p::Int, h::Int)::Int
 end
 
 
+include(joinpath("..", "compute", "construct_graph.jl"))
+
+
+graph = create_gsplash_graph(5)
+sym_graph = create_gsplash_graph(9, symmetric=true)
+
+using Graphs, Colors, Plots, LinearAlgebra
+
+D = incidence_matrix(graph, oriented=true)
+D = Matrix(D)
+
+
+
+
+null_vecs
+
+null_vecs' * D
+
+
+s
+
+A = nullspace(D)
+
+Dtilde = vcat(D, A')
+inv(Dtilde)
+
+function compute_null_space(graph::SimpleGraph)
+    conn = connected_components(graph)
+    p = nv(graph)
+
+
+
+end
 
 function transform_genlasso(graph::SimpleGraph{Int64})::Matrix{Float64}
     D = Matrix(incidence_matrix(graph, oriented=true))
@@ -59,6 +92,11 @@ function qr_transform_genlasso(graph::SimpleGraph{Int64})
     return Matrix(QR.Q)
 end
 
+Q = qr_transform_genlasso(graph)
+
+
+
+
 function null_space_graph(graph::SimpleGraph{Int64})::Matrix{Int64}
     null_vecs = zeros(Int64, nv(graph), nv(graph) - ne(graph))
     conn = connected_components(graph)
@@ -74,6 +112,17 @@ function construct_Dtilde(graph::SimpleGraph)::Matrix{Int64}
     null = null_space_graph(graph)
     return hcat(D, null)
 end
+
+graph = create_gsplash_graph(5)
+null = null_space_graph(graph)
+
+Dtilde = construct_Dtilde(D, null)
+
+
+graph = create_gsplash_graph(9)
+
+D = Matrix(incidence_matrix(graph, oriented=true)')
+
 
 function generate_diagonal_collection(p::Int, bandwidth::Int)::Dict{Tuple{Int,Char},Vector{Int}}
     diagonal_collection = Dict{Tuple{Int,Char},Vector{Int}}()

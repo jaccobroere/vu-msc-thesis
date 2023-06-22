@@ -60,7 +60,7 @@ active_cols <- function(p, bandwidth = 0) {
     return(active_set)
 }
 
-active_cols_alt <- function(p, m) {
+active_cols_alt <- function(p, m, type = "diamond") {
     active_set_A <- matrix(FALSE, p, p * 2)
     active_set_B <- matrix(FALSE, p, p * 2)
 

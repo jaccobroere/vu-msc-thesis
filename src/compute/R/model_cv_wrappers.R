@@ -111,8 +111,8 @@ fit_fsplash.cv <- function(y, bandwidths, graph, Dtilde_inv, nlambdas = 20, nfol
         sigma_hat <- construct_sigma_hat(Sigma1, h1)
         Vhat_d <- construct_Vhat_d(Vhat)
 
-        # Transform Generalized Lasso problem into LASSO problem, using Rcpp to speed up matrix multiplications
-        res <- cpp_FSPLASH_precalc(Vhat_d, Dtilde_inv, sigma_hat, m)
+        # Transform Generalized Lasso problem into LASSO problem
+        res <- fastComputation(Vhat_d, Dtilde_inv, sigma_hat, m)
 
         # Fit the model on the training set
         model_cv <- glmnet(res$Xtilde, res$ytilde, nlambda = nlambdas, alpha = 1, intercept = FALSE, lambda.min.ratio = 1e-4)

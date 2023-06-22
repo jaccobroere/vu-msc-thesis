@@ -5,7 +5,7 @@ using namespace arma;
 // [[Rcpp::depends(RcppArmadillo)]]
 
 // [[Rcpp::export]]
-List cpp_FSPLASH_precalc(const sp_mat& Vhat_d, const sp_mat& Dtilde_inv, const vec& sigma_hat, int m) {
+List fastComputation(const sp_mat& Vhat_d, const sp_mat& Dtilde_inv, const vec& sigma_hat, int m) {
   
   // Perform operations
   sp_mat XD1 = Vhat_d * Dtilde_inv;

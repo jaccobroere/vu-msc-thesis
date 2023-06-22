@@ -36,13 +36,42 @@ function generate_spatial_neighbour_matrix(m::Int, zero_diagonal::Bool)::Matrix{
                 setindex!(A, 0.2, i, j)
             end
 
+            # Diagonal neighbours
+            # # First create reusable conditions 
+            # not_top_edge = (i > m) && (j > m)
+            # not_bottom_edge = (i <= (p - m)) && (j <= (p - m))
+            # diag_value = 0.15
+            # # Bottom right diagonal neighbour
+            # if (not_side_edge && not_bottom_edge)
+            #     if abs(i - j) == (m + 1)
+            #         setindex!(A, diag_value, i, j)
+            #     end
+            # end
+            # # Top right diagonal neighbour
+            # if (not_side_edge && not_top_edge)
+            #     if abs(i - j) == (m - 1)
+            #         setindex!(A, diag_value, i, j)
+            #     end
+            # end
+            # # Bottom left diagonal neighbour
+            # if (not_bottom_edge && not_side_edge)
+            #     if abs(i - j) == (m - 1)
+            #         setindex!(A, diag_value, i, j)
+            #     end
+            # end
+            # # Top left diagonal neighbour
+            # if (not_top_edge && not_side_edge)
+            #     if abs(i - j) == (m + 1)
+            #         setindex!(A, diag_value, i, j)
+            #     end
+            # end
         end
     end
     return A
 end
 
 function design_D_generate_A(m::Int)::Matrix{Float64}
-    # Generate spatial matrix with vertical and horizontal neighbour interactions
+    # Generate spatial matrix with vertical, horizontal, and diagonal neighbour interactions
     A = generate_spatial_neighbour_matrix(m, true)
     for i in axes(A, 1)
         for j in axes(A, 2)

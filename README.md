@@ -1,4 +1,4 @@
-# MSc Thesis: Graph-guided Fused Lasso approaches to the estimation of spatio-temporal autoregressions.
+# MSc Thesis: Achieving smoothness in sparse spatio-temporal autoregressive modelling via the graph-guided fused LASSO
 *Author: Jacco Broere*
 
 *Date: 2023-07-01*

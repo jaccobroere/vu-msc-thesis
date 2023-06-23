@@ -8,7 +8,7 @@ from scipy.io import mmread
 
 plt.style.use(["science"])
 plt.rc("text", usetex=True)
-plt.rcParams["text.latex.preamble"] = r"\usepackage{bm}"
+plt.rcParams["text.latex.preamble"] = r"\usepackage{bm} \usepackage{amsmath}"
 
 
 # %%
@@ -101,12 +101,17 @@ def plot_penalty_matrices_FSPLASH_SSFSPLASH(dir_path: str) -> None:
     #     ax.set_yticks([])
 
     # Set titles of the matrices
-    axs[0].set_title(f"$\\tilde{{\\bm{{D}}}}^{{F}}$", fontsize=12)
-    axs[1].set_title(f"$\\tilde{{\\bm{{D}}}}^{{SSF}}_{{\\alpha}}$", fontsize=12)
+    axs[0].set_title(f"$\\tilde{{\\bm{{D}}}}^{{\\text{{F-SPLASH}}}}$", fontsize=12)
+    axs[1].set_title(
+        f"$\\tilde{{\\bm{{D}}}}^{{\\text{{SSF-SPLASH}}}}_{{\\alpha}}$", fontsize=12
+    )
+
+    max_y = max(Dtilde_FSPLASH.shape[0], Dtilde_SSFSPLASH.shape[0])
 
     for ax in axs.flatten():
         ax.set_xticks([])
         ax.set_yticks([])
+        ax.set_ylim(max_y - 0.5, -0.5)
 
     # Set the spacing between the subplots
     plt.tight_layout(pad=1.5)
@@ -138,7 +143,9 @@ def plot_penalty_matrices_GFSPLASH(dir_path: str) -> None:
     cmap = my_cmap()
 
     # Initialize the figure
-    fig, axs = plt.subplots(1, 2, figsize=(9, 18))
+    fig, axs = plt.subplots(
+        1, 2, figsize=(6, 3 * D_alpha_sym.shape[0] / D_alpha.shape[1])
+    )
 
     # Plot the matrices
     axs[0].matshow(
@@ -155,8 +162,12 @@ def plot_penalty_matrices_GFSPLASH(dir_path: str) -> None:
     )
 
     # Set titles of the matrices
-    axs[0].set_title(f"$\\tilde{{\\bm{{D}}}}_{{\\alpha}}$", fontsize=12)
-    axs[1].set_title(f"$\\tilde{{\\bm{{D}}}}_{{\\alpha, 1}}$", fontsize=12)
+    axs[0].set_title(
+        f"$\\tilde{{\\bm{{D}}}}^{{\\text{{GF-SPLASH}}}}_{{\\alpha, 0}}$", fontsize=12
+    )
+    axs[1].set_title(
+        f"$\\tilde{{\\bm{{D}}}}^{{\\text{{GF-SPLASH}}}}_{{\\alpha, 1}}$", fontsize=12
+    )
 
     for ax in axs.flatten():
         ax.set_xticks([])

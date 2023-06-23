@@ -138,7 +138,7 @@ end
 function calc_Dtilde_sparse(graph::SimpleGraph)::SparseMatrixCSC{Float64}
     D_prime = incidence_matrix(graph, oriented=true) # Incidence matrix needs to be transposed before obtaining D^(G)
     null = null_space_graph_sparse(graph)
-    return vcat(D_prime', null') # Thus transpose here
+    return vcat(D_prime' .* -1, null') # Thus transpose here
 end
 
 function inv_Dtilde_sparse(graph::SimpleGraph)::SparseMatrixCSC{Float64}
@@ -158,7 +158,7 @@ function calc_Dtilde_SSF_sparse(graph::SimpleGraph, h::Int=0)::SparseMatrixCSC{F
             i += 1
         end
     end
-    return vcat(D, extension) # Combine D and the extension
+    return vcat(D .* -1, extension) # Combine D and the extension
 end
 
 function inv_Dtilde_SSF_sparse(graph::SimpleGraph, h::Int=0)::SparseMatrixCSC{Float64}

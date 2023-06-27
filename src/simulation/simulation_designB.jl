@@ -37,6 +37,7 @@ end
 
 function design_B_generate_B(m::Int)::Matrix{Float64}
     B_vals = Dict(
+        3 => 0.30,
         4 => 0.28,
         5 => 0.25,
         6 => 0.23

@@ -34,6 +34,8 @@ The `scripts/` folder contains all the bash scripts, and Kubernetes (k8s) config
 The scripts in this folder contain comments at the top of the files with instructions on how to get it working. The bash scripts contain most of the logic needed to be able to run the Kubernetes jobs on your computer or in the cloud. It uses `kubectl` (which is shipped by Docker Desktop, https://docs.docker.com/desktop/kubernetes/) to manage the jobs and pods.
 
 ### 1.5 `docker/`
+*If you are unfamiliar with Docker, I recommend this article and website for some reference on how to get Docker working on your machine (https://www.stacksimplify.com/aws-eks/docker-basics/get-docker-image-from-docker-hub-and-run-/)*
+
 This folder contains the Dockerfile that is used to build the Docker image that is used to run the models and pipelines, such that it can be run consistently and in the same way on every machine. This is especially handy to manage package and software dependencies across machines. Note that the main Docker image to run the models is available on Dockerhub (https://hub.docker.com/repository/docker/jaccusaurelius/vu-msc-thesis/general). The `jaccusaurelius/vu-msc-thesis:workspace` is the image that was used for most of the computations in the thesis. The `Dockerfile` in this folder can be used to reconstruct a newer version of this image.
 
 To make use of the Docker environment on your computer, after you have installed Docker, you can run the following command while in the root of the project:

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scienceplots
-from matplotlib.ticker import MultipleLocator
+from matplotlib.ticker import MultipleLocator, NullLocator
 
 # Change to project directory
 PROJ_DIR = os.environ["PROJ_DIR"]
@@ -47,22 +47,25 @@ def plot_runtimes_linegraph():
     df_mean, df_std = load_data()
 
     # Set up the figure
-    fig, ax = plt.subplots(figsize=(4, 3))
+    fig, ax = plt.subplots(figsize=(5, 3))
 
     # Add a line for each model
     for col in df_mean.iloc[:, :-1]:
-        ax.plot(
-            df_mean.index,
-            df_mean[col],
-            label=col,
-        )
+        ax.plot(df_mean.index, df_mean[col], marker="o", label=col, markersize=2.5)
+
+    # Change y-axis to log scale
+    ax.set_yscale("log")
+    ax.grid(True)
+
+    # Remove x-axis minor ticks
+    ax.xaxis.set_minor_locator(NullLocator())
 
     # Add a legend
     ax.legend()
 
     # Set axis labels
-    ax.set_xlabel(r"Problem dimension $p$")
-    ax.set_ylabel(r"Runtime (s)")
+    ax.set_xlabel(r"Problem dimension ($p$)")
+    ax.set_ylabel(r"Runtime ($s$)")
 
     # Show plot
     plt.tight_layout()

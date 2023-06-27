@@ -77,7 +77,7 @@ fit_cv_and_time <- function(res_tensor, design, i) {
 
     # PVAR
     t0 <- Sys.time()
-    model_pvar <- fit_pvar.cv(y, nlambdas = 20, nfolds = 1)
+    model_pvar <- fit_pvar.cv(y, nlambdas = 10, nfolds = 1)
     t1 <- Sys.time()
     runtime_pvar <- difftime(t1, t0, units = "secs")[[1]]
 
@@ -98,7 +98,7 @@ fit_cv_and_time <- function(res_tensor, design, i) {
 root_data_dir <- file.path(PROJ_DIR, "data/simulation/runtime")
 
 # Initialize the result tensor
-designs <- list.dirs(root_data_dir, recursive = FALSE, full.names = FALSE)
+designs <- sort(list.dirs(root_data_dir, recursive = FALSE, full.names = FALSE))
 models <- c("FSPLASH", "SSFSPLASH", "SPLASH_a0", "GF_SPLASH_sym_a0", "PVAR")
 K <- 10
 iterations <- seq(1:K)
@@ -106,9 +106,11 @@ res_tensor <- array(NA, dim = c(length(designs), length(models), K), dimnames = 
 
 for (i in iterations) {
     for (design in designs) {
-        print(paste("Design:", design, "Iteration:", i, "\n"), sep = "\n")
+        tic()
+        print(paste("Design:", design, "Iteration:", i))
         read_data_design(design)
         res_tensor <- fit_cv_and_time(res_tensor, design, i)
+        toc()
     }
 }
 

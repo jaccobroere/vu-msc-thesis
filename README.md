@@ -6,7 +6,6 @@
 This repository contains all the necessary code for replicating the results in my MSc thesis.
 
 ## 1. Structure of the repository
-The main structure of the repository is as follows:
 
 ### 1.1 `src/`
 The `src/` folder contains all source code that is used for computation and plotting. It consists of four subfolders:
@@ -14,6 +13,10 @@ The `src/` folder contains all source code that is used for computation and plot
 2. `src/plotting` contains all the source code related to plotting the results and generating the visuals used in the thesis
 3. `src/simulation` contains all the source code related to simulating the data for the simulation study in the thesis (Note that Design 1, 2, and 3 in the thesis text correspond to B, C, and D in this repository, respectively)
 4. `src/playgrounds` this contains no essential code, and was mostly used to quickly explore certain ideas and test things
+
+`src/compute/R/model_fitting.R` is the main file that contains the code to run the models for the simulation experiment. This file uses the model and cross-validation fucntions from `model_cv_wrappers.R`, `utils.R`, `Rcpp/cpp_utils.R`, and `vhat_sigmahat.R`.
+
+For the simulation study, there are some parts that are precomputed, such as the penalty matrices and their inverses. These are computed in Julia (https://julialang.org/), and can be found in `src/compute/jl/`. 
 
 Note that in many of the scripts, the code makes use of an environment variable `PROJ_DIR` that is set to the root of the project. This is done to make the code portable. You should set this environment variable to run the code as is. Or you should replace the lines that make use of this with an explicit path to the root of the project. Note that you can also use the Docker image that I provide later on in this README, which already has this environment variable set.
 

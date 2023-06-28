@@ -33,6 +33,10 @@ The `scripts/` folder contains all the bash scripts, and Kubernetes (k8s) config
 
 The scripts in this folder contain comments at the top of the files with instructions on how to get it working. The bash scripts contain most of the logic needed to be able to run the Kubernetes jobs on your computer or in the cloud. It uses `kubectl` (which is shipped by Docker Desktop, https://docs.docker.com/desktop/kubernetes/) to manage the jobs and pods.
 
+To reproduce the table in the thesis, you can run either of the following to scripts:
+1. `scripts/run_local_full_design.sh` in the Docker environment described in the next section or on your local machine, if all the dependencies are setup correctly. I recommend using the Docker environment, to avoid any dependency issues.
+2. `scripts/run_k8s_full_per_design.sh` using Kubernetes, this requires a bit more setup, but can be more efficient machine capable of strong parallelization. Note that you should first setup the Persistent Volumes using `scripts/k8s/pv/setup_pv.yml` replacing the host locations with the directories on your own host machine, and the Docker image `jaccusaurelius/vu-msc-thesis:workspace` should be available on your machine. The instructions on how to pull it are in the next section.
+
 ### 1.5 `docker/`
 *If you are unfamiliar with Docker, I recommend this article and website for some reference on how to get Docker working on your machine (https://www.stacksimplify.com/aws-eks/docker-basics/get-docker-image-from-docker-hub-and-run-/)*
 

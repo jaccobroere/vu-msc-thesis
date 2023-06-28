@@ -35,7 +35,7 @@ The scripts in this folder contain comments at the top of the files with instruc
 
 To reproduce the table in the thesis, you can run either of the following to scripts:
 1. `scripts/run_local_full_design.sh` in the Docker environment described in the next section or on your local machine, if all the dependencies are setup correctly. I recommend using the Docker environment, to avoid any dependency issues.
-2. `scripts/run_k8s_full_per_design.sh` using Kubernetes, this requires a bit more setup, but can be more efficient machine capable of strong parallelization. Note that you should first setup the Persistent Volumes using `scripts/k8s/pv/setup_pv.yml` replacing the host locations with the directories on your own host machine, and the Docker image `jaccusaurelius/vu-msc-thesis:workspace` should be available on your machine. The instructions on how to pull it are in the next section.
+2. `scripts/run_k8s_full_per_design.sh` using Kubernetes, this requires a bit more setup, but can be more efficient machine capable of strong parallelization. Note that you should first setup the Persistent Volumes using `scripts/k8s/pv/setup_pv.yml` replacing the host locations with the directories on your own host machine, and the Docker image `jaccusaurelius/vu-msc-thesis:workspace` should be available on your machine. The instructions on how to pull it are in the next section. The amount of parallelism can be controlled in `scripts/k8s/mc_simuulation_TEMPLATE.yml`
 
 ### 1.5 `docker/`
 *If you are unfamiliar with Docker, I recommend this article and website for some reference on how to get Docker working on your machine (https://www.stacksimplify.com/aws-eks/docker-basics/get-docker-image-from-docker-hub-and-run-/)*

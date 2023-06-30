@@ -170,9 +170,7 @@ function main(sim_design_id, uuidtag)
         Dtilde_inv = inv_Dtilde_sparse(regular_graph)
         Dtilde_SSF = calc_Dtilde_SSF_sparse(regular_graph, h)
         Dtilde_SSF_inv = inv_Dtilde_SSF_sparse(regular_graph, h)
-        Dtilde_SDF = calc_Dtilde_SDF_sparse(regular_graph, p, h)
-        Dtilde_SDF_inv = inv_Dtilde_SDF_sparse(regular_graph, p, h)
-
+        
         # Save the matrices in sparse matrix format
         mmwrite(joinpath(path_sim, "Dtilde.mtx"), Dtilde)
         mmwrite(joinpath(path_sim, "Dtilde_inv.mtx"), Dtilde_inv)

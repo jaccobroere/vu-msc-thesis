@@ -199,29 +199,6 @@ function generate_diagonal_collection(p::Int, bandwidth::Int)::Dict{Tuple{Char,I
     return diagonal_collection
 end
 
-function entire_diagonal_penalties(D::SparseMatrixCSC, p::Int, h::Int)::Matrix{Int}
-    n_diagonals = 4h + 1
-    diagonal_collection = generate_diagonal_collection(p, h)
-    penalties = spzeros(Int, n_diagonals, size(D, 2))
-    sorted_keys = sort(collect(keys(diagonal_collection)))
-    for (i, key) in enumerate(sorted_keys)
-        value = diagonal_collection[key]
-        setindex!(penalties, ones(Int, length(value)), i, value)
-    end
-
-    return penalties
-end
-
-function calc_Dtilde_SDF_sparse(graph::SimpleGraph, p::Int, h::Int=0)::SparseMatrixCSC{Float64}
-    D = sparse(incidence_matrix(graph, oriented=true)') # Incidence matrix needs to be transposed before obtaining D^(G)
-    EX = entire_diagonal_penalties(D, p, h)
-    return vcat(D, EX)
-end
-
-function inv_Dtilde_SDF_sparse(graph::SimpleGraph, p::Int, h::Int=0)::SparseMatrixCSC{Float64}
-    Dtilde = calc_Dtilde_SDF_sparse(graph, p, h)
-    return sparse(inv(lu(Dtilde)))
-end
 
 function save_bandwiths_bootstrap(path::String, h0, h1)
     df = DataFrame(h0=[h0], h1=[h1])
